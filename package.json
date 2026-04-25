@@ -10,7 +10,6 @@
     "format": "biome format --write"
   },
   "dependencies": {
-    "@next/swc-win32-x64-msvc": "^16.2.1",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.9.0",
     "mongodb": "^7.1.1",
