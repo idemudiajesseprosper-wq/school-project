@@ -1,7 +1,7 @@
 import { connectMongoDB } from "../../../../lib/connect";
 import Code from "../../../../models/Code";
 import { NextResponse } from "next/server";
-import nodemailer from "nodemailer";
+
 
 export async function POST(req) {
   try {
