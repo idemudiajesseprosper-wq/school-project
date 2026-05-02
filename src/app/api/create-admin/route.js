@@ -1,39 +1,36 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { connectMongoDB } from "../../../../lib/connect";
-import Admin from "../../../../models/Admin";
+import User from "../../../../models/User";
 
 export async function GET() {
   try {
     await connectMongoDB();
 
-    const exists = await Admin.findOne({
-      username: "admin",
-    });
-
-    if (exists) {
-      return NextResponse.json({
-        success: false,
-        message: "Admin already exists",
-      });
-    }
-
     const hashed = await bcrypt.hash("admin123", 10);
 
-    await Admin.create({
-      username: "admin",
-      password: hashed,
-    });
+    await User.findOneAndUpdate(
+      { username: "admin" },
+      {
+        fullName: "Main Admin",
+        username: "admin",
+        email: "admin@school.com",
+        password: hashed,
+        role: "admin",
+        isVerified: true,
+      },
+      { upsert: true, new: true }
+    );
 
     return NextResponse.json({
       success: true,
-      message: "Admin created",
+      message: "Admin ready",
     });
 
   } catch (error) {
     return NextResponse.json({
       success: false,
-      message: "Error",
+      message: "Error creating admin",
     });
   }
 }

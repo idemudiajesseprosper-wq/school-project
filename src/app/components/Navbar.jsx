@@ -107,11 +107,11 @@ export default function Navbar() {
           <div className="flex items-center gap-4">
             <span className="flex items-center">
               <MailIcon />
-              info@educal.com
+              wfsonline1999@gmail.com
             </span>
             <span className="hidden sm:flex items-center">
               <LocationIcon />
-              Moon ave, New York, 2020 NY US
+              2, Airhueghiomon street, Osazuwa, Off Etete Road, Enogie, Benin City
             </span>
           </div>
           <div className="flex items-center gap-3">

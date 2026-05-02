@@ -62,13 +62,17 @@ export default function AdminPage() {
   };
 
   const logout = async () => {
-    await fetch("/api/admin-logout", {
+  try {
+    await fetch("/api/auth/logout", {
       method: "POST",
     });
 
     toast.success("Logged out");
     router.push("/admin/login");
-  };
+  } catch (error) {
+    toast.error("Logout failed");
+  }
+};
 
   // Stats
   const total = applications.length;

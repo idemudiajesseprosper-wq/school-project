@@ -34,7 +34,7 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/admin-login", {
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -42,7 +42,7 @@ export default function AdminLoginPage() {
         body: JSON.stringify({
           username: form.username,
           password: form.password,
-          remember: form.remember,
+          role: "admin",
         }),
       });
 
@@ -70,7 +70,7 @@ export default function AdminLoginPage() {
       <div className="relative w-full max-w-md z-10">
         <div className="backdrop-blur-2xl bg-white/10 border border-white/10 rounded-3xl shadow-2xl p-8">
 
-          {/* LOGO */}
+          {/* Logo */}
           <div className="text-center mb-8">
             <div className="w-16 h-16 rounded-2xl bg-white text-black font-bold text-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
               A
@@ -85,10 +85,10 @@ export default function AdminLoginPage() {
             </p>
           </div>
 
-          {/* FORM */}
+          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
 
-            {/* USERNAME */}
+            {/* Username */}
             <div>
               <label className="text-sm text-zinc-200 block mb-2">
                 Username
@@ -105,7 +105,7 @@ export default function AdminLoginPage() {
               />
             </div>
 
-            {/* PASSWORD */}
+            {/* Password */}
             <div>
               <label className="text-sm text-zinc-200 block mb-2">
                 Password
@@ -134,7 +134,7 @@ export default function AdminLoginPage() {
               </div>
             </div>
 
-            {/* OPTIONS */}
+            {/* Options */}
             <div className="flex items-center justify-between text-sm">
 
               <label className="flex items-center gap-2 text-zinc-300 cursor-pointer">
@@ -159,7 +159,7 @@ export default function AdminLoginPage() {
               </button>
             </div>
 
-            {/* BUTTON */}
+            {/* Button */}
             <button
               type="submit"
               disabled={loading}
@@ -169,7 +169,7 @@ export default function AdminLoginPage() {
             </button>
           </form>
 
-          {/* FOOTER */}
+          {/* Footer */}
           <p className="text-center text-xs text-zinc-400 mt-6">
             Authorized administrators only
           </p>
