@@ -38,6 +38,7 @@ const LogoIcon = () => (
     width={52}
     height={52}
     style={{ objectFit: "contain" }}
+    priority
   />
 );
 
