@@ -33,12 +33,11 @@ const PersonIcon = () => (
 
 const LogoIcon = () => (
   <img
-    src="/images/logo.png"
+    src="/logo.PNG"
     alt="Winners' Foundation School Logo"
     width={52}
     height={52}
     style={{ objectFit: "contain" }}
-    priority
   />
 );
 
