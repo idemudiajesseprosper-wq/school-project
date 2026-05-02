@@ -27,7 +27,7 @@ const ArrowIcon = () => (
 
 const LogoIcon = () => (
   <img
-    src="/images/logo.png"
+    src="/logo.PNG"
     alt="Winners' Foundation School Logo"
     width={56}
     height={56}

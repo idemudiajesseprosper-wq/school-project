@@ -68,7 +68,7 @@ export default function StudentLogin() {
           <div className="flex flex-col items-center mb-8">
             <div className="w-16 h-16 rounded-2xl bg-white shadow-md flex items-center justify-center">
   <img
-    src="/images/logo.png"
+    src="/logo.PNG"
     alt="School Logo"
     className="w-10 h-10 object-contain"
   />
