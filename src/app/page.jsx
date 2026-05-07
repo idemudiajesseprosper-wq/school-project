@@ -74,7 +74,8 @@ export default function Home() {
           inset: 0;
           background-image: url('/images/Hero.jpeg');
           background-size: cover;
-          background-position: center;
+          /* Shift the picture up so more of the top/center is visible */
+          background-position: center 20%;
           transform: scale(1.04);
           animation: heroZoom 12s ease-out forwards;
         }
@@ -82,13 +83,15 @@ export default function Home() {
           from { transform: scale(1.04); }
           to   { transform: scale(1); }
         }
+
+        /* Lighter overlays so picture is more visible */
         .hero-overlay-r {
           position: absolute; inset: 0;
-          background: linear-gradient(to right, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.48) 55%, rgba(0,0,0,0.18) 100%);
+          background: linear-gradient(to right, rgba(0,0,0,0.70) 0%, rgba(0,0,0,0.40) 55%, rgba(0,0,0,0.15) 100%);
         }
         .hero-overlay-b {
           position: absolute; inset: 0;
-          background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 50%);
+          background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 50%);
         }
 
         @keyframes fadeUp {

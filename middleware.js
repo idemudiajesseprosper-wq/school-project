@@ -2,18 +2,20 @@ import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 
 export function middleware(req) {
-  const token = req.cookies.get("token")?.value;
+  const token =
+    req.cookies.get("auth_token")?.value;
 
   const url = req.nextUrl;
 
   // Protect admin routes
   if (url.pathname.startsWith("/admin")) {
+
     // Allow login page
     if (url.pathname === "/admin/login") {
       return NextResponse.next();
     }
 
-    // No token → redirect
+    // No token
     if (!token) {
       return NextResponse.redirect(
         new URL("/admin/login", req.url)
@@ -26,7 +28,7 @@ export function middleware(req) {
         process.env.JWT_SECRET
       );
 
-      // Check role
+      // Role protection
       if (decoded.role !== "admin") {
         return NextResponse.redirect(
           new URL("/login", req.url)
