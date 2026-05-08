@@ -6,6 +6,8 @@ import User from "../../../../../models/User";
 
 export async function POST(req) {
   try {
+    console.log("LOGIN REQUEST STARTED");
+
     const {
       email,
       username,
@@ -13,12 +15,22 @@ export async function POST(req) {
       role,
     } = await req.json();
 
+    console.log("REQUEST BODY:", {
+      email,
+      username,
+      role,
+    });
+
     await connectMongoDB();
+
+    console.log("MONGODB CONNECTED");
 
     let user;
 
     // ADMIN LOGIN
     if (role === "admin") {
+      console.log("ADMIN LOGIN ATTEMPT");
+
       user = await User.findOne({
         username,
       });
@@ -26,13 +38,19 @@ export async function POST(req) {
 
     // STUDENT LOGIN
     else {
+      console.log("STUDENT LOGIN ATTEMPT");
+
       user = await User.findOne({
         email,
       });
     }
 
+    console.log("USER FOUND:", user);
+
     // USER NOT FOUND
     if (!user) {
+      console.log("ERROR: USER NOT FOUND");
+
       return NextResponse.json({
         success: false,
         message: "Invalid credentials",
@@ -41,6 +59,11 @@ export async function POST(req) {
 
     // ROLE CHECK
     if (user.role !== role) {
+      console.log("ERROR: ROLE MISMATCH", {
+        expected: role,
+        actual: user.role,
+      });
+
       return NextResponse.json({
         success: false,
         message: "Unauthorized role",
@@ -54,7 +77,11 @@ export async function POST(req) {
         user.password
       );
 
+    console.log("PASSWORD VALID:", validPassword);
+
     if (!validPassword) {
+      console.log("ERROR: INVALID PASSWORD");
+
       return NextResponse.json({
         success: false,
         message: "Invalid credentials",
@@ -70,6 +97,9 @@ export async function POST(req) {
     const device =
       req.headers.get("user-agent") ||
       "Unknown Device";
+
+    console.log("LOGIN DEVICE:", device);
+    console.log("LOGIN IP:", ip);
 
     // UPDATE USER ACTIVITY
     user.lastLogin = new Date();
@@ -93,7 +123,11 @@ export async function POST(req) {
 
     await user.save();
 
+    console.log("USER LOGIN INFO SAVED");
+
     // CREATE JWT TOKEN
+    console.log("JWT SECRET EXISTS:", !!process.env.JWT_SECRET);
+
     const token = jwt.sign(
       {
         id: user._id,
@@ -105,6 +139,8 @@ export async function POST(req) {
       }
     );
 
+    console.log("TOKEN CREATED");
+
     // RESPONSE
     const response = NextResponse.json({
       success: true,
@@ -112,29 +148,34 @@ export async function POST(req) {
     });
 
     // SET AUTH COOKIE
-    response.cookies.set(
-      "auth_token",
-      token,
-      {
-        httpOnly: true,
+   response.cookies.set(
+  "auth_token",
+  token,
+  {
+    httpOnly: true,
 
-        secure:
-          process.env.NODE_ENV ===
-          "production",
+    secure: true,
 
-        sameSite: "lax",
+    sameSite: "none",
 
-        path: "/",
+    path: "/",
 
-        maxAge:
-          60 * 60 * 24 * 7,
-      }
-    );
+    maxAge: 60 * 60 * 24 * 7,
+  }
+);
+
+    console.log("COOKIE SET SUCCESSFULLY");
+    console.log("LOGIN SUCCESSFUL");
 
     return response;
 
   } catch (error) {
+    console.log("LOGIN API ERROR:");
     console.log(error);
+
+    console.log("ERROR MESSAGE:", error.message);
+
+    console.log("ERROR STACK:", error.stack);
 
     return NextResponse.json({
       success: false,

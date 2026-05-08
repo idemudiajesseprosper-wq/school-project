@@ -36,9 +36,13 @@ export default function AdminLoginPage() {
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
+
         headers: {
           "Content-Type": "application/json",
         },
+
+        credentials: "include",
+
         body: JSON.stringify({
           username: form.username,
           password: form.password,
@@ -48,13 +52,24 @@ export default function AdminLoginPage() {
 
       const data = await res.json();
 
+      console.log("LOGIN RESPONSE:", data);
+
       if (data.success) {
         toast.success("Login successful");
-        router.push("/admin");
+
+        setTimeout(() => {
+          router.push("/admin");
+        }, 500);
+
       } else {
-        toast.error(data.message || "Invalid credentials");
+        toast.error(
+          data.message || "Invalid credentials"
+        );
       }
+
     } catch (error) {
+      console.log("LOGIN ERROR:", error);
+
       toast.error("Something went wrong");
     }
 
@@ -63,7 +78,7 @@ export default function AdminLoginPage() {
 
   return (
     <div className="min-h-screen pt-32 pb-10 px-4 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-800 flex items-start justify-center overflow-y-auto relative">
-      
+
       {/* Background Glow */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.06),transparent_30%)] pointer-events-none" />
 
