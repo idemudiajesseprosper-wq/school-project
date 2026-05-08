@@ -9,11 +9,9 @@ export default function AdminPage() {
 
   const [applications, setApplications] = useState([]);
   const [filteredApps, setFilteredApps] = useState([]);
-
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [classFilter, setClassFilter] = useState("");
-
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,291 +26,288 @@ export default function AdminPage() {
     try {
       const res = await fetch("/api/get-applications");
       const data = await res.json();
-
       setApplications(data.applications || []);
     } catch (error) {
       toast.error("Failed to load applications");
     }
-
     setLoading(false);
   };
 
   const filterData = () => {
     let data = [...applications];
-
     if (search) {
       data = data.filter((app) =>
         app.fullName?.toLowerCase().includes(search.toLowerCase())
       );
     }
-
     if (statusFilter) {
-      data = data.filter(
-        (app) => (app.status || "Pending") === statusFilter
-      );
+      data = data.filter((app) => (app.status || "Pending") === statusFilter);
     }
-
     if (classFilter) {
-      data = data.filter(
-        (app) => app.classApplying === classFilter
-      );
+      data = data.filter((app) => app.classApplying === classFilter);
     }
-
     setFilteredApps(data);
   };
 
   const logout = async () => {
-  try {
-    await fetch("/api/auth/logout", {
-      method: "POST",
-    });
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      toast.success("Logged out");
+      router.push("/admin/login");
+    } catch (error) {
+      toast.error("Logout failed");
+    }
+  };
 
-    toast.success("Logged out");
-    router.push("/admin/login");
-  } catch (error) {
-    toast.error("Logout failed");
-  }
-};
-
-  // Stats
   const total = applications.length;
-
-  const approved = applications.filter(
-    (a) => a.status === "Approved"
-  ).length;
-
-  const rejected = applications.filter(
-    (a) => a.status === "Rejected"
-  ).length;
-
+  const approved = applications.filter((a) => a.status === "Approved").length;
+  const rejected = applications.filter((a) => a.status === "Rejected").length;
   const pending = applications.filter(
     (a) => !a.status || a.status === "Pending"
   ).length;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 md:p-8 mt-24">
+    <div className="min-h-screen bg-gray-100">
 
-      {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Admin Dashboard
-          </h1>
-
-          <p className="text-gray-500 text-sm mt-1">
-            Manage student applications
-          </p>
+      {/* TOP BAR */}
+      <div className="bg-[#0c1a2e] px-6 py-3 flex items-center justify-between mt-16 md:mt-28">
+        <div className="flex items-center gap-3">
+          <div className="w-7 h-7 bg-[#1e6fa8] rounded-md flex items-center justify-center text-white text-xs font-medium">
+            W
+          </div>
+          <div>
+            <p className="text-[#e8edf3] text-sm font-medium leading-tight">
+              Winners&apos; Foundation School
+            </p>
+            <p className="text-[#6b82a0] text-xs">
+              Admissions Portal — Admin
+            </p>
+          </div>
         </div>
 
-        <button
-          onClick={logout}
-          className="bg-red-500 hover:bg-red-600 text-white px-5 py-3 rounded-xl font-medium"
-        >
-          Logout
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => router.push("/admin/codes")}
+            className="bg-white/[0.06] hover:bg-white/10 border border-white/[0.12] text-[#b0c4d8] text-xs px-3 py-1.5 rounded-md transition-colors"
+          >
+            Codes
+          </button>
+          <button
+            onClick={logout}
+            className="bg-red-900/30 hover:bg-red-900/50 border border-red-500/30 text-red-400 text-xs px-3 py-1.5 rounded-md transition-colors"
+          >
+            Logout
+          </button>
+        </div>
       </div>
 
-      <button
-  onClick={() =>
-    window.location.href = "/admin/codes"
-  }
-  className="bg-blue-600 text-white px-4 py-2 rounded"
->
-  Codes
-</button>
+      <div className="p-5 md:p-6">
 
-      {/* STATS */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        {/* STATS */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+          <StatCard label="Total applications" value={total} />
+          <StatCard
+            label="Approved"
+            value={approved}
+            valueClass="text-green-700"
+            dot="bg-green-600"
+          />
+          <StatCard
+            label="Pending"
+            value={pending}
+            valueClass="text-amber-700"
+            dot="bg-amber-500"
+          />
+          <StatCard
+            label="Rejected"
+            value={rejected}
+            valueClass="text-red-600"
+            dot="bg-red-500"
+          />
+        </div>
 
-        <Card title="Total" value={total} />
+        {/* FILTERS */}
+        <div className="grid md:grid-cols-3 gap-2.5 mb-4">
+          <FilterField icon="🔍">
+            <input
+              placeholder="Search student name..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-transparent outline-none text-sm text-gray-800 placeholder-gray-400"
+            />
+          </FilterField>
 
-        <Card
-          title="Approved"
-          value={approved}
-          color="text-green-600"
-          bg="bg-green-50"
-        />
+          <FilterField icon="▾">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full bg-transparent outline-none text-sm text-gray-800 cursor-pointer"
+            >
+              <option value="">All statuses</option>
+              <option>Pending</option>
+              <option>Approved</option>
+              <option>Rejected</option>
+            </select>
+          </FilterField>
 
-        <Card
-          title="Pending"
-          value={pending}
-          color="text-yellow-600"
-          bg="bg-yellow-50"
-        />
+          <FilterField icon="▾">
+            <select
+              value={classFilter}
+              onChange={(e) => setClassFilter(e.target.value)}
+              className="w-full bg-transparent outline-none text-sm text-gray-800 cursor-pointer"
+            >
+              <option value="">All classes</option>
+              {[
+                "Nursery 1","Nursery 2",
+                "Primary 1","Primary 2","Primary 3","Primary 4","Primary 5","Primary 6",
+                "JSS 1","JSS 2","JSS 3",
+                "SSS 1","SSS 2","SSS 3",
+              ].map((c) => (
+                <option key={c}>{c}</option>
+              ))}
+            </select>
+          </FilterField>
+        </div>
 
-        <Card
-          title="Rejected"
-          value={rejected}
-          color="text-red-600"
-          bg="bg-red-50"
-        />
-      </div>
-
-      {/* FILTERS */}
-      <div className="bg-white rounded-2xl shadow-sm p-4 mb-8 grid md:grid-cols-3 gap-3">
-
-        <input
-          placeholder="Search student name..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
-        />
-
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="border rounded-xl px-4 py-3 outline-none"
-        >
-          <option value="">All Status</option>
-          <option>Pending</option>
-          <option>Approved</option>
-          <option>Rejected</option>
-        </select>
-
-        <select
-          value={classFilter}
-          onChange={(e) => setClassFilter(e.target.value)}
-          className="border rounded-xl px-4 py-3 outline-none"
-        >
-          <option value="">All Classes</option>
-          <option>Nursery 1</option>
-          <option>Nursery 2</option>
-          <option>Primary 1</option>
-          <option>Primary 2</option>
-          <option>Primary 3</option>
-          <option>Primary 4</option>
-          <option>Primary 5</option>
-          <option>Primary 6</option>
-          <option>JSS 1</option>
-          <option>JSS 2</option>
-          <option>JSS 3</option>
-          <option>SSS 1</option>
-          <option>SSS 2</option>
-          <option>SSS 3</option>
-        </select>
-      </div>
-
-      {/* TABLE */}
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm min-w-[900px]">
-
-            <thead className="bg-gray-100 text-gray-700">
-              <tr>
-                <th className="p-4 text-left">Student</th>
-                <th className="p-4 text-left">Class</th>
-                <th className="p-4 text-left">Parent</th>
-                <th className="p-4 text-left">Phone</th>
-                <th className="p-4 text-left">Date</th>
-                <th className="p-4 text-left">Status</th>
-                <th className="p-4 text-center">Action</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {!loading &&
-                filteredApps.map((app) => (
-                  <tr
-                    key={app._id}
-                    className="border-t hover:bg-gray-50 transition"
-                  >
-                    <td className="p-4 font-medium text-gray-800">
-                      {app.fullName}
-                    </td>
-
-                    <td className="p-4">
-                      {app.classApplying || "-"}
-                    </td>
-
-                    <td className="p-4">
-                      {app.parentName}
-                    </td>
-
-                    <td className="p-4">
-                      {app.parentPhone}
-                    </td>
-
-                    <td className="p-4 text-gray-500">
-                      {new Date(
-                        app.createdAt
-                      ).toLocaleDateString()}
-                    </td>
-
-                    <td className="p-4">
-                      <StatusBadge
-                        status={app.status || "Pending"}
-                      />
-                    </td>
-
-                    <td className="p-4 text-center">
-                      <button
-                        onClick={() =>
-                          router.push(
-                            `/admin/applications/${app._id}`
-                          )
-                        }
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-medium"
+        {/* TABLE */}
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[820px]">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-200">
+                  {["Student","Class","Parent / Guardian","Phone","Date","Status",""].map(
+                    (h, i) => (
+                      <th
+                        key={i}
+                        className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-wider"
                       >
-                        View Profile
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
+                        {h}
+                      </th>
+                    )
+                  )}
+                </tr>
+              </thead>
+
+              <tbody>
+                {!loading &&
+                  filteredApps.map((app) => (
+                    <tr
+                      key={app._id}
+                      className="border-t border-gray-100 hover:bg-gray-50 transition-colors"
+                    >
+                      <td className="px-4 py-3">
+                        <p className="font-medium text-gray-800 text-sm">
+                          {app.fullName}
+                        </p>
+                        <p className="text-[11px] text-gray-400">
+                          APP-{String(app._id).slice(-4).toUpperCase()}
+                        </p>
+                      </td>
+
+                      <td className="px-4 py-3 text-gray-600 text-sm">
+                        {app.classApplying || "—"}
+                      </td>
+
+                      <td className="px-4 py-3 text-gray-600 text-sm">
+                        {app.parentName}
+                      </td>
+
+                      <td className="px-4 py-3 text-gray-400 text-sm">
+                        {app.parentPhone}
+                      </td>
+
+                      <td className="px-4 py-3 text-gray-400 text-sm">
+                        {new Date(app.createdAt).toLocaleDateString("en-GB", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </td>
+
+                      <td className="px-4 py-3">
+                        <StatusBadge status={app.status || "Pending"} />
+                      </td>
+
+                      <td className="px-4 py-3">
+                        <button
+                          onClick={() =>
+                            router.push(`/admin/applications/${app._id}`)
+                          }
+                          className="text-[#1e6fa8] border border-[#1e6fa8]/40 hover:bg-[#1e6fa8]/5 text-xs font-medium px-3 py-1.5 rounded-md transition-colors whitespace-nowrap"
+                        >
+                          View →
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+
+          {!loading && filteredApps.length === 0 && (
+            <div className="py-16 text-center text-gray-400 text-sm">
+              No applications found
+            </div>
+          )}
+
+          {loading && (
+            <div className="py-16 text-center text-gray-400 text-sm">
+              Loading applications...
+            </div>
+          )}
         </div>
-
-        {!loading && filteredApps.length === 0 && (
-          <div className="p-10 text-center text-gray-500">
-            No applications found
-          </div>
-        )}
-
-        {loading && (
-          <div className="p-10 text-center text-gray-500">
-            Loading applications...
-          </div>
-        )}
       </div>
     </div>
   );
 }
 
-/* COMPONENTS */
+/* ── Sub-components ── */
 
-function Card({
-  title,
-  value,
-  color = "text-gray-900",
-  bg = "bg-white",
-}) {
+function StatCard({ label, value, valueClass = "text-gray-900", dot }) {
   return (
-    <div className={`${bg} rounded-2xl p-5 shadow-sm`}>
-      <p className="text-sm text-gray-500">{title}</p>
-      <h2 className={`text-2xl font-bold mt-2 ${color}`}>
-        {value}
-      </h2>
+    <div className="bg-white border border-gray-200 rounded-xl p-4">
+      <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+        {dot && (
+          <span className={`inline-block w-1.5 h-1.5 rounded-full ${dot}`} />
+        )}
+        {label}
+      </p>
+      <p className={`text-2xl font-semibold ${valueClass}`}>{value}</p>
+    </div>
+  );
+}
+
+function FilterField({ icon, children }) {
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg px-3 py-2.5 flex items-center gap-2 focus-within:border-[#1e6fa8] focus-within:ring-1 focus-within:ring-[#1e6fa8]/20 transition-all">
+      <span className="text-gray-300 text-sm select-none">{icon}</span>
+      {children}
     </div>
   );
 }
 
 function StatusBadge({ status }) {
   const styles = {
-    Approved:
-      "bg-green-100 text-green-700",
-    Rejected:
-      "bg-red-100 text-red-700",
-    Pending:
-      "bg-yellow-100 text-yellow-700",
+    Approved: "bg-green-50 text-green-700",
+    Rejected:  "bg-red-50 text-red-600",
+    Pending:   "bg-amber-50 text-amber-700",
+  };
+
+  const dots = {
+    Approved: "bg-green-500",
+    Rejected:  "bg-red-500",
+    Pending:   "bg-amber-500",
   };
 
   return (
     <span
-      className={`px-3 py-1 rounded-full text-xs font-semibold ${
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium ${
         styles[status] || styles.Pending
       }`}
     >
+      <span
+        className={`w-1.5 h-1.5 rounded-full ${dots[status] || dots.Pending}`}
+      />
       {status}
     </span>
   );

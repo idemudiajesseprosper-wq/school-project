@@ -60,7 +60,15 @@ export default function Home() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,800;0,900;1,800&family=Lato:wght@300;400;700&display=swap');
 
-        /* ── HERO SHELL ── */
+        @keyframes heroZoom {
+          from { transform: scale(1.04); }
+          to   { transform: scale(1.0); }
+        }
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(22px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+
         .hero-wrap {
           position: relative;
           width: 100%;
@@ -69,22 +77,20 @@ export default function Home() {
           background: #000;
           overflow: hidden;
         }
-        .hero-bg {
+
+        /* KEY CHANGE: use <img> instead of background-image.
+           object-position gives reliable, cross-browser control. */
+        .hero-img {
           position: absolute;
           inset: 0;
-          background-image: url('/images/Hero.jpeg');
-          background-size: cover;
-          /* Shift the picture up so more of the top/center is visible */
-          background-position: center 20%;
-          transform: scale(1.04);
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center 20%;
           animation: heroZoom 12s ease-out forwards;
-        }
-        @keyframes heroZoom {
-          from { transform: scale(1.04); }
-          to   { transform: scale(1); }
+          transform-origin: center center;
         }
 
-        /* Lighter overlays so picture is more visible */
         .hero-overlay-r {
           position: absolute; inset: 0;
           background: linear-gradient(to right, rgba(0,0,0,0.70) 0%, rgba(0,0,0,0.40) 55%, rgba(0,0,0,0.15) 100%);
@@ -94,12 +100,6 @@ export default function Home() {
           background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 50%);
         }
 
-        @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(22px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-
-        /* ── DESKTOP CONTENT ── */
         .hero-desktop-content {
           position: relative;
           z-index: 10;
@@ -165,7 +165,6 @@ export default function Home() {
         }
         .hero-learn-link:hover { color: white; }
 
-        /* trusted badge — desktop */
         .trusted-badge {
           display: flex; flex-direction: column;
           align-items: center; gap: 10px;
@@ -191,10 +190,36 @@ export default function Home() {
         }
         .trusted-stars { font-size: 0.72rem; color: #FBBF24; letter-spacing: 3px; }
 
-        /* ── MOBILE HERO CARD ── */
+        /* ── MOBILE ── */
         .hero-mobile-card { display: none; }
 
         @media (max-width: 768px) {
+          /* object-position on an <img> is reliable — this will work */
+          .hero-img {
+            object-position: center -5%;
+            animation: none;
+            transform: none;
+          }
+
+          /* lighten the side overlay on mobile so the school shows through */
+          .hero-overlay-r {
+            background: linear-gradient(
+              to right,
+              rgba(0,0,0,0.10) 0%,
+              rgba(0,0,0,0.05) 100%
+            );
+          }
+          /* heavy bottom gradient so text is always readable */
+          .hero-overlay-b {
+            background: linear-gradient(
+              to top,
+              rgba(0,0,0,0.88) 0%,
+              rgba(0,0,0,0.65) 32%,
+              rgba(0,0,0,0.20) 58%,
+              transparent 100%
+            );
+          }
+
           .hero-desktop-content { display: none; }
 
           .hero-mobile-card {
@@ -204,18 +229,9 @@ export default function Home() {
             bottom: 0; left: 0; right: 0;
             z-index: 10;
             padding: 0 22px 44px;
-            /* tall gradient so text always readable */
-            background: linear-gradient(
-              to top,
-              rgba(0,0,0,0.97) 0%,
-              rgba(0,0,0,0.85) 40%,
-              rgba(0,0,0,0.5)  70%,
-              transparent      100%
-            );
             animation: fadeUp 0.9s 0.15s ease both;
           }
 
-          /* pill eyebrow */
           .mob-eyebrow {
             display: inline-flex; align-items: center; gap: 7px;
             font-family: 'Lato', sans-serif;
@@ -234,7 +250,6 @@ export default function Home() {
             background: #60a5fa; border-radius: 50%;
             flex-shrink: 0;
           }
-
           .mob-title {
             font-family: 'Playfair Display', serif;
             font-weight: 900;
@@ -243,15 +258,12 @@ export default function Home() {
             margin-bottom: 12px;
           }
           .mob-title em { font-style: italic; color: #93c5fd; }
-
           .mob-sub {
             font-family: 'Lato', sans-serif;
             font-weight: 300; font-size: 0.875rem;
             line-height: 1.75; color: rgba(255,255,255,0.62);
             margin-bottom: 22px;
           }
-
-          /* frosted stats strip */
           .mob-stats {
             display: flex;
             border: 1px solid rgba(255,255,255,0.1);
@@ -278,8 +290,6 @@ export default function Home() {
             letter-spacing: 0.1em; text-transform: uppercase;
             color: rgba(255,255,255,0.4);
           }
-
-          /* CTA row */
           .mob-cta-row {
             display: flex; gap: 10px; align-items: stretch;
           }
@@ -358,7 +368,12 @@ export default function Home() {
       <div>
         {/* ── HERO ── */}
         <div className="hero-wrap">
-          <div className="hero-bg" />
+          {/* <img> with object-position — far more reliable than background-position */}
+          <img
+            src="/images/Hero.jpeg"
+            alt="Winners' Foundation School campus"
+            className="hero-img"
+          />
           <div className="hero-overlay-r" />
           <div className="hero-overlay-b" />
 
@@ -390,7 +405,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* MOBILE — bottom-anchored premium card */}
+          {/* MOBILE */}
           <div className="hero-mobile-card">
             <span className="mob-eyebrow">
               <span className="mob-eyebrow-dot" />
