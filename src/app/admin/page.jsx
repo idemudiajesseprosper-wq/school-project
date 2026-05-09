@@ -70,7 +70,7 @@ export default function AdminPage() {
     <div className="min-h-screen bg-gray-100">
 
       {/* TOP BAR */}
-      <div className="bg-[#0c1a2e] px-6 py-3 flex items-center justify-between mt-16 md:mt-28">
+      <div className="bg-[#0c1a2e] px-6 py-3 flex items-center justify-between mt-28 md:mt-28">
         <div className="flex items-center gap-3">
           <div className="w-7 h-7 bg-[#1e6fa8] rounded-md flex items-center justify-center text-white text-xs font-medium">
             W
@@ -86,6 +86,15 @@ export default function AdminPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+  onClick={() =>
+    router.push("/admin/students")
+  }
+  className="bg-black text-white px-5 py-3 rounded-xl"
+>
+  Students
+</button>
+
           <button
             onClick={() => router.push("/admin/codes")}
             className="bg-white/[0.06] hover:bg-white/10 border border-white/[0.12] text-[#b0c4d8] text-xs px-3 py-1.5 rounded-md transition-colors"

@@ -2,125 +2,619 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import toast from "react-hot-toast";
+
+const STEPS = ["Verify", "Personal", "Account"];
 
 export default function RegisterPage() {
   const router = useRouter();
 
-  const [form, setForm] = useState({
-    fullName: "",
-    email: "",
-    password: "",
-  });
-
+  const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  const updateField = (key, value) => {
-    setForm((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
+  const [form, setForm] = useState({
+    accessCode: "",
+    fullName: "",
+    dateOfBirth: "",
+    gender: "",
+    admissionNumber: "",
+    classLevel: "",
+    parentName: "",
+    parentPhone: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+
+  const update = (key, value) =>
+    setForm((prev) => ({ ...prev, [key]: value }));
+
+  // Step 0 — verify access code
+  const verifyCode = async () => {
+    if (!form.accessCode.trim()) {
+      toast.error("Enter your access code");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch("/api/verify-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: form.accessCode.trim() }),
+      });
+      const data = await res.json();
+      if (data.valid) {
+        toast.success("Code verified!");
+        setStep(1);
+      } else {
+        toast.error(data.message || "Invalid access code");
+      }
+    } catch {
+      toast.error("Could not verify code");
+    }
+    setLoading(false);
   };
 
+  // Step 1 — validate personal info
+  const nextToAccount = () => {
+    if (!form.fullName || !form.dateOfBirth || !form.gender || !form.classLevel) {
+      toast.error("Please fill all required fields");
+      return;
+    }
+    setStep(2);
+  };
+
+  // Step 2 — final submit
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // ✅ Basic validation
-    if (!form.fullName || !form.email || !form.password) {
+    if (!form.email || !form.password || !form.confirmPassword) {
       toast.error("All fields are required");
       return;
     }
-
     if (form.password.length < 6) {
       toast.error("Password must be at least 6 characters");
       return;
     }
-
+    if (form.password !== form.confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
     setLoading(true);
-
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...form,
-          role: "student", // ✅ VERY IMPORTANT
+          fullName: form.fullName,
+          dateOfBirth: form.dateOfBirth,
+          gender: form.gender,
+          admissionNumber: form.admissionNumber,
+          classLevel: form.classLevel,
+          parentName: form.parentName,
+          parentPhone: form.parentPhone,
+          email: form.email,
+          password: form.password,
+          accessCode: form.accessCode,
+          role: "student",
         }),
       });
-
       const data = await res.json();
-
       if (data.success) {
-        toast.success("Registered successfully");
-
-        // redirect to login
+        toast.success("Account created successfully!");
         router.push("/login/student");
       } else {
         toast.error(data.message || "Registration failed");
       }
-    } catch (error) {
+    } catch {
       toast.error("Something went wrong");
     }
-
     setLoading(false);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-md p-6 space-y-4 border rounded-xl bg-white shadow-sm"
-      >
-        <h1 className="text-2xl font-bold text-center">
-          Student Registration
-        </h1>
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Lato:wght@300;400;700&display=swap');
 
-        <input
-          placeholder="Full Name"
-          className="w-full border p-3 rounded-lg"
-          onChange={(e) =>
-            updateField("fullName", e.target.value)
-          }
-        />
+        *, *::before, *::after { box-sizing: border-box; }
 
-        <input
-          type="email"
-          placeholder="Email"
-          className="w-full border p-3 rounded-lg"
-          onChange={(e) =>
-            updateField("email", e.target.value)
-          }
-        />
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(16px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+        @keyframes pulse-ring {
+          0%   { box-shadow: 0 0 0 0 rgba(37,99,235,0.35); }
+          70%  { box-shadow: 0 0 0 10px rgba(37,99,235,0); }
+          100% { box-shadow: 0 0 0 0 rgba(37,99,235,0); }
+        }
 
-        <input
-          type="password"
-          placeholder="Password"
-          className="w-full border p-3 rounded-lg"
-          onChange={(e) =>
-            updateField("password", e.target.value)
-          }
-        />
+        .rp-root {
+          min-height: 100vh;
+          background: #0a0f1e;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 40px 20px 60px;
+          position: relative;
+          overflow: hidden;
+        }
 
-        <button
-          className="w-full bg-black text-white p-3 rounded-lg"
-          disabled={loading}
-        >
-          {loading ? "Creating..." : "Register"}
-        </button>
+        .rp-blob {
+          position: absolute; border-radius: 50%;
+          filter: blur(80px); pointer-events: none;
+        }
+        .rp-blob-1 { width: 420px; height: 420px; background: #1d4ed8; opacity: 0.16; top: -140px; left: -100px; }
+        .rp-blob-2 { width: 320px; height: 320px; background: #1e3a8a; opacity: 0.14; bottom: -80px; right: -60px; }
 
-        {/* 👇 LINK TO LOGIN */}
-        <p className="text-sm text-center">
-          Already have an account?{" "}
-          <span
-            onClick={() => router.push("/login/student")}
-            className="text-blue-600 cursor-pointer"
-          >
-            Login
-          </span>
-        </p>
-      </form>
-    </div>
+        .rp-grid {
+          position: absolute; inset: 0;
+          background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+          background-size: 28px 28px; pointer-events: none;
+        }
+
+        .rp-card {
+          position: relative; z-index: 10;
+          width: 100%; max-width: 480px;
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 16px;
+          padding: 36px 32px 32px;
+          animation: fadeUp 0.7s ease both;
+        }
+        @media (max-width: 520px) {
+          .rp-card { padding: 28px 20px 24px; }
+        }
+
+        .rp-brand {
+          display: flex; align-items: center; gap: 10px;
+          margin-bottom: 28px;
+        }
+        .rp-logo-ring {
+          width: 40px; height: 40px; border-radius: 10px;
+          border: 1px solid rgba(255,255,255,0.1);
+          background: rgba(255,255,255,0.04);
+          display: flex; align-items: center; justify-content: center;
+          flex-shrink: 0;
+        }
+        .rp-school-name {
+          font-family: 'Playfair Display', serif;
+          font-weight: 900; font-size: 0.88rem;
+          color: rgba(255,255,255,0.75); line-height: 1.2;
+        }
+        .rp-school-name span { color: #93c5fd; }
+
+        .rp-steps {
+          display: flex; align-items: center;
+          gap: 0; margin-bottom: 28px;
+        }
+        .rp-step {
+          display: flex; align-items: center; gap: 7px;
+          flex: 1;
+        }
+        .rp-step-dot {
+          width: 28px; height: 28px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          font-family: 'Lato', sans-serif;
+          font-size: 11px; font-weight: 700;
+          flex-shrink: 0; transition: all 0.3s;
+        }
+        .rp-step-dot.done { background: #2563EB; color: #fff; border: none; }
+        .rp-step-dot.active { background: #2563EB; color: #fff; border: none; animation: pulse-ring 2s infinite; }
+        .rp-step-dot.inactive { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.3); border: 1px solid rgba(255,255,255,0.1); }
+
+        .rp-step-label {
+          font-family: 'Lato', sans-serif;
+          font-size: 10px; font-weight: 700;
+          letter-spacing: 0.1em; text-transform: uppercase;
+          transition: color 0.3s;
+        }
+        .rp-step-label.active   { color: #93c5fd; }
+        .rp-step-label.done     { color: rgba(255,255,255,0.5); }
+        .rp-step-label.inactive { color: rgba(255,255,255,0.22); }
+
+        .rp-step-line {
+          flex: 1; height: 1px;
+          background: rgba(255,255,255,0.08);
+          margin: 0 6px;
+        }
+        .rp-step-line.done { background: rgba(37,99,235,0.5); }
+
+        .rp-heading { margin-bottom: 24px; animation: fadeIn 0.4s ease both; }
+        .rp-eyebrow {
+          font-family: 'Lato', sans-serif;
+          font-size: 10px; font-weight: 700;
+          letter-spacing: 0.22em; text-transform: uppercase;
+          color: #60a5fa; margin-bottom: 6px;
+        }
+        .rp-title {
+          font-family: 'Playfair Display', serif;
+          font-weight: 900; font-size: 1.6rem;
+          color: #fff; line-height: 1.15; margin-bottom: 4px;
+        }
+        .rp-title em { font-style: italic; color: #93c5fd; }
+        .rp-subtitle {
+          font-family: 'Lato', sans-serif;
+          font-weight: 300; font-size: 0.82rem;
+          color: rgba(255,255,255,0.38); line-height: 1.6;
+        }
+
+        .rp-field { margin-bottom: 14px; }
+        .rp-label {
+          font-family: 'Lato', sans-serif;
+          font-size: 10px; font-weight: 700;
+          letter-spacing: 0.14em; text-transform: uppercase;
+          color: rgba(255,255,255,0.4); margin-bottom: 6px;
+          display: block;
+        }
+        .rp-label span { color: #f87171; margin-left: 2px; }
+
+        .rp-input, .rp-select {
+          width: 100%;
+          background: rgba(255,255,255,0.05);
+          border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 8px;
+          padding: 11px 14px;
+          font-family: 'Lato', sans-serif;
+          font-size: 13px; font-weight: 400;
+          color: rgba(255,255,255,0.85);
+          outline: none;
+          transition: border-color 0.2s, background 0.2s;
+          -webkit-appearance: none;
+        }
+        .rp-input::placeholder { color: rgba(255,255,255,0.2); }
+        .rp-input:focus, .rp-select:focus {
+          border-color: rgba(37,99,235,0.6);
+          background: rgba(37,99,235,0.06);
+        }
+        .rp-select { cursor: pointer; }
+        .rp-select option { background: #1a2035; color: rgba(255,255,255,0.85); }
+
+        .rp-grid-2 {
+          display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+        }
+        @media (max-width: 400px) {
+          .rp-grid-2 { grid-template-columns: 1fr; }
+        }
+
+        .rp-code-input {
+          width: 100%;
+          background: rgba(37,99,235,0.06);
+          border: 1px solid rgba(37,99,235,0.25);
+          border-radius: 8px;
+          padding: 14px 18px;
+          font-family: 'Lato', sans-serif;
+          font-size: 18px; font-weight: 700;
+          letter-spacing: 0.25em; text-align: center;
+          color: #93c5fd;
+          outline: none;
+          transition: border-color 0.2s, background 0.2s;
+          text-transform: uppercase;
+        }
+        .rp-code-input::placeholder {
+          color: rgba(147,197,253,0.25);
+          letter-spacing: 0.15em;
+          font-size: 13px; font-weight: 400;
+        }
+        .rp-code-input:focus {
+          border-color: rgba(37,99,235,0.6);
+          background: rgba(37,99,235,0.1);
+        }
+
+        .rp-info-box {
+          background: rgba(37,99,235,0.08);
+          border: 1px solid rgba(37,99,235,0.18);
+          border-radius: 8px;
+          padding: 12px 14px;
+          margin-bottom: 20px;
+          display: flex; gap: 10px; align-items: flex-start;
+        }
+        .rp-info-icon { color: #60a5fa; font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+        .rp-info-text {
+          font-family: 'Lato', sans-serif;
+          font-size: 12px; font-weight: 300;
+          color: rgba(147,197,253,0.7); line-height: 1.6;
+        }
+        .rp-info-text strong { color: #93c5fd; font-weight: 700; }
+
+        .rp-btn {
+          width: 100%;
+          padding: 13px;
+          border-radius: 8px;
+          font-family: 'Lato', sans-serif;
+          font-size: 12px; font-weight: 700;
+          letter-spacing: 0.12em; text-transform: uppercase;
+          border: none; cursor: pointer;
+          transition: background 0.2s, transform 0.15s, opacity 0.2s;
+          margin-top: 6px;
+        }
+        .rp-btn:active { transform: scale(0.98); }
+        .rp-btn-primary {
+          background: #2563EB; color: #fff;
+          box-shadow: 0 4px 18px rgba(37,99,235,0.35);
+        }
+        .rp-btn-primary:hover { background: #1d4ed8; }
+        .rp-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .rp-btn-ghost {
+          background: rgba(255,255,255,0.05);
+          color: rgba(255,255,255,0.45);
+          border: 1px solid rgba(255,255,255,0.1);
+          margin-top: 10px;
+        }
+        .rp-btn-ghost:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.65); }
+
+        .rp-divider { height: 1px; background: rgba(255,255,255,0.07); margin: 18px 0; }
+
+        .rp-foot {
+          font-family: 'Lato', sans-serif;
+          font-size: 12px; color: rgba(255,255,255,0.22);
+          margin-top: 20px; text-align: center;
+        }
+        .rp-foot a { color: #60a5fa; text-decoration: none; font-weight: 700; }
+        .rp-foot a:hover { color: #93c5fd; }
+      `}</style>
+
+      <div className="rp-root mt-28 md:mt-25">
+        <div className="rp-blob rp-blob-1" />
+        <div className="rp-blob rp-blob-2" />
+        <div className="rp-grid" />
+
+        <div className="rp-card">
+
+          {/* Brand */}
+          <div className="rp-brand">
+            <div className="rp-logo-ring">
+              <img src="/logo.PNG" alt="WFS" width={26} height={26} style={{ objectFit: "contain" }} />
+            </div>
+            <div className="rp-school-name">
+              Winners&apos; <span>Foundation</span> School
+            </div>
+          </div>
+
+          {/* Step tracker */}
+          <div className="rp-steps">
+            {STEPS.map((label, i) => {
+              const state = i < step ? "done" : i === step ? "active" : "inactive";
+              return (
+                <div key={i} className="rp-step" style={{ flex: i < STEPS.length - 1 ? "1" : "0 0 auto" }}>
+                  <div className={`rp-step-dot ${state}`}>
+                    {i < step ? (
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                        <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    ) : (
+                      i + 1
+                    )}
+                  </div>
+                  <span className={`rp-step-label ${state}`}>{label}</span>
+                  {i < STEPS.length - 1 && (
+                    <div className={`rp-step-line ${i < step ? "done" : ""}`} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* ── STEP 0: ACCESS CODE ── */}
+          {step === 0 && (
+            <div style={{ animation: "fadeIn 0.4s ease both" }}>
+              <div className="rp-heading">
+                <p className="rp-eyebrow">Step 1 of 3</p>
+                <h1 className="rp-title">Enter Access <em>Code</em></h1>
+                <p className="rp-subtitle">
+                  Your access code was provided by the school office after your admission was confirmed.
+                </p>
+              </div>
+
+              <div className="rp-info-box">
+                <span className="rp-info-icon">ℹ</span>
+                <p className="rp-info-text">
+                  Don&apos;t have a code? Contact the school office at{" "}
+                  <strong>wfsonline1999@gmail.com</strong> or visit the admin in person.
+                </p>
+              </div>
+
+              <div className="rp-field">
+                <label className="rp-label">Access Code <span>*</span></label>
+                <input
+                  className="rp-code-input"
+                  placeholder="Enter your code"
+                  value={form.accessCode}
+                  onChange={(e) => update("accessCode", e.target.value.toUpperCase())}
+                  onKeyDown={(e) => e.key === "Enter" && verifyCode()}
+                  maxLength={30}
+                />
+              </div>
+
+              <button
+                className="rp-btn rp-btn-primary"
+                onClick={verifyCode}
+                disabled={loading}
+              >
+                {loading ? "Verifying..." : "Verify Code →"}
+              </button>
+            </div>
+          )}
+
+          {/* ── STEP 1: PERSONAL INFO ── */}
+          {step === 1 && (
+            <div style={{ animation: "fadeIn 0.4s ease both" }}>
+              <div className="rp-heading">
+                <p className="rp-eyebrow">Step 2 of 3</p>
+                <h1 className="rp-title"><em>Personal</em> Information</h1>
+                <p className="rp-subtitle">Tell us about yourself. Fields marked * are required.</p>
+              </div>
+
+              <div className="rp-field">
+                <label className="rp-label">Full Name <span>*</span></label>
+                <input
+                  className="rp-input"
+                  placeholder="e.g. Chukwuemeka Daniel"
+                  value={form.fullName}
+                  onChange={(e) => update("fullName", e.target.value)}
+                />
+              </div>
+
+              <div className="rp-grid-2">
+                <div className="rp-field">
+                  <label className="rp-label">Date of Birth <span>*</span></label>
+                  <input
+                    type="date"
+                    className="rp-input"
+                    value={form.dateOfBirth}
+                    onChange={(e) => update("dateOfBirth", e.target.value)}
+                    style={{ colorScheme: "dark" }}
+                  />
+                </div>
+                <div className="rp-field">
+                  <label className="rp-label">Gender <span>*</span></label>
+                  <select
+                    className="rp-select"
+                    value={form.gender}
+                    onChange={(e) => update("gender", e.target.value)}
+                  >
+                    <option value="">Select</option>
+                    <option>Male</option>
+                    <option>Female</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="rp-grid-2">
+                <div className="rp-field">
+                  <label className="rp-label">Class <span>*</span></label>
+                  <select
+                    className="rp-select"
+                    value={form.classLevel}
+                    onChange={(e) => update("classLevel", e.target.value)}
+                  >
+                    <option value="">Select class</option>
+                    {["Nursery 1","Nursery 2","Primary 1","Primary 2","Primary 3","Primary 4","Primary 5","Primary 6","JSS 1","JSS 2","JSS 3","SSS 1","SSS 2","SSS 3"].map((c) => (
+                      <option key={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="rp-field">
+                  <label className="rp-label">Admission No.</label>
+                  <input
+                    className="rp-input"
+                    placeholder="e.g. WFS/2025/001"
+                    value={form.admissionNumber}
+                    onChange={(e) => update("admissionNumber", e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="rp-divider" />
+
+              <div className="rp-grid-2">
+                <div className="rp-field">
+                  <label className="rp-label">Parent / Guardian</label>
+                  <input
+                    className="rp-input"
+                    placeholder="Full name"
+                    value={form.parentName}
+                    onChange={(e) => update("parentName", e.target.value)}
+                  />
+                </div>
+                <div className="rp-field">
+                  <label className="rp-label">Parent Phone</label>
+                  <input
+                    className="rp-input"
+                    placeholder="080XXXXXXXX"
+                    value={form.parentPhone}
+                    onChange={(e) => update("parentPhone", e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <button className="rp-btn rp-btn-primary" onClick={nextToAccount}>
+                Continue →
+              </button>
+              <button className="rp-btn rp-btn-ghost" onClick={() => setStep(0)}>
+                ← Back
+              </button>
+            </div>
+          )}
+
+          {/* ── STEP 2: ACCOUNT ── */}
+          {step === 2 && (
+            <form onSubmit={handleSubmit} style={{ animation: "fadeIn 0.4s ease both" }}>
+              <div className="rp-heading">
+                <p className="rp-eyebrow">Step 3 of 3</p>
+                <h1 className="rp-title">Create <em>Account</em></h1>
+                <p className="rp-subtitle">Set up your login credentials.</p>
+              </div>
+
+              <div className="rp-field">
+                <label className="rp-label">Email Address <span>*</span></label>
+                <input
+                  type="email"
+                  className="rp-input"
+                  placeholder="your@email.com"
+                  value={form.email}
+                  onChange={(e) => update("email", e.target.value)}
+                />
+              </div>
+
+              <div className="rp-field">
+                <label className="rp-label">Password <span>*</span></label>
+                <input
+                  type="password"
+                  className="rp-input"
+                  placeholder="Min. 6 characters"
+                  value={form.password}
+                  onChange={(e) => update("password", e.target.value)}
+                />
+              </div>
+
+              <div className="rp-field">
+                <label className="rp-label">Confirm Password <span>*</span></label>
+                <input
+                  type="password"
+                  className="rp-input"
+                  placeholder="Re-enter password"
+                  value={form.confirmPassword}
+                  onChange={(e) => update("confirmPassword", e.target.value)}
+                />
+              </div>
+
+              <div className="rp-info-box" style={{ marginTop: 4, marginBottom: 16 }}>
+                <span className="rp-info-icon">✓</span>
+                <p className="rp-info-text">
+                  Registering as <strong>{form.fullName}</strong> — <strong>{form.classLevel}</strong>
+                </p>
+              </div>
+
+              <button
+                type="submit"
+                className="rp-btn rp-btn-primary"
+                disabled={loading}
+              >
+                {loading ? "Creating Account..." : "Create Account →"}
+              </button>
+              <button
+                type="button"
+                className="rp-btn rp-btn-ghost"
+                onClick={() => setStep(1)}
+              >
+                ← Back
+              </button>
+            </form>
+          )}
+
+          <p className="rp-foot">
+            Already have an account?{" "}
+            <Link href="/login/student">Sign in here</Link>
+          </p>
+
+        </div>
+      </div>
+    </>
   );
 }
