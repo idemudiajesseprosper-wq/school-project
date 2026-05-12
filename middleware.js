@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
 
 export function middleware(req) {
   const token =
@@ -21,40 +20,16 @@ export function middleware(req) {
 
     // No token
     if (!token) {
-      console.log("NO TOKEN FOUND");
+      console.log("NO ADMIN TOKEN FOUND");
 
       return NextResponse.redirect(
         new URL("/admin/login", req.url)
       );
     }
 
-    try {
-      // VERIFY TOKEN
-      const decoded = jwt.verify(
-        token,
-        process.env.JWT_SECRET
-      );
+    console.log("ADMIN TOKEN EXISTS");
 
-      console.log("ADMIN TOKEN VERIFIED");
-
-      // CHECK ROLE
-      if (decoded.role !== "admin") {
-        console.log("NOT ADMIN");
-
-        return NextResponse.redirect(
-          new URL("/login", req.url)
-        );
-      }
-
-      return NextResponse.next();
-
-    } catch (error) {
-      console.log("INVALID TOKEN");
-
-      return NextResponse.redirect(
-        new URL("/admin/login", req.url)
-      );
-    }
+    return NextResponse.next();
   }
 
   // =========================
@@ -62,42 +37,23 @@ export function middleware(req) {
   // =========================
   if (url.pathname.startsWith("/student")) {
 
+    // Allow student login page
+    if (url.pathname === "/student/login") {
+      return NextResponse.next();
+    }
+
     // No token
     if (!token) {
-      console.log("NO STUDENT TOKEN");
+      console.log("NO STUDENT TOKEN FOUND");
 
       return NextResponse.redirect(
-        new URL("/login/student", req.url)
+        new URL("/student/login", req.url)
       );
     }
 
-    try {
-      // VERIFY TOKEN
-      const decoded = jwt.verify(
-        token,
-        process.env.JWT_SECRET
-      );
+    console.log("STUDENT TOKEN EXISTS");
 
-      console.log("STUDENT TOKEN VERIFIED");
-
-      // CHECK ROLE
-      if (decoded.role !== "student") {
-        console.log("NOT STUDENT");
-
-        return NextResponse.redirect(
-          new URL("/admin", req.url)
-        );
-      }
-
-      return NextResponse.next();
-
-    } catch (error) {
-      console.log("INVALID STUDENT TOKEN");
-
-      return NextResponse.redirect(
-        new URL("/login/student", req.url)
-      );
-    }
+    return NextResponse.next();
   }
 
   return NextResponse.next();

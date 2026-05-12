@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 const UserSchema = new mongoose.Schema(
   {
+    // BASIC INFO
     fullName: String,
 
     username: String,
@@ -13,6 +14,7 @@ const UserSchema = new mongoose.Schema(
 
     password: String,
 
+    // ROLE SYSTEM
     role: {
       type: String,
       enum: ["admin", "student"],
@@ -42,6 +44,21 @@ const UserSchema = new mongoose.Schema(
       default: false,
     },
 
+    // ACCOUNT STATUS
+    isSuspended: {
+      type: Boolean,
+      default: false,
+    },
+
+    suspensionReason: {
+      type: String,
+      default: "",
+    },
+
+    suspendedAt: {
+      type: Date,
+    },
+
     // LOGIN HISTORY
     loginHistory: [
       {
@@ -52,6 +69,28 @@ const UserSchema = new mongoose.Schema(
         device: String,
       },
     ],
+
+    // SECURITY
+    lastLogout: Date,
+
+    passwordChangedAt: Date,
+
+    failedLoginAttempts: {
+      type: Number,
+      default: 0,
+    },
+
+    accountLockedUntil: Date,
+
+    // PROFILE
+    avatar: {
+      type: String,
+      default: "",
+    },
+
+    phoneNumber: String,
+
+    studentClass: String,
   },
   {
     timestamps: true,

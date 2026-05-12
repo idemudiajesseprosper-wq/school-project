@@ -92,23 +92,29 @@ export default function StudentsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6 md:p-10">
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 via-gray-50 to-white p-6 md:p-10">
 
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5 mb-8">
+      <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6 mb-10">
 
         <div>
-          <h1 className="text-4xl font-bold text-gray-900">
-            Students
+
+          <p className="uppercase tracking-[0.25em] text-xs text-gray-500 font-semibold mb-3">
+            Administration
+          </p>
+
+          <h1 className="text-4xl md:text-5xl font-black text-gray-900">
+            Student Management
           </h1>
 
-          <p className="text-gray-500 mt-2">
-            Manage all registered students
+          <p className="text-gray-500 mt-3 text-lg">
+            Monitor registered students and activity
           </p>
+
         </div>
 
         {/* STATS */}
-        <div className="flex gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 
           <StatCard
             title="Students"
@@ -132,33 +138,34 @@ export default function StudentsPage() {
               ).length
             }
           />
+
         </div>
       </div>
 
       {/* SEARCH */}
-      <div className="bg-white rounded-3xl shadow-sm p-5 mb-8">
+      <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl shadow-sm p-5 mb-8">
 
         <input
           type="text"
-          placeholder="Search student by name or email..."
+          placeholder="Search by student name or email..."
           value={search}
           onChange={(e) =>
             setSearch(
               e.target.value
             )
           }
-          className="w-full border border-gray-200 rounded-2xl px-5 py-4 outline-none focus:ring-2 focus:ring-black"
+          className="w-full border border-gray-200 bg-gray-50 rounded-2xl px-5 py-4 outline-none focus:ring-2 focus:ring-black transition"
         />
       </div>
 
       {/* TABLE */}
-      <div className="bg-white rounded-3xl shadow-sm overflow-hidden">
+      <div className="bg-white rounded-[30px] shadow-xl border border-gray-100 overflow-hidden">
 
         <div className="overflow-x-auto">
 
-          <table className="w-full min-w-[1100px]">
+          <table className="w-full min-w-[1250px]">
 
-            <thead className="bg-black text-white">
+            <thead className="bg-black text-white sticky top-0 z-10">
 
               <tr>
 
@@ -190,6 +197,10 @@ export default function StudentsPage() {
                   Joined
                 </th>
 
+                <th className="p-5 text-left">
+                  Action
+                </th>
+
               </tr>
 
             </thead>
@@ -202,7 +213,7 @@ export default function StudentsPage() {
 
                   <tr
                     key={student._id}
-                    className="border-b hover:bg-gray-50 transition"
+                    className="border-b border-gray-100 hover:bg-gray-50/80 transition-all duration-200"
                   >
 
                     {/* USER */}
@@ -210,7 +221,7 @@ export default function StudentsPage() {
 
                       <div className="flex items-center gap-4">
 
-                        <div className="w-12 h-12 rounded-full bg-black text-white flex items-center justify-center font-bold">
+                        <div className="w-14 h-14 rounded-2xl bg-black text-white flex items-center justify-center font-bold text-lg shadow-lg">
                           {
                             student
                             ?.fullName
@@ -220,13 +231,13 @@ export default function StudentsPage() {
 
                         <div>
 
-                          <p className="font-semibold text-gray-900">
+                          <p className="font-bold text-gray-900 text-[15px]">
                             {
                               student.fullName
                             }
                           </p>
 
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-gray-500 mt-1">
                             {
                               student.email
                             }
@@ -239,7 +250,7 @@ export default function StudentsPage() {
                     </td>
 
                     {/* ROLE */}
-                    <td className="p-5 capitalize">
+                    <td className="p-5 capitalize font-medium text-gray-700">
                       {
                         student.role
                       }
@@ -282,7 +293,7 @@ export default function StudentsPage() {
                     </td>
 
                     {/* LOGIN COUNT */}
-                    <td className="p-5">
+                    <td className="p-5 font-semibold text-gray-900">
                       {
                         student.loginCount || 0
                       }
@@ -312,6 +323,21 @@ export default function StudentsPage() {
 
                     </td>
 
+                    {/* ACTION */}
+                    <td className="p-5">
+
+                      <button
+                        onClick={() =>
+                          window.location.href =
+                          `/admin/students/${student._id}`
+                        }
+                        className="bg-black hover:bg-gray-800 transition text-white px-5 py-3 rounded-2xl text-sm font-semibold shadow-lg"
+                      >
+                        View Profile
+                      </button>
+
+                    </td>
+
                   </tr>
                 ))}
 
@@ -325,16 +351,34 @@ export default function StudentsPage() {
         {!loading &&
           filtered.length === 0 && (
 
-          <div className="p-12 text-center text-gray-500">
-            No students found
+          <div className="p-20 text-center">
+
+            <div className="w-24 h-24 bg-gray-100 rounded-full mx-auto mb-6 flex items-center justify-center text-4xl">
+              🎓
+            </div>
+
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">
+              No Students Found
+            </h2>
+
+            <p className="text-gray-500">
+              Try adjusting your search
+            </p>
+
           </div>
         )}
 
         {/* LOADING */}
         {loading && (
 
-          <div className="p-12 text-center text-gray-500">
-            Loading students...
+          <div className="p-20 text-center">
+
+            <div className="w-16 h-16 border-4 border-black border-t-transparent rounded-full animate-spin mx-auto mb-6" />
+
+            <p className="text-gray-500 text-lg">
+              Loading students...
+            </p>
+
           </div>
         )}
 
@@ -350,13 +394,13 @@ function StatCard({
 }) {
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm px-6 py-5 min-w-[130px]">
+    <div className="bg-white rounded-3xl shadow-lg border border-gray-100 px-7 py-6 min-w-[150px]">
 
-      <p className="text-sm text-gray-500">
+      <p className="text-sm text-gray-500 font-medium">
         {title}
       </p>
 
-      <h2 className="text-3xl font-bold text-gray-900 mt-2">
+      <h2 className="text-4xl font-black text-gray-900 mt-3">
         {value}
       </h2>
 
@@ -384,7 +428,7 @@ function Badge({
 
   return (
     <span
-      className={`px-4 py-2 rounded-full text-xs font-semibold ${
+      className={`px-4 py-2 rounded-full text-xs font-bold tracking-wide ${
         styles[type]
       }`}
     >

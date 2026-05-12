@@ -58,7 +58,15 @@ export async function POST(req) {
     }
 
     // ROLE CHECK
-    if (user.role !== role) {
+    if (user.role !== role) { 
+      // BLOCK SUSPENDED USERS
+if (user.isSuspended) {
+  return NextResponse.json({
+    success: false,
+    message:
+      "Your account has been suspended",
+  });
+}
       console.log("ERROR: ROLE MISMATCH", {
         expected: role,
         actual: user.role,
