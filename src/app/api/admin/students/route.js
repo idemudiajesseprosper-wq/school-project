@@ -11,7 +11,6 @@ from "../../../../../models/User";
 
 export async function GET(req) {
   try {
-
     await connectMongoDB();
 
     // GET TOKEN
