@@ -1,6 +1,6 @@
-import { connectMongoDB } from "../../../../lib/connect";
-import Application from "../../../../models/Application";
-import Code from "../../../../models/Code";
+import { connectMongoDB } from "../../../lib/connect";
+import Application from "../../../models/Application";
+import Code from "../../../models/Code";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
