@@ -9,11 +9,14 @@ from "../../../../../lib/connect";
 import User
 from "../../../../../models/User";
 
-export async function GET(req, { params }) {
+export async function GET(req, context) {
 
   try {
 
     await connectMongoDB();
+
+    // FIX: await params in Next.js App Router
+    const { id } = await context.params;
 
     // GET TOKEN
     const token =
@@ -44,9 +47,8 @@ export async function GET(req, { params }) {
 
     // GET USER
     const student =
-      await User.findById(
-        params.id
-      ).select("-password");
+      await User.findById(id)
+        .select("-password");
 
     // NOT FOUND
     if (!student) {

@@ -1,19 +1,17 @@
 import { NextResponse } from "next/server";
 
 import { connectMongoDB }
-from "../../../../../lib/connect";
+from "../../../../../../lib/connect";
 
 import User
-from "../../../../../models/User";
+from "../../../../../../models/User";
 
 export async function POST(req) {
 
   try {
 
-    const {
-      studentId,
-      reason,
-    } = await req.json();
+    const { studentId } =
+      await req.json();
 
     await connectMongoDB();
 
@@ -28,25 +26,21 @@ export async function POST(req) {
       });
     }
 
-    student.isSuspended = true;
+    student.isSuspended = false;
 
-    student.suspensionReason =
-      reason || "Violation";
+    student.suspensionReason = "";
 
-    student.suspendedAt =
-      new Date();
+    student.suspendedAt = null;
 
     await student.save();
 
     return NextResponse.json({
       success: true,
       message:
-        "Student suspended successfully",
+        "Student unsuspended",
     });
 
   } catch (error) {
-
-    console.log(error);
 
     return NextResponse.json({
       success: false,
