@@ -2,26 +2,40 @@ import { NextResponse }
 from "next/server";
 
 import { connectMongoDB }
-from "../../../../../../lib/connect";
+from "../../../../../lib/connect";
 
 import User
-from "../../../../../../models/User";
+from "../../../../../models/User";
 
-export async function DELETE(req) {
+export async function DELETE(
+  req,
+  context
+) {
 
   try {
 
-    const { studentId } =
-      await req.json();
-
     await connectMongoDB();
 
-    await User.findByIdAndDelete(
-      studentId
-    );
+    const { id } =
+      await context.params;
+
+    const student =
+      await User.findById(id);
+
+    if (!student) {
+
+      return NextResponse.json({
+        success: false,
+        message: "Student not found",
+      });
+    }
+
+    await User.findByIdAndDelete(id);
 
     return NextResponse.json({
       success: true,
+      message:
+        "Student deleted successfully",
     });
 
   } catch (error) {
@@ -33,4 +47,4 @@ export async function DELETE(req) {
       message: "Server error",
     });
   }
-}
+} 
