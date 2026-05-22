@@ -167,7 +167,7 @@ export default function StudentsPage() {
 
   const fetchStudents = async () => {
     try {
-      const res = await fetch("/api/admin/students");
+      const res = await fetch(`/api/admin/students/${studentId}/delete`, { method: "DELETE" });
       const data = await res.json();
       if (data.success) setStudents(data.students);
       else toast.error(data.message);

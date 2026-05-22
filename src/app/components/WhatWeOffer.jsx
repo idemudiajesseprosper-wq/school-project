@@ -1,7 +1,7 @@
 export default function WhatWeOffer() {
   const images = [
-    { src: "/images/offer1.jpg", alt: "Students learning in class" },
-    { src: "/images/offer2.jpg", alt: "Students in a group activity" },
+    { src: "/images/offer1.jpeg", alt: "Students learning in class" },
+    { src: "/images/offer2.jpeg", alt: "Students in a group activity" },
     { src: "/images/offer3.jpg", alt: "School environment" },
   ];
 

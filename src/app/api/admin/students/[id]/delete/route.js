@@ -1,36 +1,44 @@
-import { NextResponse }
-from "next/server";
+import { NextResponse } from "next/server";
+import jwt from "jsonwebtoken";
+import { connectMongoDB } from "../../../../../../lib/connect";
+import User from "../../../../../../models/User";
 
-import { connectMongoDB }
-from "../../../../../../lib/connect";
-
-import User
-from "../../../../../../models/User";
-
-export async function DELETE(req) {
-
+export async function DELETE(req, context) {
   try {
+    // VERIFY ADMIN TOKEN
+    const token = req.cookies.get("auth_token")?.value;
 
-    const { studentId } =
-      await req.json();
+    if (!token) {
+      return NextResponse.json({ success: false, message: "Unauthorized" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (decoded.role !== "admin") {
+      return NextResponse.json({ success: false, message: "Access denied" });
+    }
 
     await connectMongoDB();
 
-    await User.findByIdAndDelete(
-      studentId
-    );
+    // FIX: get id from URL params not req.json()
+    const { id } = await context.params;
 
-    return NextResponse.json({
-      success: true,
-    });
+    const student = await User.findById(id);
+
+    if (!student) {
+      return NextResponse.json({ success: false, message: "Student not found" });
+    }
+
+    // SOFT DELETE
+    student.isDeleted = true;
+    student.deletedAt = new Date();
+    student.isOnline = false;
+    await student.save();
+
+    return NextResponse.json({ success: true, message: "Student deleted successfully" });
 
   } catch (error) {
-
     console.log(error);
-
-    return NextResponse.json({
-      success: false,
-      message: "Server error",
-    });
+    return NextResponse.json({ success: false, message: "Server error" });
   }
 }

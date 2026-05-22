@@ -21,7 +21,7 @@ export default function StudentProfilePage() {
   // FETCH STUDENT
   const fetchStudent = async () => {
     try {
-      const res = await fetch(`/api/admin/students/${params.id}`);
+      const res = await fetch(`/api/admin/students/${params.id}/delete`, { method: "DELETE" });
       const data = await res.json();
       if (data.success) {
         setStudent(data.student);

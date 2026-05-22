@@ -3,6 +3,7 @@ import "./globals.css";
 import Navbar from "./components/Navbar";
 import BackToTop from "./components/BackToTop";
 import { Toaster } from "react-hot-toast";
+import AuthProvider from "@/components/AuthProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,9 +29,11 @@ export default function RootLayout({ children }) {
       <body className="min-h-full flex flex-col bg-white">
         <Navbar/>
         <Toaster position="top-right" reverseOrder={false} />
-        <div>
-          {children}
-        </div>
+        <AuthProvider>
+          <div>
+            {children}
+          </div>
+        </AuthProvider>
         <BackToTop/>
       </body>
     </html>
