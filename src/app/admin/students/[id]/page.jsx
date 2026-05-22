@@ -13,15 +13,14 @@ export default function StudentProfilePage() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState("");
 
-  // FIX: depend on params.id so fetch runs once it's available
   useEffect(() => {
     if (params.id) fetchStudent();
   }, [params.id]);
 
-  // FETCH STUDENT
+  // FETCH STUDENT — FIX: was calling DELETE endpoint instead of GET
   const fetchStudent = async () => {
     try {
-      const res = await fetch(`/api/admin/students/${params.id}/delete`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/students/${params.id}`);
       const data = await res.json();
       if (data.success) {
         setStudent(data.student);
@@ -53,12 +52,12 @@ export default function StudentProfilePage() {
     }
   };
 
-  // DELETE
+  // DELETE — FIX: now hits /delete route + soft delete confirm message
   const deleteStudent = async () => {
-    if (!confirm("Delete this student permanently? This cannot be undone.")) return;
+    if (!confirm("Delete this student? They will be removed from the portal.")) return;
     try {
       setActionLoading("delete");
-      const res = await fetch(`/api/admin/students/${params.id}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/students/${params.id}/delete`, { method: "DELETE" });
       const data = await res.json();
       if (data.success) {
         toast.success("Student deleted");
@@ -190,7 +189,9 @@ export default function StudentProfilePage() {
             <InfoCard label="Full Name" value={student.fullName} />
             <InfoCard label="Email Address" value={student.email} />
             <InfoCard label="Role" value={student.role} />
-            <InfoCard label="Username" value={student.username || "N/A"} />
+            {/* FIX: removed Username (doesn't exist), added Class and Phone */}
+            <InfoCard label="Class" value={student.studentClass || "Not set"} />
+            <InfoCard label="Phone Number" value={student.phoneNumber || "N/A"} />
             <InfoCard
               label="Last Login"
               value={student.lastLogin ? new Date(student.lastLogin).toLocaleString() : "Never"}

@@ -3,7 +3,7 @@ import "./globals.css";
 import Navbar from "./components/Navbar";
 import BackToTop from "./components/BackToTop";
 import { Toaster } from "react-hot-toast";
-import AuthProvider from "@/components/AuthProvider";
+import AuthProvider from "./components/AuthProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

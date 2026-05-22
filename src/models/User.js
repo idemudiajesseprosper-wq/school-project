@@ -59,6 +59,16 @@ const UserSchema = new mongoose.Schema(
       type: Date,
     },
 
+    // SOFT DELETE
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+
+    deletedAt: {
+      type: Date,
+    },
+
     // LOGIN HISTORY
     loginHistory: [
       {
