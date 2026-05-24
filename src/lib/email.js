@@ -1,18 +1,13 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendVerificationEmail(email, fullName, token) {
+
   const verifyUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/verify-email?token=${token}`;
 
-  await transporter.sendMail({
-    from: `"Winners' Foundation School" <${process.env.EMAIL_USER}>`,
+  await resend.emails.send({
+    from: "Winners' Foundation School <onboarding@resend.dev>",
     to: email,
     subject: "Verify Your Email – Winners' Foundation School",
     html: `
