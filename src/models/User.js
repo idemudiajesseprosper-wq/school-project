@@ -73,9 +73,7 @@ const UserSchema = new mongoose.Schema(
     loginHistory: [
       {
         time: Date,
-
         ip: String,
-
         device: String,
       },
     ],
@@ -101,6 +99,25 @@ const UserSchema = new mongoose.Schema(
     phoneNumber: String,
 
     studentClass: String,
+
+    // SCHOOL INFO
+    admissionNumber: {
+      type: String,
+      default: "",
+    },
+
+    dateOfBirth: String,
+
+    gender: String,
+
+    // PARENT / GUARDIAN
+    parentName: String,
+
+    parentPhone: String,
+
+    parentEmail: String,
+
+    relationship: String,
   },
   {
     timestamps: true,

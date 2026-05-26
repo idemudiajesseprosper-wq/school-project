@@ -27,7 +27,7 @@ export async function POST(req) {
     // STUDENT LOGIN
     else {
       console.log("STUDENT LOGIN ATTEMPT");
-      user = await User.findOne({ email });
+      user = await User.findOne({ email, isDeleted: { $ne: true } });
     }
 
     console.log("USER FOUND:", user);
@@ -54,15 +54,7 @@ export async function POST(req) {
     if (user.isSuspended) {
       return NextResponse.json({
         success: false,
-        message: "Your account has been suspended",
-      });
-    }
-
-    // BLOCK UNVERIFIED STUDENTS
-    if (role === "student" && !user.isVerified) {
-      return NextResponse.json({
-        success: false,
-        message: "Please verify your email before logging in. Check your inbox.",
+        message: "Your account has been suspended. Contact the school office.",
       });
     }
 
