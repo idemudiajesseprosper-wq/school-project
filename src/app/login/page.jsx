@@ -27,13 +27,17 @@ export default function LoginSelectPage() {
 
         *, *::before, *::after { box-sizing: border-box; }
 
+        @supports (-webkit-touch-callout: none) {
+  .lp-root {
+    min-height: -webkit-fill-available;
+  }
+}
+
        html,
-body {
-  margin: 0;
-  padding: 0;
-  min-height: 100%;
-  overflow-x: hidden;
-} 
+body,
+#__next {
+  height: 100%;
+}
 
         @keyframes fadeUp {
           from { opacity: 0; transform: translateY(20px); }
@@ -49,7 +53,7 @@ body {
         }
 
         .lp-root {
-          min-height: calc(100vh - 80px);
+          min-height: calc(100dvh - 80px);
           background: #0a0f1e;
           display: flex;
           flex-direction: column;
