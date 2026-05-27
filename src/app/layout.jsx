@@ -24,17 +24,28 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable}  h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-white">
-        <Navbar/>
+      <body
+        className="min-h-screen flex flex-col bg-white overflow-x-hidden"
+      >
+        <Navbar />
+
         <Toaster position="top-right" reverseOrder={false} />
+
         <AuthProvider>
-          <div>
+          <main
+            style={{
+              flex: 1,
+              paddingTop: "80px",
+              minHeight: "100dvh",
+            }}
+          >
             {children}
-          </div>
+          </main>
         </AuthProvider>
-        <BackToTop/>
+
+        <BackToTop />
       </body>
     </html>
   );
