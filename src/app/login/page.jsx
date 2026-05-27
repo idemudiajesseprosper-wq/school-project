@@ -31,6 +31,7 @@ export default function LoginSelectPage() {
 body {
   margin: 0;
   padding: 0;
+  min-height: 100%;
   overflow-x: hidden;
 } 
 
@@ -48,15 +49,15 @@ body {
         }
 
         .lp-root {
-          min-height: 100vh;
+          min-height: calc(100vh - 80px);
           background: #0a0f1e;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          padding: 40px 24px;
+          padding: 120px 24px 60px;
           position: relative;
-          overflow-x: hidden;
+          overflow: hidden;
         }
 
         .lp-blob {
