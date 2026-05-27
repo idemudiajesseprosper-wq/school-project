@@ -15,9 +15,11 @@ const Icons = {
   Activity: () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>),
   Settings: () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M12 2v2M12 20v2M20 12h2M2 12h2M19.07 19.07l-1.41-1.41M4.93 19.07l1.41-1.41"/></svg>),
   LogOut: () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>),
+  Menu: () => (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>),
+  X: () => (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>),
 };
 
-function Sidebar() {
+function Sidebar({ open, onClose }) {
   const navItems = [
     { label: "Dashboard", icon: Icons.Grid, href: "/admin" },
     { label: "Students", icon: Icons.Users, href: "/admin/students", active: true },
@@ -26,32 +28,88 @@ function Sidebar() {
   ];
 
   return (
-    <aside style={{ width: "240px", minWidth: "240px", background: "#0a0a0a", borderRight: "1px solid #1a1a1a", display: "flex", flexDirection: "column", height: "100vh", position: "sticky", top: 0 }}>
-      <div style={{ padding: "28px 24px 24px", borderBottom: "1px solid #1a1a1a" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <div style={{ width: "36px", height: "36px", background: "linear-gradient(135deg, #2563EB, #1d4ed8)", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px", fontWeight: "900", color: "white", fontFamily: "'Playfair Display', serif" }}>W</div>
-          <div>
-            <p style={{ color: "white", fontWeight: "700", fontSize: "13px", lineHeight: 1.2, fontFamily: "'Playfair Display', serif" }}>Winners' Foundation</p>
-            <p style={{ color: "#555", fontSize: "11px", marginTop: "2px" }}>Admin Panel</p>
+    <>
+      {/* Backdrop (mobile only) */}
+      {open && (
+        <div
+          onClick={onClose}
+          style={{
+            display: "none",
+            position: "fixed", inset: 0,
+            background: "rgba(0,0,0,0.55)",
+            zIndex: 40,
+          }}
+          className="sidebar-backdrop"
+        />
+      )}
+
+      {/* Sidebar panel */}
+      <aside
+        className={`sidebar ${open ? "sidebar-open" : ""}`}
+        style={{
+          width: "240px",
+          minWidth: "240px",
+          background: "#0a0a0a",
+          borderRight: "1px solid #1a1a1a",
+          display: "flex",
+          flexDirection: "column",
+          height: "100vh",
+          position: "sticky",
+          top: 0,
+          zIndex: 50,
+          flexShrink: 0,
+        }}
+      >
+        {/* Logo + close button row */}
+        <div style={{ padding: "28px 24px 24px", borderBottom: "1px solid #1a1a1a", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <div style={{ width: "36px", height: "36px", background: "linear-gradient(135deg, #2563EB, #1d4ed8)", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px", fontWeight: "900", color: "white", fontFamily: "'Playfair Display', serif", flexShrink: 0 }}>W</div>
+            <div>
+              <p style={{ color: "white", fontWeight: "700", fontSize: "13px", lineHeight: 1.2, fontFamily: "'Playfair Display', serif" }}>Winners' Foundation</p>
+              <p style={{ color: "#555", fontSize: "11px", marginTop: "2px" }}>Admin Panel</p>
+            </div>
           </div>
+          {/* Close button — visible on mobile only */}
+          <button
+            onClick={onClose}
+            className="sidebar-close-btn"
+            style={{ background: "none", border: "none", cursor: "pointer", color: "#555", padding: "4px", lineHeight: 0, display: "none" }}
+          >
+            <Icons.X />
+          </button>
         </div>
-      </div>
-      <nav style={{ flex: 1, padding: "16px 12px" }}>
-        <p style={{ color: "#333", fontSize: "10px", fontWeight: "700", letterSpacing: "0.15em", textTransform: "uppercase", padding: "8px 12px 12px" }}>Management</p>
-        {navItems.map((item) => (
-          <a key={item.label} href={item.href} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "11px 12px", borderRadius: "10px", marginBottom: "2px", color: item.active ? "white" : "#555", background: item.active ? "#1a1a1a" : "transparent", textDecoration: "none", fontSize: "14px", fontWeight: item.active ? "600" : "400", transition: "all 0.15s", borderLeft: item.active ? "3px solid #2563EB" : "3px solid transparent" }}>
-            <item.icon />
-            {item.label}
-            {item.active && <span style={{ marginLeft: "auto" }}><Icons.ChevronRight /></span>}
+
+        <nav style={{ flex: 1, padding: "16px 12px" }}>
+          <p style={{ color: "#333", fontSize: "10px", fontWeight: "700", letterSpacing: "0.15em", textTransform: "uppercase", padding: "8px 12px 12px" }}>Management</p>
+          {navItems.map((item) => (
+            <a
+              key={item.label}
+              href={item.href}
+              style={{
+                display: "flex", alignItems: "center", gap: "12px",
+                padding: "11px 12px", borderRadius: "10px", marginBottom: "2px",
+                color: item.active ? "white" : "#555",
+                background: item.active ? "#1a1a1a" : "transparent",
+                textDecoration: "none", fontSize: "14px",
+                fontWeight: item.active ? "600" : "400",
+                transition: "all 0.15s",
+                borderLeft: item.active ? "3px solid #2563EB" : "3px solid transparent",
+              }}
+            >
+              <item.icon />
+              {item.label}
+              {item.active && <span style={{ marginLeft: "auto" }}><Icons.ChevronRight /></span>}
+            </a>
+          ))}
+        </nav>
+
+        <div style={{ padding: "16px 12px", borderTop: "1px solid #1a1a1a" }}>
+          <a href="/admin/logout" style={{ display: "flex", alignItems: "center", gap: "12px", padding: "11px 12px", borderRadius: "10px", color: "#555", textDecoration: "none", fontSize: "14px" }}>
+            <Icons.LogOut />Sign Out
           </a>
-        ))}
-      </nav>
-      <div style={{ padding: "16px 12px", borderTop: "1px solid #1a1a1a" }}>
-        <a href="/admin/logout" style={{ display: "flex", alignItems: "center", gap: "12px", padding: "11px 12px", borderRadius: "10px", color: "#555", textDecoration: "none", fontSize: "14px" }}>
-          <Icons.LogOut />Sign Out
-        </a>
-      </div>
-    </aside>
+        </div>
+      </aside>
+    </>
   );
 }
 
@@ -62,11 +120,11 @@ export default function StudentsPage() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => { fetchStudents(); }, []);
   useEffect(() => { filterStudents(); }, [search, students, filterStatus]);
 
-  // FIX 1: fetch from correct endpoint
   const fetchStudents = async () => {
     try {
       const res = await fetch("/api/admin/students");
@@ -104,7 +162,6 @@ export default function StudentsPage() {
     finally { setActionLoading(""); }
   };
 
-  // FIX 2: correct delete endpoint + soft delete confirm message
   const deleteStudent = async (studentId) => {
     if (!confirm("Delete this student? They will be removed from the portal.")) return;
     try {
@@ -140,21 +197,93 @@ export default function StudentsPage() {
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+
+        /* ── Sidebar: always visible on desktop ── */
+        .sidebar {
+          position: sticky;
+        }
+
+        /* ── Mobile (≤ 768px): sidebar hidden off-screen, slides in when open ── */
+        @media (max-width: 768px) {
+          .sidebar {
+            position: fixed !important;
+            top: 0; left: 0;
+            transform: translateX(-100%);
+            transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+            height: 100vh !important;
+          }
+          .sidebar.sidebar-open {
+            transform: translateX(0);
+          }
+          .sidebar-backdrop {
+            display: block !important;
+          }
+          .sidebar-close-btn {
+            display: block !important;
+          }
+          .mobile-topbar-hamburger {
+            display: flex !important;
+          }
+        }
+
+        /* ── Desktop: hide hamburger in top bar ── */
+        @media (min-width: 769px) {
+          .mobile-topbar-hamburger {
+            display: none !important;
+          }
+        }
       `}</style>
 
-      <Sidebar />
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <main style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, overflowX: "hidden" }}>
 
         {/* Top bar */}
-        <div style={{ background: "white", borderBottom: "1px solid #e8edf3", padding: "18px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 20 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#9ca3af", fontSize: "13px" }}>
-            <span>Admin</span>
-            <Icons.ChevronRight />
-            <span style={{ color: "#111", fontWeight: "600" }}>Student Management</span>
+        <div style={{
+          background: "white",
+          borderBottom: "1px solid #e8edf3",
+          padding: "18px 24px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          position: "sticky",
+          top: 0,
+          zIndex: 20,
+          gap: "12px",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            {/* Hamburger — mobile only */}
+            <button
+              className="mobile-topbar-hamburger"
+              onClick={() => setSidebarOpen(true)}
+              style={{
+                display: "none",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "#f3f4f6",
+                border: "none",
+                borderRadius: "8px",
+                width: "38px",
+                height: "38px",
+                cursor: "pointer",
+                color: "#111",
+                flexShrink: 0,
+              }}
+              aria-label="Open menu"
+            >
+              <Icons.Menu />
+            </button>
+
+            {/* Breadcrumb */}
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#9ca3af", fontSize: "13px" }}>
+              <span>Admin</span>
+              <Icons.ChevronRight />
+              <span style={{ color: "#111", fontWeight: "600" }}>Student Management</span>
+            </div>
           </div>
+
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "#2563EB", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: "700" }}>A</div>
+            <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "#2563EB", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: "700", flexShrink: 0 }}>A</div>
             <div>
               <p style={{ fontSize: "13px", fontWeight: "700", color: "#111" }}>Admin</p>
               <p style={{ fontSize: "11px", color: "#9ca3af" }}>Super Admin</p>
@@ -163,17 +292,17 @@ export default function StudentsPage() {
         </div>
 
         {/* Page body */}
-        <div style={{ padding: "32px", flex: 1 }}>
+        <div style={{ padding: "32px 24px", flex: 1 }}>
 
           {/* Page title */}
           <div style={{ marginBottom: "28px" }}>
             <p style={{ fontSize: "11px", fontWeight: "700", letterSpacing: "0.2em", textTransform: "uppercase", color: "#2563EB", marginBottom: "8px" }}>Administration</p>
-            <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "34px", fontWeight: "900", color: "#0a0a0a", lineHeight: 1.15 }}>Student Management</h1>
+            <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(24px, 5vw, 34px)", fontWeight: "900", color: "#0a0a0a", lineHeight: 1.15 }}>Student Management</h1>
             <p style={{ color: "#6b7280", marginTop: "6px", fontSize: "15px" }}>Monitor, manage and control registered student accounts.</p>
           </div>
 
           {/* Stats */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "28px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "16px", marginBottom: "28px" }}>
             {stats.map((s) => (
               <div key={s.label} style={{ background: "white", borderRadius: "16px", padding: "20px 24px", border: "1px solid #e8edf3", boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
                 <div style={{ width: "38px", height: "38px", borderRadius: "10px", background: s.bg, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "14px" }}>
@@ -186,7 +315,7 @@ export default function StudentsPage() {
 
           {/* Search + filter bar */}
           <div style={{ background: "white", borderRadius: "16px", border: "1px solid #e8edf3", padding: "16px 20px", marginBottom: "20px", display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap", boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
-            <div style={{ position: "relative", flex: 1, minWidth: "240px" }}>
+            <div style={{ position: "relative", flex: 1, minWidth: "200px" }}>
               <span style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "#9ca3af" }}><Icons.Search /></span>
               <input
                 type="text"
@@ -228,7 +357,6 @@ export default function StudentsPage() {
                   {!loading && filtered.map((student, i) => (
                     <tr key={student._id} className="student-row" style={{ borderBottom: i < filtered.length - 1 ? "1px solid #f1f5f9" : "none", background: "white", transition: "background 0.15s" }}>
 
-                      {/* Student */}
                       <td style={{ padding: "16px 20px" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
                           <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: `hsl(${(student.fullName?.charCodeAt(0) || 65) * 13 % 360}, 65%, 20%)`, color: `hsl(${(student.fullName?.charCodeAt(0) || 65) * 13 % 360}, 65%, 75%)`, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "800", fontSize: "16px", flexShrink: 0, fontFamily: "'Playfair Display', serif" }}>
@@ -241,12 +369,10 @@ export default function StudentsPage() {
                         </div>
                       </td>
 
-                      {/* Role */}
                       <td style={{ padding: "16px 20px" }}>
                         <span style={{ fontSize: "12px", fontWeight: "700", color: "#374151", background: "#f3f4f6", padding: "4px 10px", borderRadius: "6px", textTransform: "capitalize" }}>{student.role}</span>
                       </td>
 
-                      {/* Status */}
                       <td style={{ padding: "16px 20px" }}>
                         <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
                           <StatusDot on={student.isVerified} onLabel="Verified" offLabel="Unverified" onColor="#16a34a" offColor="#d97706" />
@@ -254,25 +380,20 @@ export default function StudentsPage() {
                         </div>
                       </td>
 
-                      {/* Online */}
                       <td style={{ padding: "16px 20px" }}>
                         <StatusDot on={student.isOnline} onLabel="Online" offLabel="Offline" onColor="#16a34a" offColor="#9ca3af" />
                       </td>
 
-                      {/* Login Count */}
                       <td style={{ padding: "16px 20px", fontWeight: "700", color: "#111", fontSize: "15px" }}>{student.loginCount || 0}</td>
 
-                      {/* Last Login */}
                       <td style={{ padding: "16px 20px", color: "#6b7280", fontSize: "13px", whiteSpace: "nowrap" }}>
                         {student.lastLogin ? new Date(student.lastLogin).toLocaleString() : <span style={{ color: "#d1d5db" }}>Never</span>}
                       </td>
 
-                      {/* Joined */}
                       <td style={{ padding: "16px 20px", color: "#6b7280", fontSize: "13px", whiteSpace: "nowrap" }}>
                         {new Date(student.createdAt).toLocaleDateString()}
                       </td>
 
-                      {/* Actions */}
                       <td style={{ padding: "16px 20px" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                           <ActionBtn onClick={() => window.location.href = `/admin/students/${student._id}`} color="#111" label="View" icon={<Icons.Eye />} />
@@ -287,7 +408,6 @@ export default function StudentsPage() {
               </table>
             </div>
 
-            {/* Empty */}
             {!loading && filtered.length === 0 && (
               <div style={{ padding: "80px 20px", textAlign: "center" }}>
                 <div style={{ width: "72px", height: "72px", borderRadius: "20px", background: "#f3f4f6", margin: "0 auto 20px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "32px" }}>🎓</div>
@@ -296,7 +416,6 @@ export default function StudentsPage() {
               </div>
             )}
 
-            {/* Loading */}
             {loading && (
               <div style={{ padding: "80px 20px", textAlign: "center" }}>
                 <div style={{ width: "44px", height: "44px", border: "3px solid #e5e7eb", borderTopColor: "#2563EB", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 20px" }} />
