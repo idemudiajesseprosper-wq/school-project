@@ -324,26 +324,38 @@ export default function StudentsPage() {
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
 
-        /* Sidebar: always visible on desktop */
         .sidebar-backdrop { display: none; }
 
+        /* Mobile: sidebar slides in as overlay */
+        .admin-sidebar {
+          display: none;
+        }
         @media (max-width: 768px) {
           .admin-sidebar {
+            display: block !important;
             position: fixed !important;
             top: 0 !important;
             left: 0 !important;
             height: 100vh !important;
             transform: translateX(-100%);
             transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+            z-index: 160;
           }
           .admin-sidebar.open {
-            transform: translateX(0);
+            transform: translateX(0) !important;
           }
           .sidebar-backdrop { display: block !important; }
           .sidebar-close-btn { display: flex !important; }
           .mobile-menu-btn { display: flex !important; }
         }
+        /* Desktop: sidebar always visible inline */
         @media (min-width: 769px) {
+          .admin-sidebar {
+            display: flex !important;
+            position: sticky !important;
+            top: 0 !important;
+            height: calc(100vh - 96px) !important;
+          }
           .sidebar-close-btn { display: none !important; }
           .mobile-menu-btn { display: none !important; }
         }
@@ -353,10 +365,10 @@ export default function StudentsPage() {
       <PublicNavbar />
 
       {/* Push page content below the fixed navbar */}
-      <div style={{ paddingTop: `${NAV_HEIGHT}px`, display: "flex", minHeight: "100vh", background: "#f8f9fb", fontFamily: "Lato, sans-serif" }}>
+      <div style={{ paddingTop: `${NAV_HEIGHT}px`, display: "flex", minHeight: `calc(100vh - ${NAV_HEIGHT}px)`, background: "#f8f9fb", fontFamily: "Lato, sans-serif" }}>
 
         {/* Admin Sidebar */}
-        <div className={`admin-sidebar ${sidebarOpen ? "open" : ""}`} style={{ display: "flex" }}>
+        <div className={`admin-sidebar ${sidebarOpen ? "open" : ""}`}>
           <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         </div>
 
