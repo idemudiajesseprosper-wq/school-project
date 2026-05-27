@@ -27,6 +27,13 @@ export default function LoginSelectPage() {
 
         *, *::before, *::after { box-sizing: border-box; }
 
+       html,
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+} 
+
         @keyframes fadeUp {
           from { opacity: 0; transform: translateY(20px); }
           to   { opacity: 1; transform: translateY(0); }
@@ -47,9 +54,9 @@ export default function LoginSelectPage() {
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          padding: 40px 24px 60px;
+          padding: 40px 24px;
           position: relative;
-          overflow: hidden;
+          overflow-x: hidden;
         }
 
         .lp-blob {
@@ -236,7 +243,7 @@ export default function LoginSelectPage() {
         .lp-foot a:hover { color: #93c5fd; }
       `}</style>
 
-      <div className="lp-root mt-28 md:mt-25">
+      <div className="lp-root">
         <div className="lp-blob lp-blob-1" />
         <div className="lp-blob lp-blob-2" />
         <div className="lp-blob lp-blob-3" />
