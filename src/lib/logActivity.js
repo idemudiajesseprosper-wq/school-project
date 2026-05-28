@@ -1,5 +1,5 @@
 import Activity from "../models/Activity";
-import connectDB from "./lib/connect";
+import { connectMongoDB } from "./connect";
 
 export async function logActivity({
   userId,
@@ -10,7 +10,7 @@ export async function logActivity({
   metadata = {},
 }) {
   try {
-    await connectDB();
+    await connectMongoDB();
 
     await Activity.create({
       userId,
