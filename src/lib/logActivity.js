@@ -1,5 +1,5 @@
-import Activity from "@/models/Activity";
-import connectDB from "@/lib/connect";
+import Activity from "../models/Activity";
+import connectDB from "./lib/connect";
 
 export async function logActivity({
   userId,

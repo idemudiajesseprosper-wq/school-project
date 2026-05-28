@@ -2,10 +2,10 @@ import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 
 import { connectMongoDB }
-from "../../../../../lib/connect";
+from "../../../../lib/connect";
 
 import Activity
-from "../../../../../models/Activity";
+from "../../../../models/Activity";
 
 export async function GET(req) {
 
