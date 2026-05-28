@@ -307,7 +307,6 @@ export default function StudentsPage() {
     { label: "Suspended",      value: students.filter(s => s.isSuspended).length, color: "#dc2626", bg: "#fef2f2" },
   ];
 
-  // Navbar height: top info bar ~32px + main bar 64px = 96px total
   const NAV_HEIGHT = 96;
 
   return (
@@ -323,6 +322,13 @@ export default function StudentsPage() {
         aside a:hover { color: #aaa !important; background: #111 !important; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+
+        /* Responsive nav offset */
+        .page-wrapper { padding-top: 96px; min-height: calc(100vh - 96px); }
+        @media (max-width: 768px) {
+          /* On mobile the top info bar is shorter (~28px) + navbar 64px = ~92px */
+          .page-wrapper { padding-top: 92px; min-height: calc(100vh - 92px); }
+        }
 
         .sidebar-backdrop { display: none; }
 
@@ -365,7 +371,7 @@ export default function StudentsPage() {
       <PublicNavbar />
 
       {/* Push page content below the fixed navbar */}
-      <div style={{ paddingTop: `${NAV_HEIGHT}px`, display: "flex", minHeight: `calc(100vh - ${NAV_HEIGHT}px)`, background: "#f8f9fb", fontFamily: "Lato, sans-serif" }}>
+      <div className="page-wrapper" style={{ display: "flex", background: "#f8f9fb", fontFamily: "Lato, sans-serif" }}>
 
         {/* Admin Sidebar */}
         <div className={`admin-sidebar ${sidebarOpen ? "open" : ""}`}>
@@ -376,7 +382,7 @@ export default function StudentsPage() {
         <main style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, overflowX: "hidden" }}>
 
           {/* Admin top bar */}
-          <div style={{ background: "white", borderBottom: "1px solid #e8edf3", padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", position: "sticky", top: `${NAV_HEIGHT}px`, zIndex: 20 }}>
+          <div style={{ background: "white", borderBottom: "1px solid #e8edf3", padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", position: "relative", zIndex: 20 }}>
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               {/* Mobile hamburger for sidebar */}
               <button

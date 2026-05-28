@@ -1,49 +1,76 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { connectMongoDB } from "../../../../lib/connect";
-import User from "../../../../models/User";
+
+import { connectMongoDB }
+from "../../../../lib/connect";
+
+import User
+from "../../../../models/User";
+
+import { logActivity }
+from "../../../../lib/logActivity";
 
 export async function POST(req) {
+
   try {
+
     console.log("LOGIN REQUEST STARTED");
 
-    const { email, username, password, role } = await req.json();
-
-    console.log("REQUEST BODY:", { email, username, role });
+    const {
+      email,
+      username,
+      password,
+      role,
+    } = await req.json();
 
     await connectMongoDB();
-
-    console.log("MONGODB CONNECTED");
 
     let user;
 
     // ADMIN LOGIN
     if (role === "admin") {
-      console.log("ADMIN LOGIN ATTEMPT");
-      user = await User.findOne({ username });
+
+      user = await User.findOne({
+        username,
+      });
+
     }
 
     // STUDENT LOGIN
     else {
-      console.log("STUDENT LOGIN ATTEMPT");
-      user = await User.findOne({ email, isDeleted: { $ne: true } });
-    }
 
-    console.log("USER FOUND:", user);
+      user = await User.findOne({
+        email,
+        isDeleted: { $ne: true },
+      });
+    }
 
     // USER NOT FOUND
     if (!user) {
-      console.log("ERROR: USER NOT FOUND");
+
       return NextResponse.json({
         success: false,
         message: "Invalid credentials",
       });
     }
 
+    // ACCOUNT LOCK CHECK
+    if (
+      user.accountLockedUntil &&
+      user.accountLockedUntil > Date.now()
+    ) {
+
+      return NextResponse.json({
+        success: false,
+        message:
+          "Account locked. Try again later.",
+      });
+    }
+
     // ROLE CHECK
     if (user.role !== role) {
-      console.log("ERROR: ROLE MISMATCH", { expected: role, actual: user.role });
+
       return NextResponse.json({
         success: false,
         message: "Unauthorized role",
@@ -52,85 +79,150 @@ export async function POST(req) {
 
     // BLOCK SUSPENDED USERS
     if (user.isSuspended) {
+
       return NextResponse.json({
         success: false,
-        message: "Your account has been suspended. Contact the school office.",
+        message:
+          "Your account has been suspended.",
       });
     }
 
     // PASSWORD CHECK
-    const validPassword = await bcrypt.compare(password, user.password);
+    const validPassword =
+      await bcrypt.compare(
+        password,
+        user.password
+      );
 
-    console.log("PASSWORD VALID:", validPassword);
-
+    // INVALID PASSWORD
     if (!validPassword) {
-      console.log("ERROR: INVALID PASSWORD");
+
+      user.failedLoginAttempts += 1;
+
+      // LOCK ACCOUNT
+      if (user.failedLoginAttempts >= 5) {
+
+        user.accountLockedUntil =
+          Date.now() + 15 * 60 * 1000;
+
+        await logActivity({
+          userId: user._id,
+          userName: user.fullName,
+          action: "ACCOUNT_LOCKED",
+          target: user.email,
+        });
+      }
+
+      await user.save();
+
+      await logActivity({
+        userId: user._id,
+        userName: user.fullName,
+        action: "FAILED_LOGIN",
+        target: user.email,
+      });
+
       return NextResponse.json({
         success: false,
         message: "Invalid credentials",
       });
     }
 
-    // GET IP ADDRESS
-    const ip = req.headers.get("x-forwarded-for") || "Unknown";
+    // GET IP
+    const ip =
+      req.headers.get("x-forwarded-for") ||
+      "Unknown";
 
     // GET DEVICE
-    const device = req.headers.get("user-agent") || "Unknown Device";
-
-    console.log("LOGIN DEVICE:", device);
-    console.log("LOGIN IP:", ip);
+    const device =
+      req.headers.get("user-agent") ||
+      "Unknown Device";
 
     // UPDATE USER ACTIVITY
     user.lastLogin = new Date();
+
     user.loginCount += 1;
+
     user.isOnline = true;
 
-    // SAVE LOGIN HISTORY
-    user.loginHistory.push({ time: new Date(), ip, device });
+    user.failedLoginAttempts = 0;
 
-    // KEEP ONLY LAST 20 LOGINS
+    user.accountLockedUntil = null;
+
+    // SAVE LOGIN HISTORY
+    user.loginHistory.push({
+      time: new Date(),
+      ip,
+      device,
+    });
+
+    // KEEP LAST 20 LOGINS
     if (user.loginHistory.length > 20) {
-      user.loginHistory = user.loginHistory.slice(-20);
+
+      user.loginHistory =
+        user.loginHistory.slice(-20);
     }
 
     await user.save();
 
-    console.log("USER LOGIN INFO SAVED");
+    // LOG ACTIVITY
+    await logActivity({
+      userId: user._id,
+      userName: user.fullName,
+      action: "LOGIN",
+      target: user.email,
+      ipAddress: ip,
+      metadata: {
+        device,
+        role: user.role,
+      },
+    });
 
-    // CREATE JWT TOKEN
+    // CREATE JWT
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+      {
+        id: user._id,
+        role: user.role,
+      },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      {
+        expiresIn: "7d",
+      }
     );
 
-    console.log("TOKEN CREATED");
+    const response =
+      NextResponse.json({
+        success: true,
+        role: user.role,
+      });
 
-    // RESPONSE
-    const response = NextResponse.json({
-      success: true,
-      role: user.role,
-    });
-
-    // SET AUTH COOKIE
-    response.cookies.set("auth_token", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 7,
-    });
-
-    console.log("COOKIE SET SUCCESSFULLY");
-    console.log("LOGIN SUCCESSFUL");
+    // SET COOKIE
+    response.cookies.set(
+      "auth_token",
+      token,
+      {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        path: "/",
+        maxAge:
+          60 * 60 * 24 * 7,
+      }
+    );
 
     return response;
 
   } catch (error) {
-    console.log("LOGIN API ERROR:", error);
+
+    console.log(
+      "LOGIN API ERROR:",
+      error
+    );
+
     return NextResponse.json({
       success: false,
       message: "Server error",
     });
   }
 }
+

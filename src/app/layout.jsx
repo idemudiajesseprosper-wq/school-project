@@ -26,21 +26,13 @@ export default function RootLayout({ children }) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body
-        className="min-h-screen flex flex-col bg-white overflow-x-hidden"
-      >
+      <body className="min-h-screen flex flex-col bg-white overflow-x-hidden">
         <Navbar />
 
         <Toaster position="top-right" reverseOrder={false} />
 
         <AuthProvider>
-          <main
-            style={{
-              flex: 1,
-              paddingTop: "80px",
-              minHeight: "100dvh",
-            }}
-          >
+          <main className="flex-1 pt-20">
             {children}
           </main>
         </AuthProvider>

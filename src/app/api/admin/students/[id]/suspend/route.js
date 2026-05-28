@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
 
+import jwt from "jsonwebtoken";
+
 import { connectMongoDB }
 from "../../../../../../lib/connect";
 
 import User
 from "../../../../../../models/User";
+
+import { logActivity }
+from "../../../../../../lib/logActivity";
 
 export async function PATCH(
   req,
@@ -12,6 +17,31 @@ export async function PATCH(
 ) {
 
   try {
+
+    // VERIFY ADMIN TOKEN
+    const token =
+      req.cookies.get("auth_token")?.value;
+
+    if (!token) {
+
+      return NextResponse.json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET
+    );
+
+    if (decoded.role !== "admin") {
+
+      return NextResponse.json({
+        success: false,
+        message: "Access denied",
+      });
+    }
 
     await connectMongoDB();
 
@@ -53,8 +83,21 @@ export async function PATCH(
 
     await student.save();
 
+    // LOG ACTIVITY
+    await logActivity({
+      userId: decoded.id,
+
+      action:
+        student.isSuspended
+          ? "SUSPEND_STUDENT"
+          : "UNSUSPEND_STUDENT",
+
+      target: student.fullName,
+    });
+
     return NextResponse.json({
       success: true,
+
       message:
         student.isSuspended
           ? "Student suspended"
