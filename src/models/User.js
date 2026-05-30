@@ -118,6 +118,11 @@ const UserSchema = new mongoose.Schema(
     parentEmail: String,
 
     relationship: String,
+
+     // TEACHER SPECIFIC
+    assignedClasses: [{ type: String }], // e.g. ["JSS1", "SS2"]
+    subject: { type: String, default: "" }, // main subject
+    qualification: { type: String, default: "" },
   },
   {
     timestamps: true,
