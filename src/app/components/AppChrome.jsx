@@ -7,17 +7,20 @@ import Navbar from "./Navbar";
 
 export default function AppChrome({ children }) {
   const pathname = usePathname();
-  const isAdminRoute = pathname?.startsWith("/admin");
+  const isPortalRoute =
+    pathname?.startsWith("/admin") ||
+    pathname?.startsWith("/student") ||
+    pathname?.startsWith("/teacher");
 
   return (
     <>
-      {!isAdminRoute && <Navbar />}
+      {!isPortalRoute && <Navbar />}
 
-      <main className={`flex-1 ${isAdminRoute ? "" : "pt-20"}`}>
+      <main className={`flex-1 ${isPortalRoute ? "" : "pt-20"}`}>
         {children}
       </main>
 
-      {!isAdminRoute && <BackToTop />}
+      {!isPortalRoute && <BackToTop />}
     </>
   );
 }

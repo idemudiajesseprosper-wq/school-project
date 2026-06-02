@@ -54,7 +54,7 @@ function Sidebar({ onLogout }) {
     { label: "Dashboard", icon: Icons.Grid, href: "/student", active: true },
     { label: "Assignments", icon: Icons.BookOpen, href: "/student/assignments" },
     { label: "Timetable", icon: Icons.Clock, href: "/student/timetable" },
-    { label: "Announcements", icon: Icons.Bell, href: "/student/assignments" },
+    { label: "Notifications", icon: Icons.Bell, href: "/student/notifications" },
   ];
   return (
     <aside style={{ width: "240px", minWidth: "240px", background: "#0a0a0a", borderRight: "1px solid #1a1a1a", display: "flex", flexDirection: "column", height: "100vh", position: "sticky", top: 0 }}>
@@ -92,7 +92,7 @@ function MobileDrawer({ open, onClose, onLogout }) {
     { label: "Dashboard", icon: Icons.Grid, href: "/student", active: true },
     { label: "Assignments", icon: Icons.BookOpen, href: "/student/assignments" },
     { label: "Timetable", icon: Icons.Clock, href: "/student/timetable" },
-    { label: "Announcements", icon: Icons.Bell, href: "/student/assignments" },
+    { label: "Notifications", icon: Icons.Bell, href: "/student/notifications" },
   ];
   if (!open) return null;
   return (
@@ -452,7 +452,7 @@ export default function StudentDashboard() {
             { label: "Home", icon: Icons.Grid, href: "/student", active: true },
             { label: "Work", icon: Icons.BookOpen, href: "/student/assignments" },
             { label: "Timetable", icon: Icons.Clock, href: "/student/timetable" },
-            { label: "Alerts", icon: Icons.Bell, href: "/student/assignments" },
+            { label: "Alerts", icon: Icons.Bell, href: "/student/notifications" },
           ].map(item => (
             <a key={item.label} href={item.href} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", textDecoration: "none", color: item.active ? "#2563EB" : "#9ca3af", fontSize: "10px", fontWeight: item.active ? "700" : "500", padding: "0 12px" }}>
               <item.icon />
