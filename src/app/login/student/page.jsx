@@ -25,12 +25,12 @@ export default function StudentLogin() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: form.email, password: form.password, role: "student" }),
+        body: JSON.stringify({ email: form.email, password: form.password }),
       });
       const data = await res.json();
       if (data.success) {
         toast.success("Welcome back");
-        router.push("/student");
+        router.push(data.role === "teacher" ? "/teacher" : "/student");
       } else {
         toast.error(data.message || "Invalid credentials");
       }
@@ -76,8 +76,8 @@ export default function StudentLogin() {
             <div className="w-16 h-16 rounded-2xl bg-white shadow-md flex items-center justify-center">
               <img src="/logo.PNG" alt="School Logo" className="w-10 h-10 object-contain" />
             </div>
-            <h1 className="mt-4 text-2xl font-semibold text-gray-900">Student Portal</h1>
-            <p className="text-sm text-gray-500 mt-1">Secure access to your dashboard</p>
+            <h1 className="mt-4 text-2xl font-semibold text-gray-900">School Portal</h1>
+            <p className="text-sm text-gray-500 mt-1">Students and teachers use this same login</p>
           </div>
 
           {/* Google Button */}

@@ -47,11 +47,25 @@ export function middleware(req) {
       console.log("NO STUDENT TOKEN FOUND");
 
       return NextResponse.redirect(
-        new URL("/student/login", req.url)
+        new URL("/login/student", req.url)
       );
     }
 
     console.log("STUDENT TOKEN EXISTS");
+
+    return NextResponse.next();
+  }
+
+  // =========================
+  // TEACHER ROUTE PROTECTION
+  // =========================
+  if (url.pathname.startsWith("/teacher")) {
+
+    if (!token) {
+      return NextResponse.redirect(
+        new URL("/login/student", req.url)
+      );
+    }
 
     return NextResponse.next();
   }
@@ -63,5 +77,6 @@ export const config = {
   matcher: [
     "/admin/:path*",
     "/student/:path*",
+    "/teacher/:path*",
   ],
 };

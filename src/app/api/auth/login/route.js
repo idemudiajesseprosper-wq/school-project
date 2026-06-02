@@ -37,7 +37,7 @@ export async function POST(req) {
 
     }
 
-    // STUDENT LOGIN
+    // STUDENT / TEACHER LOGIN
     else {
 
       user = await User.findOne({
@@ -68,8 +68,8 @@ export async function POST(req) {
       });
     }
 
-    // ROLE CHECK
-    if (user.role !== role) {
+    // ROLE CHECK. The student portal login can authenticate students or teachers.
+    if (role && user.role !== role) {
 
       return NextResponse.json({
         success: false,

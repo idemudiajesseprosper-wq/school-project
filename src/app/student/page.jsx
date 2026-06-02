@@ -52,9 +52,9 @@ function Field({ label, icon: Icon, children }) {
 function Sidebar({ onLogout }) {
   const navItems = [
     { label: "Dashboard", icon: Icons.Grid, href: "/student", active: true },
-    { label: "Results", icon: Icons.BookOpen, href: "/student/results" },
+    { label: "Assignments", icon: Icons.BookOpen, href: "/student/assignments" },
     { label: "Timetable", icon: Icons.Clock, href: "/student/timetable" },
-    { label: "Notifications", icon: Icons.Bell, href: "/student/notifications" },
+    { label: "Announcements", icon: Icons.Bell, href: "/student/assignments" },
   ];
   return (
     <aside style={{ width: "240px", minWidth: "240px", background: "#0a0a0a", borderRight: "1px solid #1a1a1a", display: "flex", flexDirection: "column", height: "100vh", position: "sticky", top: 0 }}>
@@ -90,9 +90,9 @@ function Sidebar({ onLogout }) {
 function MobileDrawer({ open, onClose, onLogout }) {
   const navItems = [
     { label: "Dashboard", icon: Icons.Grid, href: "/student", active: true },
-    { label: "Results", icon: Icons.BookOpen, href: "/student/results" },
+    { label: "Assignments", icon: Icons.BookOpen, href: "/student/assignments" },
     { label: "Timetable", icon: Icons.Clock, href: "/student/timetable" },
-    { label: "Notifications", icon: Icons.Bell, href: "/student/notifications" },
+    { label: "Announcements", icon: Icons.Bell, href: "/student/assignments" },
   ];
   if (!open) return null;
   return (
@@ -292,7 +292,15 @@ export default function StudentDashboard() {
             <h1 className="page-title" style={{ fontFamily: "'Playfair Display', serif", fontWeight: "900", color: "#0a0a0a", lineHeight: 1.15 }}>
               Welcome back, {user?.fullName?.split(" ")[0]}.
             </h1>
-            <p style={{ color: "#6b7280", marginTop: "6px", fontSize: "15px" }}>Manage your profile and account details below.</p>
+            <p style={{ color: "#6b7280", marginTop: "6px", fontSize: "15px" }}>Manage your profile, assignments, grades, and class timetable.</p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginTop: "14px" }}>
+              <a href="/student/assignments" style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "10px 14px", borderRadius: "10px", background: "#2563EB", color: "white", fontSize: "13px", fontWeight: "800", textDecoration: "none" }}>
+                <Icons.BookOpen />Assignments & Grades
+              </a>
+              <a href="/student/timetable" style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "10px 14px", borderRadius: "10px", background: "#111827", color: "white", fontSize: "13px", fontWeight: "800", textDecoration: "none" }}>
+                <Icons.Clock />Class Timetable
+              </a>
+            </div>
           </div>
 
           {/* Status cards */}
@@ -442,9 +450,9 @@ export default function StudentDashboard() {
         <nav className="mobile-bottom-nav" style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "white", borderTop: "1px solid #e8edf3", zIndex: 30, justifyContent: "space-around", alignItems: "center", padding: "10px 0 max(10px, env(safe-area-inset-bottom))" }}>
           {[
             { label: "Home", icon: Icons.Grid, href: "/student", active: true },
-            { label: "Results", icon: Icons.BookOpen, href: "/student/results" },
+            { label: "Work", icon: Icons.BookOpen, href: "/student/assignments" },
             { label: "Timetable", icon: Icons.Clock, href: "/student/timetable" },
-            { label: "Alerts", icon: Icons.Bell, href: "/student/notifications" },
+            { label: "Alerts", icon: Icons.Bell, href: "/student/assignments" },
           ].map(item => (
             <a key={item.label} href={item.href} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", textDecoration: "none", color: item.active ? "#2563EB" : "#9ca3af", fontSize: "10px", fontWeight: item.active ? "700" : "500", padding: "0 12px" }}>
               <item.icon />

@@ -18,6 +18,10 @@ export async function POST(req) {
       parentPhone,
       parentEmail,
       relationship,
+      role,
+      assignedClasses,
+      subject,
+      qualification,
     } = await req.json();
 
     if (!fullName || !email || !password) {
@@ -40,11 +44,13 @@ export async function POST(req) {
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
+    const requestedRole = role === "teacher" ? "teacher" : "student";
+
     await User.create({
       fullName,
       email,
       password: hashedPassword,
-      role: "student",
+      role: requestedRole,
 
       // AUTO VERIFIED — re-enable when domain is ready
       isVerified: true,
@@ -62,6 +68,13 @@ export async function POST(req) {
       parentPhone: parentPhone || "",
       parentEmail: parentEmail || "",
       relationship: relationship || "",
+
+      // TEACHER INFO
+      assignedClasses: requestedRole === "teacher" && Array.isArray(assignedClasses)
+        ? assignedClasses.filter(Boolean)
+        : [],
+      subject: requestedRole === "teacher" ? subject || "" : "",
+      qualification: requestedRole === "teacher" ? qualification || "" : "",
     });
 
     return NextResponse.json({

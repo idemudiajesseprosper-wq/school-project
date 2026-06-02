@@ -1,8 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Navbar from "./components/Navbar";
-import BackToTop from "./components/BackToTop";
 import { Toaster } from "react-hot-toast";
+import AppChrome from "./components/AppChrome";
 import AuthProvider from "./components/AuthProvider";
 
 const geistSans = Geist({
@@ -27,17 +26,13 @@ export default function RootLayout({ children }) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-screen flex flex-col bg-white overflow-x-hidden">
-        <Navbar />
-
         <Toaster position="top-right" reverseOrder={false} />
 
         <AuthProvider>
-          <main className="flex-1 pt-20">
+          <AppChrome>
             {children}
-          </main>
+          </AppChrome>
         </AuthProvider>
-
-        <BackToTop />
       </body>
     </html>
   );

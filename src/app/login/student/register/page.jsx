@@ -24,6 +24,7 @@ export default function RegisterPage() {
 
   const [form, setForm] = useState({
     accessCode: "",
+    accountType: "student",
     fullName: "",
     dateOfBirth: "",
     gender: "",
@@ -37,6 +38,9 @@ export default function RegisterPage() {
     email: "",
     password: "",
     confirmPassword: "",
+    assignedClasses: [],
+    subject: "",
+    qualification: "",
   });
 
   const update = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
@@ -62,7 +66,7 @@ export default function RegisterPage() {
         body: JSON.stringify({ code: form.accessCode.trim() }),
       });
       const data = await res.json();
-      if (data.valid) { toast.success("Code verified!"); setStep(1); }
+      if (data.valid) { toast.success("Code verified!"); update("accountType", "student"); setStep(1); }
       else toast.error(data.message || "Invalid access code");
     } catch { toast.error("Could not verify code"); }
     setLoading(false);
@@ -71,6 +75,13 @@ export default function RegisterPage() {
   // STEP 1 — personal info validation (admissionNumber is optional)
   const nextToParent = () => {
     if (!form.fullName.trim()) { toast.error("Full name is required"); return; }
+    if (form.accountType === "teacher") {
+      if (!form.phoneNumber.trim()) { toast.error("Phone number is required"); return; }
+      if (!form.subject.trim()) { toast.error("Subject is required"); return; }
+      if (!form.assignedClasses.length) { toast.error("Select at least one assigned class"); return; }
+      setStep(3);
+      return;
+    }
     if (!form.dateOfBirth) { toast.error("Date of birth is required"); return; }
     if (!form.gender) { toast.error("Gender is required"); return; }
     if (!form.studentClass) { toast.error("Class is required"); return; }
@@ -111,7 +122,10 @@ export default function RegisterPage() {
           email: form.email,
           password: form.password,
           accessCode: form.accessCode,
-          role: "student",
+          role: form.accountType,
+          assignedClasses: form.assignedClasses,
+          subject: form.subject,
+          qualification: form.qualification,
         }),
       });
       const data = await res.json();
@@ -261,6 +275,16 @@ export default function RegisterPage() {
                 {googleLoading ? "Signing up..." : "Continue with Google"}
               </button>
 
+              <button
+                className="rp-btn rp-btn-ghost"
+                onClick={() => {
+                  update("accountType", "teacher");
+                  setStep(1);
+                }}
+              >
+                Register as Teacher
+              </button>
+
               <div className="rp-divider">
                 <div className="rp-divider-line" />
                 <span className="rp-divider-text">or use access code</span>
@@ -297,8 +321,8 @@ export default function RegisterPage() {
             <div style={{ animation: "fadeIn 0.4s ease both" }}>
               <div className="rp-heading">
                 <p className="rp-eyebrow">Step 2 of 4</p>
-                <h1 className="rp-title"><em>Student</em> Information</h1>
-                <p className="rp-subtitle">Enter the student's details. Fields marked * are required.</p>
+                <h1 className="rp-title"><em>{form.accountType === "teacher" ? "Teacher" : "Student"}</em> Information</h1>
+                <p className="rp-subtitle">Enter the account details. Fields marked * are required.</p>
               </div>
 
               <div className="rp-field">
@@ -306,6 +330,8 @@ export default function RegisterPage() {
                 <input className="rp-input" placeholder="e.g. Chukwuemeka Daniel Obi" value={form.fullName} onChange={(e) => update("fullName", e.target.value)} />
               </div>
 
+              {form.accountType === "student" && (
+                <>
               <div className="rp-grid-2">
                 <div className="rp-field">
                   <label className="rp-label">Date of Birth <span>*</span></label>
@@ -335,6 +361,44 @@ export default function RegisterPage() {
                   <input className="rp-input" placeholder="e.g. WFS/2025/001" value={form.admissionNumber} onChange={(e) => update("admissionNumber", e.target.value)} />
                 </div>
               </div>
+                </>
+              )}
+
+              {form.accountType === "teacher" && (
+                <>
+                  <div className="rp-grid-2">
+                    <div className="rp-field">
+                      <label className="rp-label">Main Subject <span>*</span></label>
+                      <input className="rp-input" placeholder="e.g. Mathematics" value={form.subject} onChange={(e) => update("subject", e.target.value)} />
+                    </div>
+                    <div className="rp-field">
+                      <label className="rp-label">Qualification <small>(optional)</small></label>
+                      <input className="rp-input" placeholder="e.g. B.Ed" value={form.qualification} onChange={(e) => update("qualification", e.target.value)} />
+                    </div>
+                  </div>
+
+                  <div className="rp-field">
+                    <label className="rp-label">Assigned Classes <span>*</span></label>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8 }}>
+                      {CLASSES.map((className) => (
+                        <label key={className} style={{ display: "flex", alignItems: "center", gap: 8, color: "rgba(255,255,255,0.75)", fontFamily: "Lato, sans-serif", fontSize: 12 }}>
+                          <input
+                            type="checkbox"
+                            checked={form.assignedClasses.includes(className)}
+                            onChange={(e) => update(
+                              "assignedClasses",
+                              e.target.checked
+                                ? [...form.assignedClasses, className]
+                                : form.assignedClasses.filter((item) => item !== className)
+                            )}
+                          />
+                          {className}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
 
               <div className="rp-field">
                 <label className="rp-label">Phone Number <span>*</span></label>

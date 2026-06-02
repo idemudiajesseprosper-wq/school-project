@@ -70,7 +70,7 @@ export default function AdminPage() {
     <div className="min-h-screen bg-gray-100">
 
       {/* TOP BAR */}
-      <div className="bg-[#0c1a2e] px-6 py-3 flex items-center justify-between mt-28 md:mt-28">
+      <div className="bg-[#0c1a2e] px-4 py-3 md:px-6 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="w-7 h-7 bg-[#1e6fa8] rounded-md flex items-center justify-center text-white text-xs font-medium">
             W
@@ -87,13 +87,17 @@ export default function AdminPage() {
 
         <div className="flex items-center gap-2">
           <button
-  onClick={() =>
-    router.push("/admin/students")
-  }
-  className="bg-black text-white px-5 py-3 rounded-xl"
->
-  Students
-</button>
+            onClick={() => router.push("/admin/students")}
+            className="inline-flex items-center gap-2 rounded-md border border-blue-300/30 bg-blue-500/15 px-3 py-1.5 text-xs font-semibold text-blue-100 shadow-sm transition-colors hover:bg-blue-500/25"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M16 11a4 4 0 1 0-3.2-6.4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <path d="M8 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke="currentColor" strokeWidth="2" />
+              <path d="M2.5 20c.7-3 2.9-5 5.5-5s4.8 2 5.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <path d="M14.5 15.2c2.7.4 4.8 2.2 5.5 4.8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+            Students
+          </button>
 
           <button
             onClick={() => router.push("/admin/codes")}
