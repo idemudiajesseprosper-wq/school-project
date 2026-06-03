@@ -6,12 +6,12 @@ import toast from "react-hot-toast";
 
 /* ─── Design tokens ───────────────────────────────────────────────── */
 const T = {
-  bg:        "#0B0E1A",
-  surface:   "#111422",
-  card:      "#161A2C",
-  cardHover: "#1C2138",
-  border:    "rgba(255,255,255,0.07)",
-  borderMid: "rgba(255,255,255,0.12)",
+  bg:        "#F8F9FC",
+  surface:   "#FFFFFF",
+  card:      "#FFFFFF",
+  cardHover: "#F5F6FA",
+  border:    "rgba(0,0,0,0.08)",
+  borderMid: "rgba(0,0,0,0.14)",
 
   amber:     "#F5A623",
   amberDim:  "rgba(245,166,35,0.12)",
@@ -26,9 +26,9 @@ const T = {
   red:       "#F05252",
   redDim:    "rgba(240,82,82,0.12)",
 
-  t1:        "#F0F2FF",
-  t2:        "#9BA3C4",
-  t3:        "#555D80",
+  t1:        "#0F1629",
+  t2:        "#4A5378",
+  t3:        "#8B93B0",
 };
 
 /* ─── Global CSS ─────────────────────────────────────────────────── */
@@ -137,7 +137,7 @@ const GLOBAL_CSS = `
     border-radius: 10px; padding: 12px 14px;
     font-size: 14px; color: ${T.t1};
     font-family: 'DM Sans', sans-serif;
-    background: ${T.bg}; resize: vertical;
+    background: #F8F9FC; resize: vertical;
     transition: border-color 0.15s, box-shadow 0.15s;
     line-height: 1.6;
   }
@@ -152,7 +152,7 @@ const GLOBAL_CSS = `
     border: 1.5px dashed ${T.border};
     border-radius: 10px;
     padding: 14px 16px;
-    background: ${T.bg};
+    background: #F8F9FC;
     cursor: pointer;
     transition: border-color 0.15s;
     display: flex; align-items: center; gap: 10px;
@@ -172,7 +172,7 @@ const GLOBAL_CSS = `
     display: inline-flex; align-items: center; gap: 8px;
     border: none; border-radius: 10px;
     padding: 12px 22px; font-size: 13px; font-weight: 600;
-    color: ${T.bg}; cursor: pointer;
+    color: #fff; cursor: pointer;
     transition: all 0.2s ease;
     font-family: 'DM Sans', sans-serif;
     letter-spacing: 0.01em;
@@ -648,7 +648,7 @@ const S = {
     height: "100%", display: "flex", flexDirection: "column",
     padding: "24px 14px",
     background: T.surface,
-    borderRight: `1px solid ${T.border}`,
+    borderRight: '1px solid rgba(0,0,0,0.08)',
   },
   logoRow: {
     display: "flex", alignItems: "center", gap: 10,

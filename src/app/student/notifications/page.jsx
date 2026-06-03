@@ -5,20 +5,20 @@ import { useEffect, useState } from "react";
 
 /* ─── Design tokens (matches assignments page) ───────────────── */
 const T = {
-  bg:        "#0B0E1A",
-  surface:   "#111422",
-  card:      "#161A2C",
-  cardHover: "#1C2138",
-  border:    "rgba(255,255,255,0.07)",
-  borderMid: "rgba(255,255,255,0.12)",
+  bg:        "#F8F9FC",
+  surface:   "#FFFFFF",
+  card:      "#FFFFFF",
+  cardHover: "#F5F6FA",
+  border:    "rgba(0,0,0,0.08)",
+  borderMid: "rgba(0,0,0,0.14)",
   amber:     "#F5A623",
   amberDim:  "rgba(245,166,35,0.12)",
   amberGlow: "rgba(245,166,35,0.25)",
   blue:      "#4C8FE8",
   blueDim:   "rgba(76,143,232,0.12)",
-  t1:        "#F0F2FF",
-  t2:        "#9BA3C4",
-  t3:        "#555D80",
+  t1:        "#0F1629",
+  t2:        "#4A5378",
+  t3:        "#8B93B0",
 };
 
 const GLOBAL_CSS = `
@@ -282,7 +282,7 @@ export default function StudentNotificationsPage() {
 const S = {
   page:       { display: "flex", minHeight: "100vh", background: T.bg },
   sidebarWrap:{ width: 252, flexShrink: 0, position: "sticky", top: 0, height: "100vh" },
-  sidebar:    { height: "100%", display: "flex", flexDirection: "column", padding: "24px 14px", background: T.surface, borderRight: `1px solid ${T.border}` },
+  sidebar:    { height: "100%", display: "flex", flexDirection: "column", padding: "24px 14px", background: T.surface, borderRight: '1px solid rgba(0,0,0,0.08)' },
   brandRow:   { display: "flex", alignItems: "center", gap: 10, padding: "0 6px 20px" },
   logoMark:   { width: 36, height: 36, borderRadius: 10, background: T.amberDim, border: `1px solid ${T.amberGlow}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
   divider:    { height: "0.5px", background: T.border, margin: "0 0 14px" },
