@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 
 import BackToTop from "./BackToTop";
+import BackButton from "./BackButton";
 import Navbar from "./Navbar";
 
 export default function AppChrome({ children }) {
@@ -15,6 +16,7 @@ export default function AppChrome({ children }) {
   return (
     <>
       {!isPortalRoute && <Navbar />}
+      {pathname !== "/" && <BackButton isPortalRoute={isPortalRoute} />}
 
       <main className={`flex-1 ${isPortalRoute ? "" : "pt-20"}`}>
         {children}

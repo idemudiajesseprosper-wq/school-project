@@ -307,8 +307,6 @@ export default function StudentsPage() {
     { label: "Suspended",      value: students.filter(s => s.isSuspended).length, color: "#dc2626", bg: "#fef2f2" },
   ];
 
-  const NAV_HEIGHT = 96;
-
   return (
     <>
       <style>{`
@@ -323,11 +321,10 @@ export default function StudentsPage() {
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
 
-        /* Responsive nav offset */
-        .page-wrapper { padding-top: 96px; min-height: calc(100vh - 96px); }
+        /* Admin students page owns its portal layout; no public navbar offset. */
+        .page-wrapper { min-height: 100vh; }
         @media (max-width: 768px) {
-          /* On mobile the top info bar is shorter (~28px) + navbar 64px = ~92px */
-          .page-wrapper { padding-top: 92px; min-height: calc(100vh - 92px); }
+          .page-wrapper { min-height: 100vh; }
         }
 
         .sidebar-backdrop { display: none; }
@@ -360,17 +357,12 @@ export default function StudentsPage() {
             display: flex !important;
             position: sticky !important;
             top: 0 !important;
-            height: calc(100vh - 96px) !important;
+            height: 100vh !important;
           }
           .sidebar-close-btn { display: none !important; }
           .mobile-menu-btn { display: none !important; }
         }
       `}</style>
-
-      {/* The exact public Navbar fixed at top */}
-      <PublicNavbar />
-
-      {/* Push page content below the fixed navbar */}
       <div className="page-wrapper" style={{ display: "flex", background: "#f8f9fb", fontFamily: "Lato, sans-serif" }}>
 
         {/* Admin Sidebar */}
