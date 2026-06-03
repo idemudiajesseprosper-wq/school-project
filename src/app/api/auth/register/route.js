@@ -1,7 +1,19 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { connectMongoDB } from "../../../../lib/connect";
+import AdmissionCounter from "../../../../models/AdmissionCounter";
 import User from "../../../../models/User";
+
+async function generateAdmissionNumber() {
+  const year = new Date().getFullYear();
+  const counter = await AdmissionCounter.findOneAndUpdate(
+    { year },
+    { $inc: { sequence: 1 } },
+    { new: true, upsert: true }
+  );
+
+  return `SCH/${year}/${String(counter.sequence).padStart(4, "0")}`;
+}
 
 export async function POST(req) {
   try {
@@ -12,7 +24,6 @@ export async function POST(req) {
       dateOfBirth,
       gender,
       studentClass,
-      admissionNumber,
       phoneNumber,
       parentName,
       parentPhone,
@@ -45,6 +56,8 @@ export async function POST(req) {
     const hashedPassword = await bcrypt.hash(password, 12);
 
     const requestedRole = role === "teacher" ? "teacher" : "student";
+    const generatedAdmissionNumber =
+      requestedRole === "student" ? await generateAdmissionNumber() : "";
 
     await User.create({
       fullName,
@@ -60,7 +73,7 @@ export async function POST(req) {
       dateOfBirth: dateOfBirth || "",
       gender: gender || "",
       studentClass: studentClass || "",
-      admissionNumber: admissionNumber || "",
+      admissionNumber: generatedAdmissionNumber,
       phoneNumber: phoneNumber || "",
 
       // PARENT / GUARDIAN
@@ -74,12 +87,19 @@ export async function POST(req) {
         ? assignedClasses.filter(Boolean)
         : [],
       subject: requestedRole === "teacher" ? subject || "" : "",
+      assignedSubjects: requestedRole === "teacher" ? [subject].filter(Boolean) : [],
+      classTeacherClasses: requestedRole === "teacher" && Array.isArray(assignedClasses)
+        ? assignedClasses.filter(Boolean)
+        : [],
       qualification: requestedRole === "teacher" ? qualification || "" : "",
     });
 
     return NextResponse.json({
       success: true,
-      message: "Registration successful. You can now log in.",
+      admissionNumber: generatedAdmissionNumber,
+      message: requestedRole === "student"
+        ? `Registration successful. Admission number: ${generatedAdmissionNumber}`
+        : "Registration successful. You can now log in.",
     });
 
   } catch (error) {

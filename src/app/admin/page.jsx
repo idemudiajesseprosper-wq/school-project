@@ -106,6 +106,12 @@ export default function AdminPage() {
             Codes
           </button>
           <button
+            onClick={() => router.push("/admin/results")}
+            className="bg-green-500/15 hover:bg-green-500/25 border border-green-300/30 text-green-100 text-xs px-3 py-1.5 rounded-md transition-colors"
+          >
+            Results
+          </button>
+          <button
             onClick={logout}
             className="bg-red-900/30 hover:bg-red-900/50 border border-red-500/30 text-red-400 text-xs px-3 py-1.5 rounded-md transition-colors"
           >

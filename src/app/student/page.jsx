@@ -53,6 +53,7 @@ function Sidebar({ onLogout }) {
   const navItems = [
     { label: "Dashboard", icon: Icons.Grid, href: "/student", active: true },
     { label: "Assignments", icon: Icons.BookOpen, href: "/student/assignments" },
+    { label: "Results", icon: Icons.BookMark, href: "/student/results" },
     { label: "Timetable", icon: Icons.Clock, href: "/student/timetable" },
     { label: "Notifications", icon: Icons.Bell, href: "/student/notifications" },
   ];
@@ -91,6 +92,7 @@ function MobileDrawer({ open, onClose, onLogout }) {
   const navItems = [
     { label: "Dashboard", icon: Icons.Grid, href: "/student", active: true },
     { label: "Assignments", icon: Icons.BookOpen, href: "/student/assignments" },
+    { label: "Results", icon: Icons.BookMark, href: "/student/results" },
     { label: "Timetable", icon: Icons.Clock, href: "/student/timetable" },
     { label: "Notifications", icon: Icons.Bell, href: "/student/notifications" },
   ];
@@ -297,6 +299,9 @@ export default function StudentDashboard() {
               <a href="/student/assignments" style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "10px 14px", borderRadius: "10px", background: "#2563EB", color: "white", fontSize: "13px", fontWeight: "800", textDecoration: "none" }}>
                 <Icons.BookOpen />Assignments & Grades
               </a>
+              <a href="/student/results" style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "10px 14px", borderRadius: "10px", background: "#16a34a", color: "white", fontSize: "13px", fontWeight: "800", textDecoration: "none" }}>
+                <Icons.BookMark />View Results
+              </a>
               <a href="/student/timetable" style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "10px 14px", borderRadius: "10px", background: "#111827", color: "white", fontSize: "13px", fontWeight: "800", textDecoration: "none" }}>
                 <Icons.Clock />Class Timetable
               </a>
@@ -323,6 +328,16 @@ export default function StudentDashboard() {
               <div>
                 <p style={{ fontSize: "11px", fontWeight: "700", color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "4px" }}>Class</p>
                 <p style={{ fontSize: "15px", fontWeight: "800", color: "#0a0a0a" }}>{user?.studentClass || "Not set"}</p>
+              </div>
+            </div>
+
+            <div style={{ background: "white", borderRadius: "16px", padding: "18px 20px", border: "1px solid #e8edf3", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", display: "flex", alignItems: "center", gap: "14px" }}>
+              <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "#ecfdf5", display: "flex", alignItems: "center", justifyContent: "center", color: "#16a34a", flexShrink: 0 }}>
+                <Icons.BookMark />
+              </div>
+              <div>
+                <p style={{ fontSize: "11px", fontWeight: "700", color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "4px" }}>Student ID</p>
+                <p style={{ fontSize: "15px", fontWeight: "800", color: "#0a0a0a" }}>{user?.admissionNumber || "Not assigned"}</p>
               </div>
             </div>
 
@@ -375,6 +390,9 @@ export default function StudentDashboard() {
               </Field>
               <Field label="Phone Number" icon={Icons.Phone}>
                 <input style={editing ? inputStyle : disabledInputStyle} disabled={!editing} placeholder="e.g. 08012345678" value={form.phoneNumber} onChange={e => setForm(p => ({ ...p, phoneNumber: e.target.value }))} />
+              </Field>
+              <Field label="Student ID" icon={Icons.BookMark}>
+                <input style={disabledInputStyle} disabled value={user?.admissionNumber || "Not assigned"} />
               </Field>
               <Field label="Class" icon={Icons.BookMark}>
                 {editing ? (
@@ -451,8 +469,8 @@ export default function StudentDashboard() {
           {[
             { label: "Home", icon: Icons.Grid, href: "/student", active: true },
             { label: "Work", icon: Icons.BookOpen, href: "/student/assignments" },
+            { label: "Results", icon: Icons.BookMark, href: "/student/results" },
             { label: "Timetable", icon: Icons.Clock, href: "/student/timetable" },
-            { label: "Alerts", icon: Icons.Bell, href: "/student/notifications" },
           ].map(item => (
             <a key={item.label} href={item.href} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", textDecoration: "none", color: item.active ? "#2563EB" : "#9ca3af", fontSize: "10px", fontWeight: item.active ? "700" : "500", padding: "0 12px" }}>
               <item.icon />

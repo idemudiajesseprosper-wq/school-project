@@ -122,10 +122,23 @@ const UserSchema = new mongoose.Schema(
      // TEACHER SPECIFIC
     assignedClasses: [{ type: String }], // e.g. ["JSS1", "SS2"]
     subject: { type: String, default: "" }, // main subject
+    assignedSubjects: [{ type: String }],
+    classTeacherClasses: [{ type: String }],
     qualification: { type: String, default: "" },
   },
   {
     timestamps: true,
+  }
+);
+
+UserSchema.index(
+  { admissionNumber: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      role: "student",
+      admissionNumber: { $exists: true, $gt: "" },
+    },
   }
 );
 
