@@ -15,20 +15,23 @@ export async function PATCH(req) {
 
     await connectMongoDB();
 
-    const { fullName, phoneNumber, studentClass } = await req.json();
+    const { fullName, phoneNumber, studentClass, avatar } = await req.json();
 
     if (!fullName?.trim()) {
-      return NextResponse.json({ success: false, message: "Full name is required" });
+      return NextResponse.json({
+        success: false,
+        message: "Full name is required",
+      });
     }
 
     await User.findByIdAndUpdate(decoded.id, {
       fullName: fullName.trim(),
       phoneNumber: phoneNumber?.trim() || "",
       studentClass: studentClass || "",
+      avatar: avatar || "",
     });
 
     return NextResponse.json({ success: true, message: "Profile updated" });
-
   } catch (error) {
     console.log(error);
     return NextResponse.json({ success: false, message: "Server error" });

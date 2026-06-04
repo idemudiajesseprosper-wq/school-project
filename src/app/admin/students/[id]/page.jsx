@@ -5,7 +5,6 @@ import { useParams, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
 export default function StudentProfilePage() {
-
   const params = useParams();
   const router = useRouter();
 
@@ -37,11 +36,15 @@ export default function StudentProfilePage() {
   const toggleSuspend = async () => {
     try {
       setActionLoading("suspend");
-      const res = await fetch(`/api/admin/students/${params.id}/suspend`, { method: "PATCH" });
+      const res = await fetch(`/api/admin/students/${params.id}/suspend`, {
+        method: "PATCH",
+      });
       const data = await res.json();
       if (data.success) {
-        toast.success(student.isSuspended ? "Student unsuspended" : "Student suspended");
-        setStudent(prev => ({ ...prev, isSuspended: !prev.isSuspended }));
+        toast.success(
+          student.isSuspended ? "Student unsuspended" : "Student suspended",
+        );
+        setStudent((prev) => ({ ...prev, isSuspended: !prev.isSuspended }));
       } else {
         toast.error(data.message);
       }
@@ -54,10 +57,13 @@ export default function StudentProfilePage() {
 
   // DELETE — FIX: now hits /delete route + soft delete confirm message
   const deleteStudent = async () => {
-    if (!confirm("Delete this student? They will be removed from the portal.")) return;
+    if (!confirm("Delete this student? They will be removed from the portal."))
+      return;
     try {
       setActionLoading("delete");
-      const res = await fetch(`/api/admin/students/${params.id}/delete`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/students/${params.id}/delete`, {
+        method: "DELETE",
+      });
       const data = await res.json();
       if (data.success) {
         toast.success("Student deleted");
@@ -89,7 +95,9 @@ export default function StudentProfilePage() {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-3">Student Not Found</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-3">
+            Student Not Found
+          </h1>
           <button
             onClick={() => router.push("/admin/students")}
             className="bg-black text-white px-6 py-3 rounded-2xl"
@@ -103,15 +111,20 @@ export default function StudentProfilePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-100 via-white to-gray-50 p-6 md:p-10 pt-32 md:pt-36">
-
       {/* TOP */}
       <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6 mb-10">
-
         <div className="flex items-center gap-5">
-
           {/* AVATAR */}
-          <div className="w-24 h-24 rounded-[28px] bg-black text-white flex items-center justify-center text-4xl font-black shadow-2xl">
-            {student?.fullName?.charAt(0)}
+          <div className="w-24 h-24 rounded-[28px] bg-black text-white flex items-center justify-center text-4xl font-black shadow-2xl overflow-hidden">
+            {student?.avatar ? (
+              <img
+                src={student.avatar}
+                alt={student.fullName || "Student passport"}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              student?.fullName?.charAt(0)
+            )}
           </div>
 
           {/* INFO */}
@@ -122,16 +135,12 @@ export default function StudentProfilePage() {
             <h1 className="text-4xl font-black text-gray-900">
               {student.fullName}
             </h1>
-            <p className="text-gray-500 mt-2 text-lg">
-              {student.email}
-            </p>
+            <p className="text-gray-500 mt-2 text-lg">{student.email}</p>
           </div>
-
         </div>
 
         {/* ACTIONS */}
         <div className="flex gap-4 flex-wrap">
-
           <button
             onClick={() => router.push("/admin/students")}
             className="bg-white border border-gray-200 hover:bg-gray-100 transition px-6 py-4 rounded-2xl font-semibold"
@@ -151,8 +160,8 @@ export default function StudentProfilePage() {
             {actionLoading === "suspend"
               ? "Please wait..."
               : student.isSuspended
-              ? "Unsuspend Student"
-              : "Suspend Student"}
+                ? "Unsuspend Student"
+                : "Suspend Student"}
           </button>
 
           <button
@@ -162,25 +171,27 @@ export default function StudentProfilePage() {
           >
             {actionLoading === "delete" ? "Deleting..." : "Delete Student"}
           </button>
-
         </div>
-
       </div>
 
       {/* STATS */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
         <StatCard title="Login Count" value={student.loginCount || 0} />
-        <StatCard title="Status" value={student.isOnline ? "Online" : "Offline"} />
+        <StatCard
+          title="Status"
+          value={student.isOnline ? "Online" : "Offline"}
+        />
         <StatCard title="Verified" value={student.isVerified ? "Yes" : "No"} />
-        <StatCard title="Suspended" value={student.isSuspended ? "Yes" : "No"} />
+        <StatCard
+          title="Suspended"
+          value={student.isSuspended ? "Yes" : "No"}
+        />
       </div>
 
       {/* MAIN GRID */}
       <div className="grid xl:grid-cols-3 gap-6">
-
         {/* PROFILE INFO */}
         <div className="xl:col-span-2 bg-white rounded-[30px] shadow-xl border border-gray-100 p-8">
-
           <h2 className="text-2xl font-black text-gray-900 mb-8">
             Account Information
           </h2>
@@ -189,24 +200,45 @@ export default function StudentProfilePage() {
             <InfoCard label="Full Name" value={student.fullName} />
             <InfoCard label="Email Address" value={student.email} />
             <InfoCard label="Role" value={student.role} />
+            <InfoCard
+              label="Passport Photo"
+              value={
+                student.avatar ? (
+                  <a
+                    href={student.avatar}
+                    target="_blank"
+                    className="text-blue-600 hover:underline"
+                  >
+                    Open passport photo
+                  </a>
+                ) : (
+                  "Not uploaded"
+                )
+              }
+            />
             {/* FIX: removed Username (doesn't exist), added Class and Phone */}
             <InfoCard label="Class" value={student.studentClass || "Not set"} />
-            <InfoCard label="Phone Number" value={student.phoneNumber || "N/A"} />
+            <InfoCard
+              label="Phone Number"
+              value={student.phoneNumber || "N/A"}
+            />
             <InfoCard
               label="Last Login"
-              value={student.lastLogin ? new Date(student.lastLogin).toLocaleString() : "Never"}
+              value={
+                student.lastLogin
+                  ? new Date(student.lastLogin).toLocaleString()
+                  : "Never"
+              }
             />
             <InfoCard
               label="Joined"
               value={new Date(student.createdAt).toLocaleDateString()}
             />
           </div>
-
         </div>
 
         {/* ACTIVITY */}
         <div className="bg-white rounded-[30px] shadow-xl border border-gray-100 p-8">
-
           <h2 className="text-2xl font-black text-gray-900 mb-8">
             Login Activity
           </h2>
@@ -225,13 +257,19 @@ export default function StudentProfilePage() {
                       <span className="text-xs font-bold uppercase tracking-wide text-green-600">
                         Login
                       </span>
-                      <span className="text-xs text-gray-400">#{index + 1}</span>
+                      <span className="text-xs text-gray-400">
+                        #{index + 1}
+                      </span>
                     </div>
                     <p className="text-sm font-medium text-gray-900">
                       {new Date(item.time).toLocaleString()}
                     </p>
-                    <p className="text-xs text-gray-500 mt-3 break-all">{item.device}</p>
-                    <p className="text-xs text-gray-400 mt-2">IP: {item.ip || "Unknown"}</p>
+                    <p className="text-xs text-gray-500 mt-3 break-all">
+                      {item.device}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-2">
+                      IP: {item.ip || "Unknown"}
+                    </p>
                   </div>
                 ))
             ) : (
@@ -241,9 +279,7 @@ export default function StudentProfilePage() {
               </div>
             )}
           </div>
-
         </div>
-
       </div>
     </div>
   );
@@ -254,7 +290,9 @@ function StatCard({ title, value }) {
   return (
     <div className="bg-white rounded-[28px] shadow-lg border border-gray-100 p-7">
       <p className="text-sm text-gray-500 font-medium">{title}</p>
-      <h2 className="text-4xl font-black text-gray-900 mt-4 capitalize">{value}</h2>
+      <h2 className="text-4xl font-black text-gray-900 mt-4 capitalize">
+        {value}
+      </h2>
     </div>
   );
 }

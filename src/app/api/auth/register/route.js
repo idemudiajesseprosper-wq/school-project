@@ -9,7 +9,7 @@ async function generateAdmissionNumber() {
   const counter = await AdmissionCounter.findOneAndUpdate(
     { year },
     { $inc: { sequence: 1 } },
-    { new: true, upsert: true }
+    { new: true, upsert: true },
   );
 
   return `SCH/${year}/${String(counter.sequence).padStart(4, "0")}`;
@@ -29,6 +29,7 @@ export async function POST(req) {
       parentPhone,
       parentEmail,
       relationship,
+      avatar,
       role,
       assignedClasses,
       subject,
@@ -75,6 +76,7 @@ export async function POST(req) {
       studentClass: studentClass || "",
       admissionNumber: generatedAdmissionNumber,
       phoneNumber: phoneNumber || "",
+      avatar: avatar || "",
 
       // PARENT / GUARDIAN
       parentName: parentName || "",
@@ -83,25 +85,28 @@ export async function POST(req) {
       relationship: relationship || "",
 
       // TEACHER INFO
-      assignedClasses: requestedRole === "teacher" && Array.isArray(assignedClasses)
-        ? assignedClasses.filter(Boolean)
-        : [],
+      assignedClasses:
+        requestedRole === "teacher" && Array.isArray(assignedClasses)
+          ? assignedClasses.filter(Boolean)
+          : [],
       subject: requestedRole === "teacher" ? subject || "" : "",
-      assignedSubjects: requestedRole === "teacher" ? [subject].filter(Boolean) : [],
-      classTeacherClasses: requestedRole === "teacher" && Array.isArray(assignedClasses)
-        ? assignedClasses.filter(Boolean)
-        : [],
+      assignedSubjects:
+        requestedRole === "teacher" ? [subject].filter(Boolean) : [],
+      classTeacherClasses:
+        requestedRole === "teacher" && Array.isArray(assignedClasses)
+          ? assignedClasses.filter(Boolean)
+          : [],
       qualification: requestedRole === "teacher" ? qualification || "" : "",
     });
 
     return NextResponse.json({
       success: true,
       admissionNumber: generatedAdmissionNumber,
-      message: requestedRole === "student"
-        ? `Registration successful. Admission number: ${generatedAdmissionNumber}`
-        : "Registration successful. You can now log in.",
+      message:
+        requestedRole === "student"
+          ? `Registration successful. Admission number: ${generatedAdmissionNumber}`
+          : "Registration successful. You can now log in.",
     });
-
   } catch (error) {
     console.log(error);
     return NextResponse.json({
