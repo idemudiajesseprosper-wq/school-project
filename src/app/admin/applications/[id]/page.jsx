@@ -94,12 +94,25 @@ export default function StudentProfilePage() {
               Reject
             </button>
           </div>
+
+          <div className="mt-6 rounded-2xl bg-gray-50 p-4 text-sm">
+            <p className="font-semibold text-gray-900">Documents</p>
+            <DocLink label="Passport" url={student.passport} />
+            <DocLink label="Birth Certificate" url={student.birthCertificate} />
+            <DocLink label="Previous Result" url={student.previousSchoolResult} />
+            <DocLink label="Transfer Certificate" url={student.transferCertificate} />
+          </div>
         </div>
 
         {/* RIGHT */}
         <div className="md:col-span-2 grid grid-cols-2 gap-5 text-sm">
 
           <Info title="Full Name" value={student.fullName} />
+          <Info title="Applicant ID" value={student.applicantId} />
+          <Info title="Student ID" value={student.studentIdNumber} />
+          <Info title="Email" value={student.email} />
+          <Info title="Payment" value={student.paymentStatus} />
+          <Info title="Paystack Ref" value={student.paystackReference} />
           <Info title="Gender" value={student.sex} />
           <Info title="DOB" value={student.dateOfBirth} />
           <Info title="Phone" value={student.phone} />
@@ -125,5 +138,20 @@ function Info({ title, value }) {
       <p className="text-gray-500 text-xs mb-1">{title}</p>
       <p className="font-semibold">{value || "-"}</p>
     </div>
+  );
+}
+
+function DocLink({ label, url }) {
+  return (
+    <p className="mt-2">
+      <span className="text-gray-500">{label}: </span>
+      {url ? (
+        <a href={url} target="_blank" className="font-semibold text-blue-600">
+          Open document
+        </a>
+      ) : (
+        <span className="text-gray-400">Not uploaded</span>
+      )}
+    </p>
   );
 }

@@ -17,7 +17,7 @@ const UserSchema = new mongoose.Schema(
     // ROLE SYSTEM
     role: {
       type: String,
-      enum: ["admin", "student", "teacher"],
+      enum: ["admin", "student", "teacher", "applicant"],
       default: "student",
     },
 
@@ -106,6 +106,31 @@ const UserSchema = new mongoose.Schema(
       default: "",
     },
 
+    applicantId: {
+      type: String,
+      default: "",
+    },
+
+    studentIdNumber: {
+      type: String,
+      default: "",
+    },
+
+    paymentStatus: {
+      type: String,
+      enum: ["unpaid", "paid"],
+      default: "unpaid",
+    },
+
+    applicationStatus: {
+      type: String,
+      enum: ["not_started", "submitted", "accepted", "rejected"],
+      default: "not_started",
+    },
+
+    paystackReference: String,
+    paymentDate: Date,
+
     dateOfBirth: String,
 
     gender: String,
@@ -119,7 +144,7 @@ const UserSchema = new mongoose.Schema(
 
     relationship: String,
 
-     // TEACHER SPECIFIC
+    // TEACHER SPECIFIC
     assignedClasses: [{ type: String }], // e.g. ["JSS1", "SS2"]
     subject: { type: String, default: "" }, // main subject
     assignedSubjects: [{ type: String }],
@@ -128,7 +153,7 @@ const UserSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 UserSchema.index(
@@ -139,8 +164,7 @@ UserSchema.index(
       role: "student",
       admissionNumber: { $exists: true, $gt: "" },
     },
-  }
+  },
 );
 
-export default mongoose.models.User ||
-  mongoose.model("User", UserSchema);
+export default mongoose.models.User || mongoose.model("User", UserSchema);

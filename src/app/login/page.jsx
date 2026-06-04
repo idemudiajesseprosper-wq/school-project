@@ -19,6 +19,14 @@ const AdminIcon = () => (
   </svg>
 );
 
+const ApplicantIcon = () => (
+  <svg width="28" height="28" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M14 8h16l6 6v26H14V8Z" stroke="currentColor" strokeWidth="2" fill="none" />
+    <path d="M30 8v8h8" stroke="currentColor" strokeWidth="2" fill="none" />
+    <path d="M20 24h12M20 30h12M20 36h7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+);
+
 export default function LoginSelectPage() {
   return (
     <>
@@ -160,7 +168,7 @@ body,
         }
 
         .lp-cards {
-          display: grid; grid-template-columns: 1fr 1fr;
+          display: grid; grid-template-columns: repeat(3, 1fr);
           gap: 16px; width: 100%;
           animation: fadeUp 0.7s 0.22s ease both;
         }
@@ -238,6 +246,15 @@ body,
         .admin   .lp-card-cta { color: rgba(255,255,255,0.5); }
         .lp-card:hover .lp-card-cta { gap: 12px; }
 
+        .lp-card.applicant { background: rgba(220,38,38,0.12); }
+        .lp-card.applicant::after { background: linear-gradient(90deg, #dc2626, #fca5a5); }
+        .lp-card.applicant:hover { border-color: rgba(220,38,38,0.45); box-shadow: 0 12px 40px rgba(220,38,38,0.18); }
+        .applicant .lp-card-icon { background: rgba(220,38,38,0.18); color: #fecaca; border: 1px solid rgba(220,38,38,0.3); }
+        .applicant .lp-card-tag { background: rgba(220,38,38,0.18); color: #fecaca; border: 1px solid rgba(220,38,38,0.3); }
+        .applicant .lp-card-title { color: #fff; }
+        .applicant .lp-card-desc { color: rgba(254,202,202,0.72); }
+        .applicant .lp-card-cta { color: #fca5a5; }
+
         .lp-foot {
           font-family: 'Lato', sans-serif;
           font-size: 0.76rem; color: rgba(255,255,255,0.25);
@@ -278,6 +295,19 @@ body,
           </div>
 
           <div className="lp-cards">
+            <Link href="/applicant/login" className="lp-card applicant">
+              <div className="lp-card-icon"><ApplicantIcon /></div>
+              <span className="lp-card-tag">Applicant</span>
+              <div className="lp-card-title">Applicant Login</div>
+              <p className="lp-card-desc">Pay enrollment fee and complete your admission application.</p>
+              <div className="lp-card-cta">
+                Continue
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                  <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </Link>
+
             <Link href="/login/student" className="lp-card student">
               <div className="lp-card-icon"><StudentIcon /></div>
               <span className="lp-card-tag">Student</span>

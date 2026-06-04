@@ -1,69 +1,106 @@
-import { connectMongoDB } from "../../../lib/connect";
-import Application from "../../../models/Application";
-import Code from "../../../models/Code";
 import { NextResponse } from "next/server";
 
+import { getAuthUser, unauthorized } from "../../../lib/authUser";
+import { baseEmail, sendEnrollmentEmail } from "../../../lib/enrollmentEmail";
+import { connectMongoDB } from "../../../lib/connect";
+import Application from "../../../models/Application";
+import User from "../../../models/User";
+
 export async function POST(req) {
+  const auth = await getAuthUser(req, ["applicant"]);
+  if (!auth.user) return unauthorized(auth.error, auth.status);
+
   try {
     const data = await req.json();
 
-    await connectMongoDB();
-
-    // ✅ Validate access code
-    const foundCode = await Code.findOne({ code: data.code });
-
-    if (!foundCode || foundCode.used) {
-      return NextResponse.json({
-        success: false,
-        message: "Invalid or used code",
-      });
+    if (!auth.user.isVerified) {
+      return NextResponse.json(
+        { success: false, message: "Please verify your email before applying." },
+        { status: 403 }
+      );
     }
 
-    // ✅ Save ONLY required fields (prevents bugs)
-    const application = await Application.create({
+    if (auth.user.paymentStatus !== "paid") {
+      return NextResponse.json(
+        { success: false, message: "Pay the enrollment fee before starting application." },
+        { status: 403 }
+      );
+    }
+
+    if (!data.fullName || !data.classApplying || !data.parentName || !data.parentPhone) {
+      return NextResponse.json(
+        { success: false, message: "Please complete all required fields." },
+        { status: 400 }
+      );
+    }
+
+    await connectMongoDB();
+
+    const application = await Application.findOneAndUpdate(
+      { applicant: auth.user._id },
+      {
+        applicant: auth.user._id,
+        applicantId: auth.user.applicantId,
+        email: auth.user.email,
+        paymentStatus: "paid",
+        paystackReference: auth.user.paystackReference,
+        fullName: data.fullName,
+        passport: data.passport,
+        birthCertificate: data.birthCertificate || "",
+        previousSchoolResult: data.previousSchoolResult || "",
+        transferCertificate: data.transferCertificate || "",
+        sex: data.sex,
+        dateOfBirth: data.dateOfBirth,
+        phone: data.phone,
+        address: data.address,
+        nativeTown: data.nativeTown,
+        religion: data.religion,
+        state: data.state,
+        nationality: data.nationality,
+        previousSchool: data.previousSchool,
+        lastClassPassed: data.lastClassPassed,
+        classApplying: data.classApplying,
+        disability: data.disability,
+        healthCondition: data.healthCondition,
+        specialAttention: data.specialAttention,
+        parentName: data.parentName,
+        parentAddress: data.parentAddress,
+        parentOccupation: data.parentOccupation,
+        parentPhone: data.parentPhone,
+        status: "Pending",
+      },
+      { upsert: true, new: true }
+    );
+
+    await User.findByIdAndUpdate(auth.user._id, {
+      applicationStatus: "submitted",
       fullName: data.fullName,
-      passport: data.passport,
-      sex: data.sex,
-      dateOfBirth: data.dateOfBirth,
-      phone: data.phone,
-      address: data.address,
-      nativeTown: data.nativeTown,
-      religion: data.religion,
-      state: data.state,
-      nationality: data.nationality,
-      previousSchool: data.previousSchool,
-      lastClassPassed: data.lastClassPassed,
-
-      // 🔥 THIS IS WHAT YOU NEED
-      classApplying: data.classApplying,
-
-      disability: data.disability,
-      healthCondition: data.healthCondition,
-      specialAttention: data.specialAttention,
+      phoneNumber: data.phone || auth.user.phoneNumber,
+      studentClass: data.classApplying,
+      avatar: data.passport || auth.user.avatar,
       parentName: data.parentName,
-      parentAddress: data.parentAddress,
-      parentOccupation: data.parentOccupation,
       parentPhone: data.parentPhone,
-      status: "Pending",
     });
 
-    // ✅ Mark code as used
-    await Code.updateOne(
-      { code: data.code },
-      { $set: { used: true } }
-    );
+    await sendEnrollmentEmail({
+      to: auth.user.email,
+      subject: "Application Submitted",
+      html: baseEmail(
+        "Application Submitted Successfully",
+        `<p>Dear <strong>${data.fullName}</strong>, your application has been submitted and is now under review.</p>`
+      ),
+    });
 
     return NextResponse.json({
       success: true,
       application,
     });
-
   } catch (error) {
-    console.log(error);
+    console.log("SUBMIT APPLICATION ERROR:", error);
 
-    return NextResponse.json({
-      success: false,
-      message: "Server error",
-    });
+    return NextResponse.json(
+      { success: false, message: "Server error" },
+      { status: 500 }
+    );
   }
 }

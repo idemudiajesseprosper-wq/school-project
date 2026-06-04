@@ -3,7 +3,20 @@ import mongoose from "mongoose";
 const ApplicationSchema = new mongoose.Schema({
   code: String,
 
+  applicant: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  applicantId: String,
+  email: String,
+  paymentStatus: {
+    type: String,
+    enum: ["unpaid", "paid"],
+    default: "unpaid",
+  },
+  paystackReference: String,
+
   passport: String,
+  birthCertificate: String,
+  previousSchoolResult: String,
+  transferCertificate: String,
 
   // Student Info
   fullName: String,
@@ -37,6 +50,8 @@ const ApplicationSchema = new mongoose.Schema({
   type: String,
   default: "Pending",
 },
+  studentIdNumber: String,
+  reviewedAt: Date,
 
   createdAt: {
     type: Date,

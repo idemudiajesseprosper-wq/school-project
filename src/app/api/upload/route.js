@@ -12,9 +12,27 @@ export async function POST(req) {
     const data = await req.formData();
     const file = data.get("file");
     const folder = data.get("folder") || "school-portal";
+    const maxSize = 5 * 1024 * 1024;
+    const allowedTypes = new Set([
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ]);
 
     if (!file) {
       return NextResponse.json({ success: false, error: "No file selected" });
+    }
+
+    if (file.size > maxSize) {
+      return NextResponse.json({ success: false, error: "File must not exceed 5MB" }, { status: 400 });
+    }
+
+    if (file.type && !allowedTypes.has(file.type)) {
+      return NextResponse.json({ success: false, error: "Unsupported file type" }, { status: 400 });
     }
 
     const bytes = await file.arrayBuffer();

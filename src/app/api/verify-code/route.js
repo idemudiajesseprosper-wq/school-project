@@ -1,13 +1,14 @@
+import { NextResponse } from "next/server";
+
 import { connectMongoDB } from "../../../lib/connect";
 import Code from "../../../models/Code";
-import { NextResponse } from "next/server";
 
 export async function POST(req) {
   try {
     const { code } = await req.json();
+    const cleanCode = code?.trim();
 
-    // Basic validation
-    if (!code) {
+    if (!cleanCode) {
       return NextResponse.json({
         valid: false,
         message: "Code is required",
@@ -16,11 +17,28 @@ export async function POST(req) {
 
     await connectMongoDB();
 
-    const found = await Code.findOne({
-      code: code.trim(),
-    });
+    const usedCode = await Code.findOneAndUpdate(
+      {
+        code: cleanCode,
+        used: false,
+      },
+      {
+        $set: { used: true },
+      },
+      {
+        new: true,
+      }
+    );
 
-    // ❌ Not found
+    if (usedCode) {
+      return NextResponse.json({
+        valid: true,
+        message: "Code verified successfully",
+      });
+    }
+
+    const found = await Code.findOne({ code: cleanCode });
+
     if (!found) {
       return NextResponse.json({
         valid: false,
@@ -28,20 +46,10 @@ export async function POST(req) {
       });
     }
 
-    // ❌ Already used
-    if (found.used) {
-      return NextResponse.json({
-        valid: false,
-        message: "This code has already been used",
-      });
-    }
-
-    // ✅ Valid
     return NextResponse.json({
-      valid: true,
-      message: "Code verified successfully",
+      valid: false,
+      message: "This code has already been used",
     });
-
   } catch (error) {
     console.log(error);
 

@@ -87,6 +87,14 @@ export async function POST(req) {
       });
     }
 
+    if (user.role === "applicant" && !user.isVerified) {
+
+      return NextResponse.json({
+        success: false,
+        message: "Please verify your email before logging in.",
+      });
+    }
+
     // PASSWORD CHECK
     const validPassword =
       await bcrypt.compare(

@@ -70,6 +70,27 @@ export function middleware(req) {
     return NextResponse.next();
   }
 
+  // =========================
+  // APPLICANT ROUTE PROTECTION
+  // =========================
+  if (url.pathname.startsWith("/applicant")) {
+
+    if (
+      url.pathname === "/applicant/login" ||
+      url.pathname === "/applicant/register"
+    ) {
+      return NextResponse.next();
+    }
+
+    if (!token) {
+      return NextResponse.redirect(
+        new URL("/applicant/login", req.url)
+      );
+    }
+
+    return NextResponse.next();
+  }
+
   return NextResponse.next();
 }
 
@@ -78,5 +99,6 @@ export const config = {
     "/admin/:path*",
     "/student/:path*",
     "/teacher/:path*",
+    "/applicant/:path*",
   ],
 };

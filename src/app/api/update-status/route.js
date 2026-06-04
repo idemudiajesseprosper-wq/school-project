@@ -1,108 +1,93 @@
-import { connectMongoDB } from "../../../lib/connect";
-import Application from "../../../models/Application";
 import { NextResponse } from "next/server";
-import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { getAuthUser, unauthorized } from "../../../lib/authUser";
+import { generateStudentIdNumber } from "../../../lib/enrollment";
+import { baseEmail, sendEnrollmentEmail } from "../../../lib/enrollmentEmail";
+import Application from "../../../models/Application";
+import User from "../../../models/User";
 
 export async function POST(req) {
-  try {
-    await connectMongoDB();
+  const auth = await getAuthUser(req, ["admin"]);
+  if (!auth.user) return unauthorized(auth.error, auth.status);
 
+  try {
     const { id, status } = await req.json();
 
-    // Validate input
     if (!id || !status) {
-      return NextResponse.json({
-        success: false,
-        message: "Missing fields",
-      });
+      return NextResponse.json(
+        { success: false, message: "Missing fields" },
+        { status: 400 }
+      );
     }
 
     const allowed = ["Pending", "Approved", "Rejected"];
-
     if (!allowed.includes(status)) {
-      return NextResponse.json({
-        success: false,
-        message: "Invalid status",
-      });
+      return NextResponse.json(
+        { success: false, message: "Invalid status" },
+        { status: 400 }
+      );
     }
 
-    // Update student + return updated document
-    const student = await Application.findByIdAndUpdate(
-      id,
-      {
-        status,
-        updatedAt: new Date(),
-      },
-      { new: true }
-    );
-
-    if (!student) {
-      return NextResponse.json({
-        success: false,
-        message: "Student not found",
-      });
+    const application = await Application.findById(id);
+    if (!application) {
+      return NextResponse.json(
+        { success: false, message: "Application not found" },
+        { status: 404 }
+      );
     }
 
-    // Send email if available
-    if (student.email) {
-      // APPROVED
+    let studentIdNumber = application.studentIdNumber;
+
+    if (status === "Approved" && !studentIdNumber) {
+      studentIdNumber = await generateStudentIdNumber();
+    }
+
+    application.status = status;
+    application.reviewedAt = new Date();
+    if (studentIdNumber) application.studentIdNumber = studentIdNumber;
+    await application.save();
+
+    if (application.applicant) {
+      const userUpdate = {
+        applicationStatus:
+          status === "Approved" ? "accepted" : status === "Rejected" ? "rejected" : "submitted",
+      };
+
       if (status === "Approved") {
-        await resend.emails.send({
-          from: "Admissions <onboarding@resend.dev>",
-          to: student.email,
-          subject: "Admission Approved 🎉",
-          html: `
-            <div style="font-family:Arial;padding:20px;">
-              <h2>Congratulations!</h2>
-              <p>Dear ${
-                student.parentName || "Parent"
-              },</p>
+        userUpdate.role = "student";
+        userUpdate.studentIdNumber = studentIdNumber;
+        userUpdate.admissionNumber = studentIdNumber;
+        userUpdate.studentClass = application.classApplying || "";
+        userUpdate.fullName = application.fullName || "";
+        userUpdate.avatar = application.passport || "";
+        userUpdate.phoneNumber = application.phone || "";
+        userUpdate.parentName = application.parentName || "";
+        userUpdate.parentPhone = application.parentPhone || "";
+      }
 
-              <p>We are pleased to inform you that the admission application for <strong>${
-                student.fullName
-              }</strong> has been <strong>approved</strong>.</p>
+      await User.findByIdAndUpdate(application.applicant, userUpdate);
+    }
 
-              <p><strong>Class:</strong> ${
-                student.classApplying || "-"
-              }</p>
-
-              <p>Please visit the school for documentation and next steps.</p>
-
-              <br/>
-              <p>Winners Foundation School</p>
-            </div>
-          `,
+    if (application.email) {
+      if (status === "Approved") {
+        await sendEnrollmentEmail({
+          to: application.email,
+          subject: "Application Approved",
+          html: baseEmail(
+            "Application Approved",
+            `<p>Congratulations <strong>${application.fullName}</strong>. Your application has been accepted.</p><p>Your Student ID Number is <strong>${studentIdNumber}</strong>.</p><p>You can now log in through the student portal using your existing password.</p>`
+          ),
         });
       }
 
-      // REJECTED
       if (status === "Rejected") {
-        await resend.emails.send({
-          from: "Admissions <onboarding@resend.dev>",
-          to: student.email,
-          subject: "Admission Update",
-          html: `
-            <div style="font-family:Arial;padding:20px;">
-              <h2>Admission Update</h2>
-
-              <p>Dear ${
-                student.parentName || "Parent"
-              },</p>
-
-              <p>Thank you for applying for <strong>${
-                student.fullName
-              }</strong>.</p>
-
-              <p>We regret to inform you that this application was not approved at this time.</p>
-
-              <p>We appreciate your interest in our school.</p>
-
-              <br/>
-              <p>Winners Foundation School</p>
-            </div>
-          `,
+        await sendEnrollmentEmail({
+          to: application.email,
+          subject: "Application Update",
+          html: baseEmail(
+            "Application Rejected",
+            `<p>Dear <strong>${application.fullName}</strong>, thank you for applying. Your application was not approved at this time.</p>`
+          ),
         });
       }
     }
@@ -110,14 +95,13 @@ export async function POST(req) {
     return NextResponse.json({
       success: true,
       message: "Status updated successfully",
+      studentIdNumber,
     });
-
   } catch (error) {
-    console.log(error);
-
-    return NextResponse.json({
-      success: false,
-      message: "Server error",
-    });
+    console.log("UPDATE STATUS ERROR:", error);
+    return NextResponse.json(
+      { success: false, message: "Server error" },
+      { status: 500 }
+    );
   }
 }

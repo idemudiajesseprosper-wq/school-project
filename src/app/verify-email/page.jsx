@@ -160,11 +160,11 @@ function VerifyEmailContent() {
                 lineHeight: 1.6,
               }}
             >
-              Your account is now active. You can log in to the student portal.
+              Your account is now active. You can log in to your portal.
             </p>
 
             <button
-              onClick={() => router.push("/login/student")}
+              onClick={() => router.push("/login")}
               style={{
                 background: "#2563EB",
                 color: "white",
