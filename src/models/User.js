@@ -166,5 +166,9 @@ UserSchema.index(
     },
   },
 );
+UserSchema.index({ role: 1, isDeleted: 1, createdAt: -1 });
+UserSchema.index({ email: 1, isDeleted: 1 });
+UserSchema.index({ role: 1, studentClass: 1, isDeleted: 1, fullName: 1 });
+UserSchema.index({ applicantId: 1 }, { sparse: true });
 
 export default mongoose.models.User || mongoose.model("User", UserSchema);

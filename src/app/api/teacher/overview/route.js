@@ -21,46 +21,49 @@ export async function GET(req) {
   const teacher = auth.user;
   const assignedClasses = cleanClasses(teacher.assignedClasses);
 
-  const [students, assignments, submissions, notices, timetables] =
-    await Promise.all([
-      User.find({
-        role: "student",
-        studentClass: { $in: assignedClasses },
-        isDeleted: { $ne: true },
-      })
-        .select("fullName email studentClass admissionNumber phoneNumber")
-        .sort({ studentClass: 1, fullName: 1 })
-        .lean(),
-      Assignment.find({
-        teacherId: teacher._id,
-        isDeleted: { $ne: true },
-      })
-        .sort({ createdAt: -1 })
-        .lean(),
-      Submission.find({})
+  const [students, assignments, notices, timetables] = await Promise.all([
+    User.find({
+      role: "student",
+      studentClass: { $in: assignedClasses },
+      isDeleted: { $ne: true },
+    })
+      .select("fullName email studentClass admissionNumber phoneNumber")
+      .sort({ studentClass: 1, fullName: 1 })
+      .lean(),
+    Assignment.find({
+      teacherId: teacher._id,
+      isDeleted: { $ne: true },
+    })
+      .sort({ createdAt: -1 })
+      .lean(),
+    Notification.find({
+      teacherId: teacher._id,
+      isDeleted: { $ne: true },
+    })
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .lean(),
+    Timetable.find({ class: { $in: assignedClasses } }).lean(),
+  ]);
+
+  const assignmentIds = assignments.map((assignment) => assignment._id);
+  const submissions = assignmentIds.length
+    ? await Submission.find({ assignmentId: { $in: assignmentIds } })
         .populate({
           path: "assignmentId",
           select: "title subject teacherId classes deadline",
-          match: { teacherId: teacher._id, isDeleted: { $ne: true } },
         })
         .sort({ createdAt: -1 })
-        .lean(),
-      Notification.find({
-        teacherId: teacher._id,
-        isDeleted: { $ne: true },
-      })
-        .sort({ createdAt: -1 })
-        .limit(10)
-        .lean(),
-      Timetable.find({ class: { $in: assignedClasses } }).lean(),
-    ]);
+        .limit(200)
+        .lean()
+    : [];
 
   return NextResponse.json({
     success: true,
     teacher,
     students,
     assignments,
-    submissions: submissions.filter((item) => item.assignmentId),
+    submissions,
     notices,
     timetables,
   });

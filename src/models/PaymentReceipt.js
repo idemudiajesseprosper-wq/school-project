@@ -35,5 +35,7 @@ const PaymentReceiptSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+PaymentReceiptSchema.index({ applicant: 1, paidAt: -1 });
+
 export default mongoose.models.PaymentReceipt ||
   mongoose.model("PaymentReceipt", PaymentReceiptSchema);

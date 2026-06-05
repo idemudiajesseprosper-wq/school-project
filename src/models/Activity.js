@@ -25,5 +25,8 @@ const activitySchema = new mongoose.Schema({
   },
 });
 
+activitySchema.index({ createdAt: -1 });
+activitySchema.index({ userId: 1, createdAt: -1 });
+
 export default mongoose.models.Activity ||
-mongoose.model("Activity", activitySchema);
+  mongoose.model("Activity", activitySchema);

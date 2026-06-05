@@ -9,30 +9,114 @@ import ContactSection from "./components/ContactSection";
 import Footer from "./components/Footer";
 
 const GraduationIcon = () => (
-  <svg width="36" height="36" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M20 8L4 16L20 24L36 16L20 8Z" stroke="#374151" strokeWidth="1.8" strokeLinejoin="round" fill="none"/>
-    <path d="M12 20V28C12 28 15 32 20 32C25 32 28 28 28 28V20" stroke="#374151" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-    <line x1="36" y1="16" x2="36" y2="24" stroke="#374151" strokeWidth="1.8" strokeLinecap="round"/>
+  <svg
+    width="36"
+    height="36"
+    viewBox="0 0 40 40"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M20 8L4 16L20 24L36 16L20 8Z"
+      stroke="#374151"
+      strokeWidth="1.8"
+      strokeLinejoin="round"
+      fill="none"
+    />
+    <path
+      d="M12 20V28C12 28 15 32 20 32C25 32 28 28 28 28V20"
+      stroke="#374151"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <line
+      x1="36"
+      y1="16"
+      x2="36"
+      y2="24"
+      stroke="#374151"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+    />
   </svg>
 );
 
 const UniversityIcon = () => (
-  <svg width="36" height="36" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M20 6L4 14L20 22L36 14L20 6Z" stroke="#374151" strokeWidth="1.8" strokeLinejoin="round" fill="none"/>
-    <rect x="10" y="22" width="4" height="10" stroke="#374151" strokeWidth="1.8" rx="0.5"/>
-    <rect x="18" y="22" width="4" height="10" stroke="#374151" strokeWidth="1.8" rx="0.5"/>
-    <rect x="26" y="22" width="4" height="10" stroke="#374151" strokeWidth="1.8" rx="0.5"/>
-    <line x1="6" y1="32" x2="34" y2="32" stroke="#374151" strokeWidth="1.8" strokeLinecap="round"/>
+  <svg
+    width="36"
+    height="36"
+    viewBox="0 0 40 40"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M20 6L4 14L20 22L36 14L20 6Z"
+      stroke="#374151"
+      strokeWidth="1.8"
+      strokeLinejoin="round"
+      fill="none"
+    />
+    <rect
+      x="10"
+      y="22"
+      width="4"
+      height="10"
+      stroke="#374151"
+      strokeWidth="1.8"
+      rx="0.5"
+    />
+    <rect
+      x="18"
+      y="22"
+      width="4"
+      height="10"
+      stroke="#374151"
+      strokeWidth="1.8"
+      rx="0.5"
+    />
+    <rect
+      x="26"
+      y="22"
+      width="4"
+      height="10"
+      stroke="#374151"
+      strokeWidth="1.8"
+      rx="0.5"
+    />
+    <line
+      x1="6"
+      y1="32"
+      x2="34"
+      y2="32"
+      stroke="#374151"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+    />
   </svg>
 );
 
 const BookIcon = () => (
-  <svg width="36" height="36" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="6" y="6" width="28" height="28" rx="2" stroke="#374151" strokeWidth="1.8"/>
-    <line x1="14" y1="6" x2="14" y2="34" stroke="#374151" strokeWidth="1.8"/>
-    <line x1="14" y1="14" x2="28" y2="14" stroke="#374151" strokeWidth="1.5"/>
-    <line x1="14" y1="20" x2="28" y2="20" stroke="#374151" strokeWidth="1.5"/>
-    <line x1="14" y1="26" x2="24" y2="26" stroke="#374151" strokeWidth="1.5"/>
+  <svg
+    width="36"
+    height="36"
+    viewBox="0 0 40 40"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <rect
+      x="6"
+      y="6"
+      width="28"
+      height="28"
+      rx="2"
+      stroke="#374151"
+      strokeWidth="1.8"
+    />
+    <line x1="14" y1="6" x2="14" y2="34" stroke="#374151" strokeWidth="1.8" />
+    <line x1="14" y1="14" x2="28" y2="14" stroke="#374151" strokeWidth="1.5" />
+    <line x1="14" y1="20" x2="28" y2="20" stroke="#374151" strokeWidth="1.5" />
+    <line x1="14" y1="26" x2="24" y2="26" stroke="#374151" strokeWidth="1.5" />
   </svg>
 );
 
@@ -355,6 +439,86 @@ export default function Home() {
         }
         .learn-more:hover { color: #2563EB; }
 
+        .teacher-careers-section {
+          background: #f8fafc;
+          padding: 80px clamp(24px, 8vw, 120px);
+          border-top: 1px solid #e5e7eb;
+          border-bottom: 1px solid #e5e7eb;
+        }
+        .teacher-careers-inner {
+          max-width: 1100px;
+          margin: 0 auto;
+          display: grid;
+          grid-template-columns: 1.1fr 0.9fr;
+          gap: 42px;
+          align-items: center;
+        }
+        .teacher-careers-eyebrow {
+          font-family: 'Lato', sans-serif;
+          font-size: 0.7rem;
+          font-weight: 700;
+          letter-spacing: 0.22em;
+          text-transform: uppercase;
+          color: #2563EB;
+          margin-bottom: 14px;
+        }
+        .teacher-careers-title {
+          font-family: 'Playfair Display', serif;
+          font-size: clamp(2rem, 4vw, 3.2rem);
+          font-weight: 900;
+          line-height: 1.1;
+          color: #0f172a;
+          margin-bottom: 18px;
+        }
+        .teacher-careers-text {
+          font-family: 'Lato', sans-serif;
+          color: #475569;
+          line-height: 1.85;
+          max-width: 580px;
+          margin-bottom: 28px;
+        }
+        .teacher-careers-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 3px;
+          background: #2563EB;
+          color: white;
+          padding: 14px 28px;
+          font-family: 'Lato', sans-serif;
+          font-size: 0.82rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          text-decoration: none;
+          transition: background 0.2s, transform 0.2s;
+        }
+        .teacher-careers-btn:hover {
+          background: #1d4ed8;
+          transform: translateY(-2px);
+        }
+        .teacher-careers-list {
+          display: grid;
+          gap: 12px;
+        }
+        .teacher-careers-item {
+          background: white;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          padding: 16px 18px;
+          font-family: 'Lato', sans-serif;
+          font-size: 0.9rem;
+          font-weight: 700;
+          color: #334155;
+          box-shadow: 0 12px 30px rgba(15,23,42,0.05);
+        }
+
+        @media (max-width: 768px) {
+          .teacher-careers-section { padding: 56px 22px; }
+          .teacher-careers-inner { grid-template-columns: 1fr; gap: 28px; }
+          .teacher-careers-btn { width: 100%; }
+        }
+
         @media (max-width: 768px) {
           .info-cards-wrap {
             flex-direction: column; margin: 0 auto;
@@ -381,20 +545,36 @@ export default function Home() {
           <div className="hero-desktop-content">
             <div style={{ maxWidth: "560px" }}>
               <p className="hero-eyebrow">Winners' Foundation School</p>
-              <h1 className="hero-title">Together We'll<br /><em>Explore</em> New Things</h1>
+              <h1 className="hero-title">
+                Together We'll
+                <br />
+                <em>Explore</em> New Things
+              </h1>
               <p className="hero-sub">
-                A leading school dedicated to academic excellence, character development, and innovation.
+                A leading school dedicated to academic excellence, character
+                development, and innovation.
               </p>
               <div className="hero-cta-row">
-                <Link href="/admissions" className="enroll-btn">Enroll Now</Link>
-                <Link href="/about" className="hero-learn-link">Learn More →</Link>
+                <Link href="/admissions" className="enroll-btn">
+                  Enroll Now
+                </Link>
+                <Link href="/about" className="hero-learn-link">
+                  Learn More →
+                </Link>
               </div>
             </div>
             <div className="trusted-badge">
               <div className="trusted-avatars">
                 {["#60a5fa", "#34d399", "#f472b6", "#fbbf24"].map((c, i) => (
-                  <div key={i} className="avatar-dot"
-                    style={{ background: c, marginLeft: i === 0 ? 0 : "-10px", zIndex: 4 - i }} />
+                  <div
+                    key={i}
+                    className="avatar-dot"
+                    style={{
+                      background: c,
+                      marginLeft: i === 0 ? 0 : "-10px",
+                      zIndex: 4 - i,
+                    }}
+                  />
                 ))}
               </div>
               <div>
@@ -411,9 +591,14 @@ export default function Home() {
               <span className="mob-eyebrow-dot" />
               Winners' Foundation School
             </span>
-            <h1 className="mob-title">Together We'll<br /><em>Explore</em> New Things</h1>
+            <h1 className="mob-title">
+              Together We'll
+              <br />
+              <em>Explore</em> New Things
+            </h1>
             <p className="mob-sub">
-              A leading school in Benin City dedicated to excellence, character, and innovation.
+              A leading school in Benin City dedicated to excellence, character,
+              and innovation.
             </p>
             <div className="mob-stats">
               <div className="mob-stat">
@@ -430,8 +615,12 @@ export default function Home() {
               </div>
             </div>
             <div className="mob-cta-row">
-              <Link href="/admissions" className="mob-enroll-btn">Enroll Now</Link>
-              <Link href="/about" className="mob-ghost-btn">About Us</Link>
+              <Link href="/admissions" className="mob-enroll-btn">
+                Enroll Now
+              </Link>
+              <Link href="/about" className="mob-ghost-btn">
+                About Us
+              </Link>
             </div>
           </div>
         </div>
@@ -443,7 +632,9 @@ export default function Home() {
               {card.icon}
               <div className="card-title">{card.title}</div>
               <p className="card-desc">{card.desc}</p>
-              <button className="learn-more">Learn More <span>→</span></button>
+              <button className="learn-more">
+                Learn More <span>→</span>
+              </button>
             </div>
           ))}
         </div>
@@ -452,6 +643,35 @@ export default function Home() {
         <OurMission />
         <WhyChooseUs />
         <WhatWeOffer />
+        <section className="teacher-careers-section">
+          <div className="teacher-careers-inner">
+            <div>
+              <p className="teacher-careers-eyebrow">Teach with us</p>
+              <h2 className="teacher-careers-title">
+                Join a school that values excellent teachers.
+              </h2>
+              <p className="teacher-careers-text">
+                We are always glad to hear from passionate teachers who can help
+                students grow in knowledge, discipline, confidence, and
+                character. Submit your details and CV for review by the school.
+              </p>
+              <Link href="/careers" className="teacher-careers-btn">
+                Apply as a Teacher
+              </Link>
+            </div>
+            <div className="teacher-careers-list">
+              {[
+                "Upload your CV online",
+                "Apply for nursery, primary, or secondary roles",
+                "Share your subject strength and experience",
+              ].map((item) => (
+                <div key={item} className="teacher-careers-item">
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
         <ContactSection />
         <Footer />
       </div>

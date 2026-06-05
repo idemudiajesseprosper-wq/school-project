@@ -18,12 +18,21 @@ export async function GET(req) {
     Assignment.find({
       classes: studentClass,
       isDeleted: { $ne: true },
-    }).sort({ deadline: 1 }).lean(),
-    Submission.find({ studentId: auth.user._id }).sort({ createdAt: -1 }).lean(),
+    })
+      .sort({ deadline: 1 })
+      .limit(100)
+      .lean(),
+    Submission.find({ studentId: auth.user._id })
+      .sort({ createdAt: -1 })
+      .limit(100)
+      .lean(),
     Notification.find({
       classes: studentClass,
       isDeleted: { $ne: true },
-    }).sort({ createdAt: -1 }).limit(20).lean(),
+    })
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .lean(),
     Timetable.findOne({ class: studentClass }).lean(),
   ]);
 
@@ -51,11 +60,17 @@ export async function POST(req) {
   });
 
   if (!assignment) {
-    return NextResponse.json({ success: false, message: "Assignment not found" }, { status: 404 });
+    return NextResponse.json(
+      { success: false, message: "Assignment not found" },
+      { status: 404 },
+    );
   }
 
   if (assignment.deadline && new Date(assignment.deadline) < new Date()) {
-    return NextResponse.json({ success: false, message: "The deadline has passed" });
+    return NextResponse.json({
+      success: false,
+      message: "The deadline has passed",
+    });
   }
 
   const submission = await Submission.findOneAndUpdate(
@@ -75,7 +90,7 @@ export async function POST(req) {
       grade: "",
       feedback: "",
     },
-    { upsert: true, new: true }
+    { upsert: true, new: true },
   );
 
   return NextResponse.json({ success: true, submission });

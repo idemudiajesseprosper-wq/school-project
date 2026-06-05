@@ -10,16 +10,35 @@ export async function GET(req) {
     return unauthorized(auth.error, auth.status);
   }
 
-  const notices = await Notification.find({
+  const page = Math.max(Number(req.nextUrl.searchParams.get("page")) || 1, 1);
+  const limit = Math.min(
+    Math.max(Number(req.nextUrl.searchParams.get("limit")) || 20, 1),
+    100,
+  );
+  const skip = (page - 1) * limit;
+  const filters = {
     classes: auth.user.studentClass,
     isDeleted: { $ne: true },
-  })
-    .sort({ createdAt: -1 })
-    .lean();
+  };
+
+  const [notices, total] = await Promise.all([
+    Notification.find(filters)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+    Notification.countDocuments(filters),
+  ]);
 
   return NextResponse.json({
     success: true,
     notices,
     studentClass: auth.user.studentClass,
+    pagination: {
+      page,
+      limit,
+      total,
+      pages: Math.ceil(total / limit),
+    },
   });
 }

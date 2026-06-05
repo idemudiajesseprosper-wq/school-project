@@ -12,32 +12,52 @@ export async function GET(req) {
   try {
     await connectMongoDB();
 
-    const [applications, applicantUsers] = await Promise.all([
-      Application.find().sort({ createdAt: -1 }),
-      User.find({ role: "applicant", isDeleted: { $ne: true } })
-        .select("paymentStatus applicationStatus")
-        .lean(),
+    const page = Math.max(Number(req.nextUrl.searchParams.get("page")) || 1, 1);
+    const limit = Math.min(
+      Math.max(Number(req.nextUrl.searchParams.get("limit")) || 50, 1),
+      100,
+    );
+    const skip = (page - 1) * limit;
+
+    const [
+      applications,
+      totalApplications,
+      totalApplicants,
+      paidApplicants,
+      pendingApplications,
+      acceptedApplications,
+      rejectedApplications,
+    ] = await Promise.all([
+      Application.find().sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      Application.countDocuments(),
+      User.countDocuments({ role: "applicant", isDeleted: { $ne: true } }),
+      User.countDocuments({
+        role: "applicant",
+        paymentStatus: "paid",
+        isDeleted: { $ne: true },
+      }),
+      Application.countDocuments({
+        $or: [{ status: { $exists: false } }, { status: "Pending" }],
+      }),
+      Application.countDocuments({ status: "Approved" }),
+      Application.countDocuments({ status: "Rejected" }),
     ]);
 
     return NextResponse.json({
       applications,
+      pagination: {
+        page,
+        limit,
+        total: totalApplications,
+        pages: Math.ceil(totalApplications / limit),
+      },
       stats: {
-        totalApplicants: applicantUsers.length,
-        paidApplicants: applicantUsers.filter(
-          (user) => user.paymentStatus === "paid",
-        ).length,
-        unpaidApplicants: applicantUsers.filter(
-          (user) => user.paymentStatus !== "paid",
-        ).length,
-        submittedApplications: applications.filter(
-          (app) => !app.status || app.status === "Pending",
-        ).length,
-        acceptedApplications: applications.filter(
-          (app) => app.status === "Approved",
-        ).length,
-        rejectedApplications: applications.filter(
-          (app) => app.status === "Rejected",
-        ).length,
+        totalApplicants,
+        paidApplicants,
+        unpaidApplicants: Math.max(totalApplicants - paidApplicants, 0),
+        submittedApplications: pendingApplications,
+        acceptedApplications,
+        rejectedApplications,
       },
     });
   } catch (error) {

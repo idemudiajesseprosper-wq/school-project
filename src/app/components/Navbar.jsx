@@ -4,30 +4,85 @@ import React, { useState } from "react";
 import Link from "next/link";
 
 const SearchIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="11" cy="11" r="7" stroke="white" strokeWidth="2"/>
-    <path d="M16.5 16.5L21 21" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <circle cx="11" cy="11" r="7" stroke="white" strokeWidth="2" />
+    <path
+      d="M16.5 16.5L21 21"
+      stroke="white"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
   </svg>
 );
 
 const MailIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="inline mr-1">
-    <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.5"/>
-    <path d="M3 7L12 13L21 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className="inline mr-1"
+  >
+    <rect
+      x="3"
+      y="5"
+      width="18"
+      height="14"
+      rx="2"
+      stroke="currentColor"
+      strokeWidth="1.5"
+    />
+    <path
+      d="M3 7L12 13L21 7"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
   </svg>
 );
 
 const LocationIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="inline mr-1">
-    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-    <circle cx="12" cy="9" r="2.5" stroke="currentColor" strokeWidth="1.5"/>
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className="inline mr-1"
+  >
+    <path
+      d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+    <circle cx="12" cy="9" r="2.5" stroke="currentColor" strokeWidth="1.5" />
   </svg>
 );
 
 const PersonIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="inline mr-1">
-    <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.5"/>
-    <path d="M4 20c0-4 3.58-7 8-7s8 3 8 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className="inline mr-1"
+  >
+    <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.5" />
+    <path
+      d="M4 20c0-4 3.58-7 8-7s8 3 8 7"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
   </svg>
 );
 
@@ -42,11 +97,11 @@ const LogoIcon = () => (
 );
 
 const navLinks = [
-  { label: "Home",       href: "/" },
-  { label: "About",      href: "/about" },
+  { label: "Home", href: "/" },
+  { label: "About", href: "/about" },
   { label: "Admissions", href: "/admissions" },
-  { label: "Gallery",    href: "/gallery" },
-  { label: "Contact",    href: "/contact" },
+  { label: "Careers", href: "/careers" },
+  { label: "Contact", href: "/contact" },
 ];
 
 export default function Navbar() {
@@ -101,7 +156,6 @@ export default function Navbar() {
       `}</style>
 
       <nav className="fixed top-0 w-full z-50 font-sans">
-
         {/* Top info bar */}
         <div className="bg-white border-b border-gray-100 text-gray-500 text-xs px-6 md:px-10 py-2 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -111,7 +165,8 @@ export default function Navbar() {
             </span>
             <span className="hidden sm:flex items-center">
               <LocationIcon />
-              2, Airhueghiomon street, Osazuwa, Off Etete Road, Enogie, Benin City
+              2, Airhueghiomon street, Osazuwa, Off Etete Road, Enogie, Benin
+              City
             </span>
           </div>
           <div className="flex items-center gap-3">
@@ -131,15 +186,23 @@ export default function Navbar() {
         {/* Main navbar */}
         <div className="bg-white shadow-sm border-b border-gray-100">
           <div className="max-w-7xl mx-auto flex items-center justify-between h-16 px-6 md:px-10">
-
             {/* Logo */}
             <Link href="/">
               <span className="flex items-center gap-2 cursor-pointer">
                 <LogoIcon />
-                <span className="text-base font-black text-gray-900 leading-tight" style={{ fontFamily: "'Georgia', serif", letterSpacing: "-0.3px" }}>
-                  Winners'<br />
+                <span
+                  className="text-base font-black text-gray-900 leading-tight"
+                  style={{
+                    fontFamily: "'Georgia', serif",
+                    letterSpacing: "-0.3px",
+                  }}
+                >
+                  Winners'
+                  <br />
                   <span className="text-blue-500">Foundation</span>{" "}
-                  <span className="text-gray-700 font-semibold text-sm">School</span>
+                  <span className="text-gray-700 font-semibold text-sm">
+                    School
+                  </span>
                 </span>
               </span>
             </Link>
@@ -183,7 +246,9 @@ export default function Navbar() {
         </div>
 
         {/* Mobile dropdown */}
-        <div className={`mobile-menu md:hidden bg-white border-b border-gray-100 shadow-md ${menuOpen ? "open" : "closed"}`}>
+        <div
+          className={`mobile-menu md:hidden bg-white border-b border-gray-100 shadow-md ${menuOpen ? "open" : "closed"}`}
+        >
           <div className="px-6 py-4 flex flex-col gap-1">
             {navLinks.map((link) => (
               <Link key={link.label} href={link.href}>
@@ -220,7 +285,6 @@ export default function Navbar() {
             </div>
           </div>
         </div>
-
       </nav>
     </>
   );

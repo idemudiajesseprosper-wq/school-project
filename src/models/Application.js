@@ -32,7 +32,7 @@ const ApplicationSchema = new mongoose.Schema({
   // School history
   previousSchool: String,
   lastClassPassed: String,
-  
+
   classApplying: String,
 
   // Medical
@@ -47,9 +47,9 @@ const ApplicationSchema = new mongoose.Schema({
   parentPhone: String,
 
   status: {
-  type: String,
-  default: "Pending",
-},
+    type: String,
+    default: "Pending",
+  },
   studentIdNumber: String,
   reviewedAt: Date,
 
@@ -58,6 +58,10 @@ const ApplicationSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
+
+ApplicationSchema.index({ applicant: 1 });
+ApplicationSchema.index({ createdAt: -1 });
+ApplicationSchema.index({ status: 1, createdAt: -1 });
 
 export default mongoose.models.Application ||
   mongoose.model("Application", ApplicationSchema);

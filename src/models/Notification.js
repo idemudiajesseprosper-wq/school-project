@@ -9,8 +9,11 @@ const NotificationSchema = new mongoose.Schema(
     teacherName: { type: String },
     isDeleted: { type: Boolean, default: false },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
+
+NotificationSchema.index({ classes: 1, isDeleted: 1, createdAt: -1 });
+NotificationSchema.index({ teacherId: 1, isDeleted: 1, createdAt: -1 });
 
 export default mongoose.models.Notification ||
   mongoose.model("Notification", NotificationSchema);

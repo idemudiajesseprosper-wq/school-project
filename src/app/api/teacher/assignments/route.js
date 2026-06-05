@@ -20,6 +20,7 @@ export async function GET(req) {
     isDeleted: { $ne: true },
   })
     .sort({ createdAt: -1 })
+    .limit(100)
     .lean();
 
   return NextResponse.json({ success: true, assignments });
@@ -35,9 +36,17 @@ export async function POST(req) {
   const body = await req.json();
   const classes = toArray(body.classes);
   const allowedClasses = auth.user.assignedClasses || [];
-  const invalidClass = classes.find((className) => !allowedClasses.includes(className));
+  const invalidClass = classes.find(
+    (className) => !allowedClasses.includes(className),
+  );
 
-  if (!body.title || !body.description || !body.subject || !body.deadline || !classes.length) {
+  if (
+    !body.title ||
+    !body.description ||
+    !body.subject ||
+    !body.deadline ||
+    !classes.length
+  ) {
     return NextResponse.json({
       success: false,
       message: "Title, description, subject, deadline, and class are required",
@@ -45,10 +54,13 @@ export async function POST(req) {
   }
 
   if (invalidClass) {
-    return NextResponse.json({
-      success: false,
-      message: `You are not assigned to ${invalidClass}`,
-    }, { status: 403 });
+    return NextResponse.json(
+      {
+        success: false,
+        message: `You are not assigned to ${invalidClass}`,
+      },
+      { status: 403 },
+    );
   }
 
   const assignment = await Assignment.create({

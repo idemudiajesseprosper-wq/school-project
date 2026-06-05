@@ -20,7 +20,7 @@ const RemarkSchema = new mongoose.Schema(
       default: "",
     },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const ResultPublicationSchema = new mongoose.Schema(
@@ -51,13 +51,14 @@ const ResultPublicationSchema = new mongoose.Schema(
     },
     publishedAt: Date,
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 ResultPublicationSchema.index(
   { academicSession: 1, term: 1, className: 1 },
-  { unique: true }
+  { unique: true },
 );
+ResultPublicationSchema.index({ className: 1, isPublished: 1, updatedAt: -1 });
 
 export default mongoose.models.ResultPublication ||
   mongoose.model("ResultPublication", ResultPublicationSchema);

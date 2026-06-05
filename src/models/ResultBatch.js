@@ -41,7 +41,7 @@ const ScoreSchema = new mongoose.Schema(
       required: true,
     },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const ResultBatchSchema = new mongoose.Schema(
@@ -77,13 +77,20 @@ const ResultBatchSchema = new mongoose.Schema(
       default: false,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 ResultBatchSchema.index(
   { academicSession: 1, term: 1, className: 1, subject: 1 },
-  { unique: true }
+  { unique: true },
 );
+ResultBatchSchema.index({ teacher: 1, isDeleted: 1, updatedAt: -1 });
+ResultBatchSchema.index({
+  academicSession: 1,
+  term: 1,
+  className: 1,
+  isDeleted: 1,
+});
 
 export default mongoose.models.ResultBatch ||
   mongoose.model("ResultBatch", ResultBatchSchema);
