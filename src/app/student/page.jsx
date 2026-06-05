@@ -378,7 +378,7 @@ function Sidebar({ onLogout }) {
       >
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <img
-            src="/images/logo.png"
+            src="/logo.PNG"
             alt="Logo"
             style={{
               width: "38px",

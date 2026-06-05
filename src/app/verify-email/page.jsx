@@ -72,18 +72,24 @@ function VerifyEmailContent() {
             width: "52px",
             height: "52px",
             borderRadius: "14px",
-            background: "linear-gradient(135deg, #2563EB, #1d4ed8)",
+            background: "#fff",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: "22px",
-            fontWeight: "900",
-            color: "white",
-            fontFamily: "'Playfair Display', serif",
             margin: "0 auto 24px",
+            border: "1px solid #e5e7eb",
+            overflow: "hidden",
           }}
         >
-          W
+          <img
+            src="/logo.PNG"
+            alt="Winners' Foundation School Logo"
+            style={{
+              width: "44px",
+              height: "44px",
+              objectFit: "contain",
+            }}
+          />
         </div>
 
         {/* Loading */}
