@@ -271,7 +271,7 @@ export default function Footer() {
         {/* ── CTA band ── */}
         <div className="footer-top">
           <div>
-            <div className="footer-cta-text">Ready to enrol your child?</div>
+            <div className="footer-cta-text">Ready to enroll your child?</div>
             <div className="footer-cta-sub">Join hundreds of families who trust Winners' Foundation School.</div>
           </div>
           <button className="footer-cta-btn" onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}>
@@ -347,7 +347,7 @@ export default function Footer() {
               </div>
               <div>
                 <div className="footer-contact-label">Address</div>
-                <div className="footer-contact-value">[School Address]<br />[City, State]</div>
+                <div className="footer-contact-value">[2, AIRHUEGHIOMON STREET, OFF ETETE ROAD, ENOGIE, BENIN CITY]<br />[BENIN CITY, EDO STATE]</div>
               </div>
             </div>
 
@@ -359,7 +359,7 @@ export default function Footer() {
               </div>
               <div>
                 <div className="footer-contact-label">Phone</div>
-                <div className="footer-contact-value">[Phone Number]</div>
+                <div className="footer-contact-value">[08056265923]</div>
               </div>
             </div>
 
@@ -372,7 +372,7 @@ export default function Footer() {
               </div>
               <div>
                 <div className="footer-contact-label">Email</div>
-                <div className="footer-contact-value">[School Email]</div>
+                <div className="footer-contact-value">[wfsonline1999@gmail.com]</div>
               </div>
             </div>
 

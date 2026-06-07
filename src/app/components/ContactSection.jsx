@@ -211,7 +211,7 @@ export default function ContactSection() {
             </div>
             <div>
               <div className="contact-detail-label">Address</div>
-              <div className="contact-detail-value">[2, AIRHUEGHIOMON STREET, OFF ETETE ROAD, ENOGIE, BENNIN CITY]<br />[BENIN CITY, EDO STATE]</div>
+              <div className="contact-detail-value">[2, AIRHUEGHIOMON STREET, OFF ETETE ROAD, ENOGIE, BENIN CITY]<br />[BENIN CITY, EDO STATE]</div>
             </div>
           </div>
 
@@ -236,7 +236,7 @@ export default function ContactSection() {
             </div>
             <div>
               <div className="contact-detail-label">Email</div>
-              <div className="contact-detail-value">[School Email Address]</div>
+              <div className="contact-detail-value">[wfsonline1999@gmail.com]</div>
             </div>
           </div>
 
