@@ -23,6 +23,8 @@ const TeacherApplicationSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    subjects: [{ type: String, trim: true }],
+    preferredClasses: [{ type: String, trim: true }],
     qualification: {
       type: String,
       required: true,
@@ -64,6 +66,8 @@ const TeacherApplicationSchema = new mongoose.Schema(
 TeacherApplicationSchema.index({ status: 1, createdAt: -1 });
 TeacherApplicationSchema.index({ email: 1, createdAt: -1 });
 TeacherApplicationSchema.index({ subject: 1, createdAt: -1 });
+TeacherApplicationSchema.index({ subjects: 1, createdAt: -1 });
+TeacherApplicationSchema.index({ preferredClasses: 1, createdAt: -1 });
 
 export default mongoose.models.TeacherApplication ||
   mongoose.model("TeacherApplication", TeacherApplicationSchema);

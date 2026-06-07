@@ -8,6 +8,11 @@ function clean(value) {
   return String(value || "").trim();
 }
 
+function cleanList(value) {
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value.map(clean).filter(Boolean))];
+}
+
 export async function POST(req) {
   try {
     const body = await req.json();
@@ -19,7 +24,9 @@ export async function POST(req) {
     const fullName = clean(body.fullName);
     const email = clean(body.email).toLowerCase();
     const phone = clean(body.phone);
-    const subject = clean(body.subject);
+    const subjects = cleanList(body.subjects);
+    const subject = subjects[0] || clean(body.subject);
+    const preferredClasses = cleanList(body.preferredClasses);
     const qualification = clean(body.qualification);
     const currentLocation = clean(body.currentLocation);
     const coverLetter = clean(body.coverLetter);
@@ -45,6 +52,8 @@ export async function POST(req) {
       email,
       phone,
       subject,
+      subjects: subjects.length ? subjects : [subject],
+      preferredClasses,
       qualification,
       yearsOfExperience,
       currentLocation,
@@ -59,7 +68,7 @@ export async function POST(req) {
         subject: "Teacher Application Received",
         html: baseEmail(
           "Teacher Application Received",
-          `<p>Dear <strong>${fullName}</strong>, your teaching application for <strong>${subject}</strong> has been received. Our team will review your CV and contact you if your profile matches an available role.</p>`,
+          `<p>Dear <strong>${fullName}</strong>, your teaching application for <strong>${subjects.length ? subjects.join(", ") : subject}</strong> has been received. Our team will review your CV and contact you if your profile matches an available role.</p>`,
         ),
       }),
       sendEnrollmentEmail({
@@ -67,8 +76,8 @@ export async function POST(req) {
         subject: `New Teacher Application - ${subject}`,
         html: baseEmail(
           "New Teacher Application",
-          `<p><strong>${fullName}</strong> applied to teach <strong>${subject}</strong>.</p>
-          <p>Email: ${email}<br/>Phone: ${phone}<br/>Qualification: ${qualification}<br/>Experience: ${yearsOfExperience} year(s)</p>
+          `<p><strong>${fullName}</strong> applied to teach <strong>${subjects.length ? subjects.join(", ") : subject}</strong>.</p>
+          <p>Email: ${email}<br/>Phone: ${phone}<br/>Qualification: ${qualification}<br/>Experience: ${yearsOfExperience} year(s)<br/>Preferred classes: ${preferredClasses.length ? preferredClasses.join(", ") : "Not specified"}</p>
           <p><a href="${cvUrl}">View uploaded CV</a></p>`,
         ),
       }),

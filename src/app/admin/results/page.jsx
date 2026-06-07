@@ -3,7 +3,22 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
-const CLASSES = ["JSS1", "JSS2", "JSS3", "SS1", "SS2", "SS3"];
+const CLASSES = [
+  "Nursery 1",
+  "Nursery 2",
+  "Primary 1",
+  "Primary 2",
+  "Primary 3",
+  "Primary 4",
+  "Primary 5",
+  "Primary 6",
+  "JSS1",
+  "JSS2",
+  "JSS3",
+  "SS1",
+  "SS2",
+  "SS3",
+];
 const TERMS = ["First Term", "Second Term", "Third Term"];
 
 function currentSession() {

@@ -1,28 +1,32 @@
-import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { NextResponse } from "next/server";
 
-import { connectMongoDB }
-from "../../../../lib/connect";
+import { connectMongoDB } from "../../../../lib/connect";
+import { logActivity } from "../../../../lib/logActivity";
+import User from "../../../../models/User";
 
-import User
-from "../../../../models/User";
+function authCookieOptions() {
+  const isProduction = process.env.NODE_ENV === "production";
 
-import { logActivity }
-from "../../../../lib/logActivity";
+  return {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 7,
+  };
+}
 
 export async function POST(req) {
-
   try {
-
     console.log("LOGIN REQUEST STARTED");
 
-    const {
-      email,
-      username,
-      password,
-      role,
-    } = await req.json();
+    const { email, username, password, role } = await req.json();
+    const normalizedEmail = String(email || "")
+      .trim()
+      .toLowerCase();
+    const normalizedUsername = String(username || "").trim();
 
     await connectMongoDB();
 
@@ -30,25 +34,22 @@ export async function POST(req) {
 
     // ADMIN LOGIN
     if (role === "admin") {
-
       user = await User.findOne({
-        username,
+        username: normalizedUsername,
+        isDeleted: { $ne: true },
       });
-
     }
 
     // STUDENT / TEACHER LOGIN
     else {
-
       user = await User.findOne({
-        email,
+        email: normalizedEmail,
         isDeleted: { $ne: true },
       });
     }
 
     // USER NOT FOUND
     if (!user) {
-
       return NextResponse.json({
         success: false,
         message: "Invalid credentials",
@@ -56,39 +57,37 @@ export async function POST(req) {
     }
 
     // ACCOUNT LOCK CHECK
-    if (
-      user.accountLockedUntil &&
-      user.accountLockedUntil > Date.now()
-    ) {
-
+    if (user.accountLockedUntil && user.accountLockedUntil > Date.now()) {
       return NextResponse.json({
         success: false,
-        message:
-          "Account locked. Try again later.",
+        message: "Account locked. Try again later.",
       });
     }
 
     // ROLE CHECK. The student portal login can authenticate students or teachers.
     if (role && user.role !== role) {
-
       return NextResponse.json({
         success: false,
         message: "Unauthorized role",
       });
     }
 
-    // BLOCK SUSPENDED USERS
-    if (user.isSuspended) {
-
+    if (!role && !["student", "teacher"].includes(user.role)) {
       return NextResponse.json({
         success: false,
-        message:
-          "Your account has been suspended.",
+        message: "Use the correct login page for this account.",
+      });
+    }
+
+    // BLOCK SUSPENDED USERS
+    if (user.isSuspended) {
+      return NextResponse.json({
+        success: false,
+        message: "Your account has been suspended.",
       });
     }
 
     if (user.role === "applicant" && !user.isVerified) {
-
       return NextResponse.json({
         success: false,
         message: "Please verify your email before logging in.",
@@ -97,37 +96,50 @@ export async function POST(req) {
 
     // PASSWORD CHECK
     const validPassword =
-      await bcrypt.compare(
-        password,
-        user.password
-      );
+      user.password && (await bcrypt.compare(password, user.password));
 
     // INVALID PASSWORD
     if (!validPassword) {
-
-      user.failedLoginAttempts += 1;
+      const failedLoginAttempts = Number(user.failedLoginAttempts || 0) + 1;
+      const userName =
+        user.fullName || user.username || user.email || "Unknown user";
+      const target =
+        user.email || user.username || normalizedEmail || normalizedUsername;
 
       // LOCK ACCOUNT
-      if (user.failedLoginAttempts >= 5) {
-
-        user.accountLockedUntil =
-          Date.now() + 15 * 60 * 1000;
+      if (failedLoginAttempts >= 5) {
+        await User.updateOne(
+          { _id: user._id },
+          {
+            $set: {
+              failedLoginAttempts,
+              accountLockedUntil: new Date(Date.now() + 15 * 60 * 1000),
+            },
+          },
+        );
 
         await logActivity({
           userId: user._id,
-          userName: user.fullName,
+          userName,
           action: "ACCOUNT_LOCKED",
-          target: user.email,
+          target,
         });
+      } else {
+        await User.updateOne(
+          { _id: user._id },
+          {
+            $set: {
+              failedLoginAttempts,
+            },
+          },
+        );
       }
-
-      await user.save();
 
       await logActivity({
         userId: user._id,
-        userName: user.fullName,
+        userName,
         action: "FAILED_LOGIN",
-        target: user.email,
+        target,
       });
 
       return NextResponse.json({
@@ -137,48 +149,45 @@ export async function POST(req) {
     }
 
     // GET IP
-    const ip =
-      req.headers.get("x-forwarded-for") ||
-      "Unknown";
+    const ip = req.headers.get("x-forwarded-for") || "Unknown";
 
     // GET DEVICE
-    const device =
-      req.headers.get("user-agent") ||
-      "Unknown Device";
+    const device = req.headers.get("user-agent") || "Unknown Device";
+    const userName =
+      user.fullName || user.username || user.email || "Unknown user";
+    const target =
+      user.email || user.username || normalizedEmail || normalizedUsername;
+    const loginHistory = Array.isArray(user.loginHistory)
+      ? user.loginHistory
+      : [];
 
-    // UPDATE USER ACTIVITY
-    user.lastLogin = new Date();
-
-    user.loginCount += 1;
-
-    user.isOnline = true;
-
-    user.failedLoginAttempts = 0;
-
-    user.accountLockedUntil = null;
-
-    // SAVE LOGIN HISTORY
-    user.loginHistory.push({
-      time: new Date(),
-      ip,
-      device,
-    });
-
-    // KEEP LAST 20 LOGINS
-    if (user.loginHistory.length > 20) {
-
-      user.loginHistory =
-        user.loginHistory.slice(-20);
-    }
-
-    await user.save();
+    await User.updateOne(
+      { _id: user._id },
+      {
+        $set: {
+          lastLogin: new Date(),
+          isOnline: true,
+          failedLoginAttempts: 0,
+          accountLockedUntil: null,
+          loginCount: Number(user.loginCount || 0) + 1,
+          loginHistory: [
+            ...loginHistory,
+            {
+              time: new Date(),
+              ip,
+              device,
+            },
+          ].slice(-20),
+        },
+      },
+    );
 
     // LOG ACTIVITY
     await logActivity({
       userId: user._id,
-      userName: user.fullName,
+      userName,
       action: "LOGIN",
-      target: user.email,
+      target,
       ipAddress: ip,
       metadata: {
         device,
@@ -189,43 +198,26 @@ export async function POST(req) {
     // CREATE JWT
     const token = jwt.sign(
       {
-        id: user._id,
+        id: String(user._id),
         role: user.role,
       },
       process.env.JWT_SECRET,
       {
         expiresIn: "7d",
-      }
+      },
     );
 
-    const response =
-      NextResponse.json({
-        success: true,
-        role: user.role,
-      });
+    const response = NextResponse.json({
+      success: true,
+      role: user.role,
+    });
 
     // SET COOKIE
-    response.cookies.set(
-      "auth_token",
-      token,
-      {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        path: "/",
-        maxAge:
-          60 * 60 * 24 * 7,
-      }
-    );
+    response.cookies.set("auth_token", token, authCookieOptions());
 
     return response;
-
   } catch (error) {
-
-    console.log(
-      "LOGIN API ERROR:",
-      error
-    );
+    console.log("LOGIN API ERROR:", error);
 
     return NextResponse.json({
       success: false,
@@ -233,4 +225,3 @@ export async function POST(req) {
     });
   }
 }
-

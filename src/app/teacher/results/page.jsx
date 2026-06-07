@@ -4,7 +4,22 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
-const CLASSES = ["JSS1", "JSS2", "JSS3", "SS1", "SS2", "SS3"];
+const CLASSES = [
+  "Nursery 1",
+  "Nursery 2",
+  "Primary 1",
+  "Primary 2",
+  "Primary 3",
+  "Primary 4",
+  "Primary 5",
+  "Primary 6",
+  "JSS1",
+  "JSS2",
+  "JSS3",
+  "SS1",
+  "SS2",
+  "SS3",
+];
 const TERMS = ["First Term", "Second Term", "Third Term"];
 
 function currentSession() {
@@ -37,6 +52,9 @@ export default function TeacherResultsPage() {
     const list = [teacher?.subject, ...(teacher?.assignedSubjects || [])].filter(Boolean);
     return [...new Set(list)];
   }, [teacher]);
+  const classOptions = teacher?.assignedClasses?.length
+    ? teacher.assignedClasses
+    : CLASSES;
 
   useEffect(() => {
     loadTeacher();
@@ -44,13 +62,13 @@ export default function TeacherResultsPage() {
 
   useEffect(() => {
     if (teacher) {
-      const firstClass = teacher.assignedClasses?.[0] || "";
+      const firstClass = classOptions[0] || "";
       const firstSubject = subjects[0] || teacher.subject || "";
       setUpload((prev) => ({ ...prev, className: firstClass, subject: firstSubject }));
       setFilters((prev) => ({ ...prev, className: firstClass }));
       loadBatches();
     }
-  }, [teacher, subjects]);
+  }, [teacher, subjects, classOptions]);
 
   async function loadTeacher() {
     const res = await fetch("/api/teacher/overview");
@@ -165,7 +183,7 @@ export default function TeacherResultsPage() {
             </Field>
             <Field label="Class">
               <select className="input" value={upload.className} onChange={(e) => setUpload({ ...upload, className: e.target.value })}>
-                {(teacher.assignedClasses?.length ? teacher.assignedClasses : CLASSES).map((item) => <option key={item}>{item}</option>)}
+                {classOptions.map((item) => <option key={item}>{item}</option>)}
               </select>
             </Field>
             <Field label="Subject">
@@ -193,7 +211,7 @@ export default function TeacherResultsPage() {
             <div className="grid gap-2 md:grid-cols-4">
               <input className="input" value={filters.academicSession} onChange={(e) => setFilters({ ...filters, academicSession: e.target.value })} />
               <select className="input" value={filters.term} onChange={(e) => setFilters({ ...filters, term: e.target.value })}>{TERMS.map((term) => <option key={term}>{term}</option>)}</select>
-              <select className="input" value={filters.className} onChange={(e) => setFilters({ ...filters, className: e.target.value })}>{(teacher.assignedClasses || []).map((item) => <option key={item}>{item}</option>)}</select>
+              <select className="input" value={filters.className} onChange={(e) => setFilters({ ...filters, className: e.target.value })}>{classOptions.map((item) => <option key={item}>{item}</option>)}</select>
               <button className="btn-primary" onClick={loadCompiled}>Load Results</button>
             </div>
           </div>

@@ -19,11 +19,30 @@ const SUBJECTS = [
   "Other",
 ];
 
+const CLASSES = [
+  "Nursery 1",
+  "Nursery 2",
+  "Primary 1",
+  "Primary 2",
+  "Primary 3",
+  "Primary 4",
+  "Primary 5",
+  "Primary 6",
+  "JSS1",
+  "JSS2",
+  "JSS3",
+  "SS1",
+  "SS2",
+  "SS3",
+];
+
 const initialForm = {
   fullName: "",
   email: "",
   phone: "",
   subject: "",
+  subjects: [],
+  preferredClasses: [],
   qualification: "",
   yearsOfExperience: "",
   currentLocation: "",
@@ -39,6 +58,21 @@ export default function CareersPage() {
 
   function updateField(name, value) {
     setForm((current) => ({ ...current, [name]: value }));
+  }
+
+  function toggleArrayField(name, value) {
+    setForm((current) => {
+      const currentValues = current[name] || [];
+      const nextValues = currentValues.includes(value)
+        ? currentValues.filter((item) => item !== value)
+        : [...currentValues, value];
+
+      return {
+        ...current,
+        [name]: nextValues,
+        ...(name === "subjects" ? { subject: nextValues[0] || "" } : {}),
+      };
+    });
   }
 
   async function uploadCv() {
@@ -66,12 +100,17 @@ export default function CareersPage() {
     setSubmitting(true);
 
     try {
+      if (!form.subjects.length) {
+        throw new Error("Please select at least one subject or role.");
+      }
+
       const upload = await uploadCv();
       const res = await fetch("/api/teacher-applications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
+          subject: form.subjects[0],
           cvUrl: upload.url,
           cvFileName: upload.originalName || cv.name,
         }),
@@ -336,6 +375,46 @@ export default function CareersPage() {
           padding: 12px;
           color: #475569;
         }
+        .careers-choice-group {
+          grid-column: 1 / -1;
+          display: grid;
+          gap: 10px;
+          border: 0;
+          margin: 0;
+          padding: 0;
+        }
+        .careers-choice-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 10px;
+        }
+        .careers-choice {
+          display: flex;
+          align-items: center;
+          gap: 9px;
+          border: 1px solid #e5e7eb;
+          background: #f9fafb;
+          border-radius: 3px;
+          padding: 11px 12px;
+          font-family: 'Lato', sans-serif;
+          font-size: 0.88rem;
+          font-weight: 700;
+          letter-spacing: 0;
+          text-transform: none;
+          color: #374151;
+          cursor: pointer;
+        }
+        .careers-choice input {
+          width: 16px;
+          height: 16px;
+          accent-color: #2563EB;
+          flex: 0 0 auto;
+        }
+        .careers-choice-selected {
+          border-color: #93c5fd;
+          background: #eff6ff;
+          color: #1d4ed8;
+        }
         .careers-file::file-selector-button {
           border: 0;
           border-radius: 3px;
@@ -419,6 +498,9 @@ export default function CareersPage() {
           .careers-form-grid {
             grid-template-columns: 1fr;
             gap: 14px;
+          }
+          .careers-choice-grid {
+            grid-template-columns: 1fr;
           }
           .careers-form {
             gap: 18px;
@@ -519,14 +601,6 @@ export default function CareersPage() {
                 onChange={updateField}
                 required
               />
-              <Select
-                label="Subject or role"
-                name="subject"
-                value={form.subject}
-                onChange={updateField}
-                options={SUBJECTS}
-                required
-              />
               <Input
                 label="Highest qualification"
                 name="qualification"
@@ -549,6 +623,21 @@ export default function CareersPage() {
                 onChange={updateField}
                 full
               />
+              <MultiChoice
+                label="Subjects or roles"
+                name="subjects"
+                options={SUBJECTS}
+                values={form.subjects}
+                onToggle={toggleArrayField}
+                required
+              />
+              <MultiChoice
+                label="Preferred classes"
+                name="preferredClasses"
+                options={CLASSES}
+                values={form.preferredClasses}
+                onToggle={toggleArrayField}
+              />
             </div>
 
             <label className="careers-label">
@@ -561,7 +650,7 @@ export default function CareersPage() {
                 rows={5}
                 maxLength={1200}
                 className="careers-textarea"
-                placeholder="Tell us briefly about your teaching experience and the classes you are comfortable handling."
+                placeholder="Tell us briefly about your teaching experience, strengths, and availability."
               />
             </label>
 
@@ -629,24 +718,32 @@ function Input({
   );
 }
 
-function Select({ label, name, value, onChange, options, required }) {
+function MultiChoice({ label, name, options, values, onToggle, required }) {
   return (
-    <label className="careers-label">
-      {label}
-      <select
-        name={name}
-        required={required}
-        value={value}
-        onChange={(event) => onChange(name, event.target.value)}
-        className="careers-select"
-      >
-        <option value="">Select an option</option>
+    <fieldset className="careers-choice-group">
+      <legend className="careers-label">
+        {label}
+        {required ? " *" : ""}
+      </legend>
+      <div className="careers-choice-grid">
         {options.map((item) => (
-          <option key={item} value={item}>
+          <label
+            key={item}
+            className={`careers-choice ${
+              values.includes(item) ? "careers-choice-selected" : ""
+            }`}
+          >
+            <input
+              type="checkbox"
+              name={name}
+              value={item}
+              checked={values.includes(item)}
+              onChange={() => onToggle(name, item)}
+            />
             {item}
-          </option>
+          </label>
         ))}
-      </select>
-    </label>
+      </div>
+    </fieldset>
   );
 }
