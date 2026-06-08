@@ -5,7 +5,7 @@ export default function WhatWeOffer() {
     {
       src: "/images/offer3.jpg",
       alt: "Winners' Foundation School students in uniform",
-      objectPosition: "center 18%",
+      objectPosition: "center top",
     },
   ];
 

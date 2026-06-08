@@ -13,7 +13,7 @@ const galleryImages = [
   {
     src: "/images/offer1.jpeg",
     alt: "Students learning at Winners' Foundation School",
-    title: "Learning Spaces",
+    title: "Student Playground",
   },
   {
     src: "/images/offer2.jpeg",
@@ -24,7 +24,7 @@ const galleryImages = [
     src: "/images/offer3.jpg",
     alt: "Winners' Foundation School students in uniform",
     title: "Our Students",
-    objectPosition: "center 18%",
+    objectPosition: "center top",
   },
   {
     src: "/images/gallery-campus-front.jpeg",
