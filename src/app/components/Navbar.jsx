@@ -100,6 +100,7 @@ const navLinks = [
   { label: "Home", href: "/" },
   { label: "About", href: "/about" },
   { label: "Admissions", href: "/admissions" },
+  { label: "Gallery", href: "/gallery" },
   { label: "Careers", href: "/careers" },
   { label: "Contact", href: "/contact" },
 ];
