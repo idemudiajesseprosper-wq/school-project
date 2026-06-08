@@ -2,7 +2,11 @@ export default function WhatWeOffer() {
   const images = [
     { src: "/images/offer1.jpeg", alt: "Students learning in class" },
     { src: "/images/offer2.jpeg", alt: "Students in a group activity" },
-    { src: "/images/offer3.jpg", alt: "School environment" },
+    {
+      src: "/images/offer3.jpg",
+      alt: "Winners' Foundation School students in uniform",
+      objectPosition: "center 18%",
+    },
   ];
 
   return (
@@ -201,6 +205,7 @@ export default function WhatWeOffer() {
               <img
                 src={img.src}
                 alt={img.alt}
+                style={{ objectPosition: img.objectPosition || "center" }}
                 onError={(e) => { e.currentTarget.style.display = "none"; e.currentTarget.nextSibling.style.display = "flex"; }}
               />
               <div className="img-placeholder" style={{ display: "none" }}>

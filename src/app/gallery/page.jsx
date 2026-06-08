@@ -24,6 +24,7 @@ const galleryImages = [
     src: "/images/offer3.jpg",
     alt: "Winners' Foundation School students in uniform",
     title: "Our Students",
+    objectPosition: "center 18%",
   },
   {
     src: "/images/gallery-campus-front.jpeg",
@@ -234,6 +235,7 @@ export default function GalleryPage() {
                   alt={image.alt}
                   fill
                   sizes="(max-width: 720px) 100vw, 50vw"
+                  style={{ objectPosition: image.objectPosition || "center" }}
                 />
               </div>
               <div className="gallery-caption">{image.title}</div>
