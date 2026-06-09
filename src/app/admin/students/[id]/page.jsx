@@ -110,7 +110,7 @@ export default function StudentProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 via-white to-gray-50 p-6 md:p-10 pt-32 md:pt-36">
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 via-white to-gray-50 p-6 md:p-10">
       {/* TOP */}
       <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6 mb-10">
         <div className="flex items-center gap-5">

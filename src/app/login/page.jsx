@@ -67,7 +67,7 @@ body,
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          padding: 120px 24px 60px;
+          padding: 40px 24px 60px;
           position: relative;
           overflow: hidden;
         }

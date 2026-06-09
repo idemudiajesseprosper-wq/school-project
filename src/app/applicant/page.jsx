@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
 export default function ApplicantDashboardPage() {
@@ -9,21 +9,90 @@ export default function ApplicantDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
   const [data, setData] = useState(null);
+  const lastStatusRef = useRef("");
+  const applicantId = data?.applicant?._id;
 
-  const load = useCallback(async () => {
-    const res = await fetch("/api/applicant/me");
-    const json = await res.json();
-    if (!json.success) {
-      router.push("/applicant/login");
-      return;
-    }
-    setData(json);
-    setLoading(false);
-  }, [router]);
+  const load = useCallback(
+    async ({ silent = false } = {}) => {
+      const res = await fetch("/api/applicant/me", { cache: "no-store" });
+      const json = await res.json();
+      if (!json.success) {
+        router.push("/applicant/login");
+        return;
+      }
+      setData(json);
+      lastStatusRef.current =
+        json.application?.status || json.applicant?.applicationStatus || "";
+      if (!silent) setLoading(false);
+    },
+    [router],
+  );
 
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (!applicantId) return;
+
+    let closed = false;
+    let fallbackInterval;
+    const events = new EventSource("/api/applicant/status/stream");
+
+    events.onmessage = (event) => {
+      if (closed) return;
+
+      try {
+        const update = JSON.parse(event.data);
+        const nextStatus =
+          update.application?.status ||
+          update.applicant?.applicationStatus ||
+          "";
+
+        setData((current) => {
+          if (!current) return current;
+          return {
+            ...current,
+            applicant: {
+              ...current.applicant,
+              ...update.applicant,
+            },
+            application: update.application || current.application,
+          };
+        });
+
+        if (
+          nextStatus &&
+          nextStatus !== lastStatusRef.current &&
+          (nextStatus === "Approved" || nextStatus === "accepted")
+        ) {
+          toast.success(
+            "Your application has been approved. You can now log in.",
+          );
+        }
+
+        if (nextStatus) lastStatusRef.current = nextStatus;
+      } catch {
+        load({ silent: true });
+      }
+    };
+
+    events.onerror = () => {
+      events.close();
+      if (!closed && !fallbackInterval) {
+        load({ silent: true });
+        fallbackInterval = setInterval(() => {
+          load({ silent: true });
+        }, 5000);
+      }
+    };
+
+    return () => {
+      closed = true;
+      clearInterval(fallbackInterval);
+      events.close();
+    };
+  }, [applicantId, load]);
 
   async function pay() {
     setPaying(true);

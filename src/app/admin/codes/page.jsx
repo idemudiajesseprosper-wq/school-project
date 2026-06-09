@@ -97,7 +97,7 @@ Winners Foundation School`;
   };
 
   return (
-    <div className="p-6 md:p-8 mt-24 min-h-screen bg-gray-50">
+    <div className="p-6 md:p-8 min-h-screen bg-gray-50">
 
       {/* HEADER */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">

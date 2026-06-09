@@ -62,7 +62,7 @@ export default function StudentProfilePage() {
   if (!student) return null;
 
   return (
-    <div className="p-8 mt-24 max-w-6xl mx-auto">
+    <div className="p-8 max-w-6xl mx-auto">
       <button
         type="button"
         onClick={() => router.push("/admin")}

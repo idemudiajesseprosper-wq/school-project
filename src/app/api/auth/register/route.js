@@ -1,19 +1,9 @@
-import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import { NextResponse } from "next/server";
+
 import { connectMongoDB } from "../../../../lib/connect";
-import AdmissionCounter from "../../../../models/AdmissionCounter";
+import { generateStudentIdNumber } from "../../../../lib/enrollment";
 import User from "../../../../models/User";
-
-async function generateAdmissionNumber() {
-  const year = new Date().getFullYear();
-  const counter = await AdmissionCounter.findOneAndUpdate(
-    { year },
-    { $inc: { sequence: 1 } },
-    { new: true, upsert: true },
-  );
-
-  return `SCH/${year}/${String(counter.sequence).padStart(4, "0")}`;
-}
 
 export async function POST(req) {
   try {
@@ -57,8 +47,8 @@ export async function POST(req) {
     const hashedPassword = await bcrypt.hash(password, 12);
 
     const requestedRole = role === "teacher" ? "teacher" : "student";
-    const generatedAdmissionNumber =
-      requestedRole === "student" ? await generateAdmissionNumber() : "";
+    const generatedStudentId =
+      requestedRole === "student" ? await generateStudentIdNumber() : "";
 
     await User.create({
       fullName,
@@ -74,7 +64,8 @@ export async function POST(req) {
       dateOfBirth: dateOfBirth || "",
       gender: gender || "",
       studentClass: studentClass || "",
-      admissionNumber: generatedAdmissionNumber,
+      admissionNumber: generatedStudentId,
+      studentIdNumber: generatedStudentId,
       phoneNumber: phoneNumber || "",
       avatar: avatar || "",
 
@@ -101,10 +92,11 @@ export async function POST(req) {
 
     return NextResponse.json({
       success: true,
-      admissionNumber: generatedAdmissionNumber,
+      admissionNumber: generatedStudentId,
+      studentIdNumber: generatedStudentId,
       message:
         requestedRole === "student"
-          ? `Registration successful. Admission number: ${generatedAdmissionNumber}`
+          ? `Registration successful. Student ID: ${generatedStudentId}`
           : "Registration successful. You can now log in.",
     });
   } catch (error) {

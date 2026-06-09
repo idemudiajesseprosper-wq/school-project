@@ -77,7 +77,7 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen pt-32 pb-10 px-4 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-800 flex items-start justify-center overflow-y-auto relative">
+    <div className="min-h-screen py-10 px-4 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-800 flex items-start justify-center overflow-y-auto relative">
 
       {/* Background Glow */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.06),transparent_30%)] pointer-events-none" />

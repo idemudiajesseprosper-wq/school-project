@@ -19,9 +19,7 @@ export default function AppChrome({ children }) {
       {!isPortalRoute && <Navbar />}
       {pathname !== "/" && <BackButton isPortalRoute={isPortalRoute} />}
 
-      <main className={`flex-1 ${isPortalRoute ? "" : "pt-20"}`}>
-        {children}
-      </main>
+      <main className="flex-1">{children}</main>
 
       {!isPortalRoute && <BackToTop />}
     </>

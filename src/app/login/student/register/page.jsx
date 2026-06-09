@@ -113,7 +113,6 @@ export default function RegisterPage() {
           dateOfBirth: form.dateOfBirth,
           gender: form.gender,
           studentClass: form.studentClass,
-          admissionNumber: form.admissionNumber,
           phoneNumber: form.phoneNumber,
           parentName: form.parentName,
           parentPhone: form.parentPhone,
@@ -130,7 +129,7 @@ export default function RegisterPage() {
       });
       const data = await res.json();
       if (data.success) {
-        toast.success("Account created! Check your email to verify.");
+        toast.success(data.message || "Account created!");
         router.push("/login/student");
       } else {
         toast.error(data.message || "Registration failed");
@@ -213,7 +212,7 @@ export default function RegisterPage() {
         .google-spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.2); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; }
       `}</style>
 
-      <div className="rp-root mt-28 md:mt-0">
+      <div className="rp-root">
         <div className="rp-blob rp-blob-1" />
         <div className="rp-blob rp-blob-2" />
         <div className="rp-grid-bg" />
@@ -355,10 +354,12 @@ export default function RegisterPage() {
                     {CLASSES.map((c) => <option key={c}>{c}</option>)}
                   </select>
                 </div>
-                <div className="rp-field">
-                  {/* OPTIONAL — admin assigns later if not available */}
-                  <label className="rp-label">Admission No. <small>(if available)</small></label>
-                  <input className="rp-input" placeholder="e.g. WFS/2025/001" value={form.admissionNumber} onChange={(e) => update("admissionNumber", e.target.value)} />
+                <div className="rp-info-box" style={{ marginBottom: 0 }}>
+                  <span className="rp-info-icon">ID</span>
+                  <p className="rp-info-text">
+                    A student ID will be assigned automatically after account
+                    creation.
+                  </p>
                 </div>
               </div>
                 </>
@@ -480,7 +481,6 @@ export default function RegisterPage() {
                 <span className="rp-info-icon">✓</span>
                 <p className="rp-info-text">
                   Registering <strong>{form.fullName}</strong> — <strong>{form.studentClass}</strong>
-                  {form.admissionNumber && <> — Adm. No. <strong>{form.admissionNumber}</strong></>}
                 </p>
               </div>
 
