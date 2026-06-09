@@ -43,23 +43,30 @@ export async function GET(req) {
       Application.countDocuments({ status: "Rejected" }),
     ]);
 
-    return NextResponse.json({
-      applications,
-      pagination: {
-        page,
-        limit,
-        total: totalApplications,
-        pages: Math.ceil(totalApplications / limit),
+    return NextResponse.json(
+      {
+        applications,
+        pagination: {
+          page,
+          limit,
+          total: totalApplications,
+          pages: Math.ceil(totalApplications / limit),
+        },
+        stats: {
+          totalApplicants,
+          paidApplicants,
+          unpaidApplicants: Math.max(totalApplicants - paidApplicants, 0),
+          submittedApplications: pendingApplications,
+          acceptedApplications,
+          rejectedApplications,
+        },
       },
-      stats: {
-        totalApplicants,
-        paidApplicants,
-        unpaidApplicants: Math.max(totalApplicants - paidApplicants, 0),
-        submittedApplications: pendingApplications,
-        acceptedApplications,
-        rejectedApplications,
+      {
+        headers: {
+          "Cache-Control": "no-store",
+        },
       },
-    });
+    );
   } catch (error) {
     console.error("GET APPLICATIONS ERROR:", error);
 

@@ -16,7 +16,7 @@ export default function AdminPage() {
 
   const fetchApplications = useCallback(async () => {
     try {
-      const res = await fetch("/api/get-applications");
+      const res = await fetch("/api/get-applications", { cache: "no-store" });
       const data = await res.json();
       setApplications(data.applications || []);
       setStats(data.stats || null);
