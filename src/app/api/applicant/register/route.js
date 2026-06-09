@@ -1,10 +1,11 @@
-import { NextResponse } from "next/server";
+import crypto from "node:crypto";
 import bcrypt from "bcryptjs";
-import crypto from "crypto";
+import { NextResponse } from "next/server";
 
+import { requireApplicantEmailVerification } from "../../../../lib/applicantVerification";
 import { connectMongoDB } from "../../../../lib/connect";
-import { generateApplicantId } from "../../../../lib/enrollment";
 import { sendVerificationEmail } from "../../../../lib/email";
+import { generateApplicantId } from "../../../../lib/enrollment";
 import User from "../../../../models/User";
 
 export async function POST(req) {
@@ -13,15 +14,18 @@ export async function POST(req) {
 
     if (!fullName?.trim() || !email?.trim() || !password) {
       return NextResponse.json(
-        { success: false, message: "Full name, email, and password are required." },
-        { status: 400 }
+        {
+          success: false,
+          message: "Full name, email, and password are required.",
+        },
+        { status: 400 },
       );
     }
 
     if (password.length < 6) {
       return NextResponse.json(
         { success: false, message: "Password must be at least 6 characters." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -32,13 +36,16 @@ export async function POST(req) {
     if (existing) {
       return NextResponse.json(
         { success: false, message: "Email already exists." },
-        { status: 409 }
+        { status: 409 },
       );
     }
 
     const applicantId = await generateApplicantId();
     const hashedPassword = await bcrypt.hash(password, 12);
-    const verificationToken = crypto.randomBytes(32).toString("hex");
+    const requireVerification = requireApplicantEmailVerification();
+    const verificationToken = requireVerification
+      ? crypto.randomBytes(32).toString("hex")
+      : null;
 
     await User.create({
       fullName: fullName.trim(),
@@ -48,22 +55,30 @@ export async function POST(req) {
       applicantId,
       paymentStatus: "unpaid",
       applicationStatus: "not_started",
-      isVerified: false,
+      isVerified: !requireVerification,
       verificationToken,
     });
 
-    await sendVerificationEmail(normalizedEmail, fullName.trim(), verificationToken);
+    if (requireVerification) {
+      await sendVerificationEmail(
+        normalizedEmail,
+        fullName.trim(),
+        verificationToken,
+      );
+    }
 
     return NextResponse.json({
       success: true,
       applicantId,
-      message: "Applicant account created. Please verify your email.",
+      message: requireVerification
+        ? "Applicant account created. Please verify your email."
+        : "Applicant account created. You can now log in.",
     });
   } catch (error) {
     console.log("APPLICANT REGISTER ERROR:", error);
     return NextResponse.json(
       { success: false, message: "Server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

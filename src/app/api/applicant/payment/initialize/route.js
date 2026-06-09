@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { requireApplicantEmailVerification } from "../../../../../lib/applicantVerification";
 import { getAuthUser, unauthorized } from "../../../../../lib/authUser";
 import { ENROLLMENT_FEE_KOBO } from "../../../../../lib/enrollment";
 
@@ -7,7 +8,7 @@ export async function POST(req) {
   const auth = await getAuthUser(req, ["applicant"]);
   if (!auth.user) return unauthorized(auth.error, auth.status);
 
-  if (!auth.user.isVerified) {
+  if (requireApplicantEmailVerification() && !auth.user.isVerified) {
     return NextResponse.json(
       { success: false, message: "Please verify your email before payment." },
       { status: 403 },

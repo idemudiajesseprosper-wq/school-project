@@ -42,3 +42,7 @@ LOGIN REQUEST STARTED
  GET /api/get-applications 200 in 470ms (next.js: 4ms, application-code: 466ms)
  POST /api/auth/logout 200 in 1420ms (next.js: 959ms, application-code: 461ms)
  GET /admin/login 200 in 154ms (next.js: 17ms, application-code: 137ms)
+ GET /admin/login 200 in 1139ms (next.js: 378ms, application-code: 761ms)
+ GET /admin/login 200 in 495ms (next.js: 58ms, application-code: 436ms)
+LOGIN REQUEST STARTED
+ POST /api/auth/login 200 in 647ms (next.js: 277ms, application-code: 371ms)

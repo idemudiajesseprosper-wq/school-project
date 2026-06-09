@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 
+import { requireApplicantEmailVerification } from "../../../lib/applicantVerification";
 import { getAuthUser, unauthorized } from "../../../lib/authUser";
-import { baseEmail, sendEnrollmentEmail } from "../../../lib/enrollmentEmail";
 import { connectMongoDB } from "../../../lib/connect";
+import { baseEmail, sendEnrollmentEmail } from "../../../lib/enrollmentEmail";
 import Application from "../../../models/Application";
 import User from "../../../models/User";
 
@@ -13,24 +14,35 @@ export async function POST(req) {
   try {
     const data = await req.json();
 
-    if (!auth.user.isVerified) {
+    if (requireApplicantEmailVerification() && !auth.user.isVerified) {
       return NextResponse.json(
-        { success: false, message: "Please verify your email before applying." },
-        { status: 403 }
+        {
+          success: false,
+          message: "Please verify your email before applying.",
+        },
+        { status: 403 },
       );
     }
 
     if (auth.user.paymentStatus !== "paid") {
       return NextResponse.json(
-        { success: false, message: "Pay the enrollment fee before starting application." },
-        { status: 403 }
+        {
+          success: false,
+          message: "Pay the enrollment fee before starting application.",
+        },
+        { status: 403 },
       );
     }
 
-    if (!data.fullName || !data.classApplying || !data.parentName || !data.parentPhone) {
+    if (
+      !data.fullName ||
+      !data.classApplying ||
+      !data.parentName ||
+      !data.parentPhone
+    ) {
       return NextResponse.json(
         { success: false, message: "Please complete all required fields." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -69,7 +81,7 @@ export async function POST(req) {
         parentPhone: data.parentPhone,
         status: "Pending",
       },
-      { upsert: true, new: true }
+      { upsert: true, new: true },
     );
 
     await User.findByIdAndUpdate(auth.user._id, {
@@ -87,7 +99,7 @@ export async function POST(req) {
       subject: "Application Submitted",
       html: baseEmail(
         "Application Submitted Successfully",
-        `<p>Dear <strong>${data.fullName}</strong>, your application has been submitted and is now under review.</p>`
+        `<p>Dear <strong>${data.fullName}</strong>, your application has been submitted and is now under review.</p>`,
       ),
     });
 
@@ -100,7 +112,7 @@ export async function POST(req) {
 
     return NextResponse.json(
       { success: false, message: "Server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

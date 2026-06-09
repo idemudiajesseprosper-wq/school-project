@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 
+import { requireApplicantEmailVerification } from "../../../../lib/applicantVerification";
 import { connectMongoDB } from "../../../../lib/connect";
 import { logActivity } from "../../../../lib/logActivity";
 import User from "../../../../models/User";
@@ -87,7 +88,11 @@ export async function POST(req) {
       });
     }
 
-    if (user.role === "applicant" && !user.isVerified) {
+    if (
+      user.role === "applicant" &&
+      requireApplicantEmailVerification() &&
+      !user.isVerified
+    ) {
       return NextResponse.json({
         success: false,
         message: "Please verify your email before logging in.",
