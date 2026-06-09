@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
+import * as XLSX from "xlsx";
 
 const CLASSES = [
   "Nursery 1",
@@ -35,6 +36,7 @@ export default function TeacherResultsPage() {
   const [batches, setBatches] = useState([]);
   const [compiled, setCompiled] = useState(null);
   const [remarks, setRemarks] = useState([]);
+  const [students, setStudents] = useState([]);
   const [upload, setUpload] = useState({
     academicSession: currentSession(),
     term: "First Term",
@@ -49,22 +51,31 @@ export default function TeacherResultsPage() {
   });
 
   const subjects = useMemo(() => {
-    const list = [teacher?.subject, ...(teacher?.assignedSubjects || [])].filter(Boolean);
+    const list = [
+      teacher?.subject,
+      ...(teacher?.assignedSubjects || []),
+    ].filter(Boolean);
     return [...new Set(list)];
   }, [teacher]);
   const classOptions = teacher?.assignedClasses?.length
     ? teacher.assignedClasses
     : CLASSES;
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: initial dashboard load runs once on mount.
   useEffect(() => {
     loadTeacher();
   }, []);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: this initializes selections after teacher data arrives.
   useEffect(() => {
     if (teacher) {
       const firstClass = classOptions[0] || "";
       const firstSubject = subjects[0] || teacher.subject || "";
-      setUpload((prev) => ({ ...prev, className: firstClass, subject: firstSubject }));
+      setUpload((prev) => ({
+        ...prev,
+        className: firstClass,
+        subject: firstSubject,
+      }));
       setFilters((prev) => ({ ...prev, className: firstClass }));
       loadBatches();
     }
@@ -78,6 +89,7 @@ export default function TeacherResultsPage() {
       return;
     }
     setTeacher(json.teacher);
+    setStudents(json.students || []);
     setLoading(false);
   }
 
@@ -104,7 +116,9 @@ export default function TeacherResultsPage() {
       toast.error(json.message || "Upload failed");
       if (json.errors?.length) {
         console.table(json.errors);
-        toast.error(`${json.errors.length} validation issue(s). Check the console.`);
+        toast.error(
+          `${json.errors.length} validation issue(s). Check the console.`,
+        );
       }
       return;
     }
@@ -118,14 +132,17 @@ export default function TeacherResultsPage() {
     const params = new URLSearchParams(filters);
     const res = await fetch(`/api/teacher/class-results?${params}`);
     const json = await res.json();
-    if (!json.success) return toast.error(json.message || "Could not load results");
+    if (!json.success)
+      return toast.error(json.message || "Could not load results");
     setCompiled(json.result);
-    setRemarks(json.result.students.map((student) => ({
-      studentId: student.studentId,
-      classTeacherRemark: student.classTeacherRemark,
-      principalRemark: student.principalRemark,
-      attendance: student.attendance,
-    })));
+    setRemarks(
+      json.result.students.map((student) => ({
+        studentId: student.studentId,
+        classTeacherRemark: student.classTeacherRemark,
+        principalRemark: student.principalRemark,
+        attendance: student.attendance,
+      })),
+    );
   }
 
   async function saveRemarks() {
@@ -137,19 +154,86 @@ export default function TeacherResultsPage() {
     });
     const json = await res.json();
     setSaving(false);
-    if (!json.success) return toast.error(json.message || "Could not save remarks");
+    if (!json.success)
+      return toast.error(json.message || "Could not save remarks");
     toast.success("Remarks saved");
     loadCompiled();
   }
 
   function updateRemark(studentId, key, value) {
     setRemarks((prev) =>
-      prev.map((item) => (item.studentId === studentId ? { ...item, [key]: value } : item))
+      prev.map((item) =>
+        item.studentId === studentId ? { ...item, [key]: value } : item,
+      ),
+    );
+  }
+
+  function studentsForClass(className) {
+    return students
+      .filter((student) => student.studentClass === className)
+      .sort((a, b) => (a.fullName || "").localeCompare(b.fullName || ""));
+  }
+
+  function safeFileName(value) {
+    return String(value || "class").replace(/[\\/:*?"<>|]/g, "-");
+  }
+
+  function downloadWorkbook(rows, sheetName, fileName) {
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+    XLSX.writeFile(workbook, fileName);
+  }
+
+  function downloadStudentList() {
+    if (!upload.className) return toast.error("Select a class first");
+
+    const classStudents = studentsForClass(upload.className);
+    if (!classStudents.length) {
+      return toast.error(`No students found for ${upload.className}`);
+    }
+
+    downloadWorkbook(
+      classStudents.map((student, index) => ({
+        "S/N": index + 1,
+        "Admission Number": student.admissionNumber || "",
+        "Student Name": student.fullName || "",
+        Class: student.studentClass || "",
+        Email: student.email || "",
+        Phone: student.phoneNumber || "",
+      })),
+      "Students",
+      `${safeFileName(upload.className)}-students.xlsx`,
+    );
+  }
+
+  function downloadBroadsheetTemplate() {
+    if (!upload.className) return toast.error("Select a class first");
+    if (!upload.subject) return toast.error("Select a subject first");
+
+    const classStudents = studentsForClass(upload.className);
+    if (!classStudents.length) {
+      return toast.error(`No students found for ${upload.className}`);
+    }
+
+    downloadWorkbook(
+      classStudents.map((student) => ({
+        "Admission Number": student.admissionNumber || "",
+        "Student Name": student.fullName || "",
+        "CA Score": "",
+        "Exam Score": "",
+      })),
+      "Broadsheet",
+      `${safeFileName(upload.className)}-${safeFileName(upload.subject)}-broadsheet-template.xlsx`,
     );
   }
 
   if (loading) {
-    return <div className="min-h-screen bg-slate-50 p-8 text-sm text-slate-500">Loading results workspace...</div>;
+    return (
+      <div className="min-h-screen bg-slate-50 p-8 text-sm text-slate-500">
+        Loading results workspace...
+      </div>
+    );
   }
 
   return (
@@ -157,11 +241,20 @@ export default function TeacherResultsPage() {
       <div className="border-b border-slate-200 bg-white px-4 py-4 md:px-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-blue-600">Teacher Portal</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-blue-600">
+              Teacher Portal
+            </p>
             <h1 className="text-2xl font-black">Result Management</h1>
-            <p className="text-sm text-slate-500">{teacher?.fullName} - {teacher?.subject || "Subject Teacher"}</p>
+            <p className="text-sm text-slate-500">
+              {teacher?.fullName} - {teacher?.subject || "Subject Teacher"}
+            </p>
           </div>
-          <a className="rounded-md bg-slate-900 px-4 py-2 text-sm font-bold text-white" href="/teacher">Back to Dashboard</a>
+          <a
+            className="rounded-md bg-slate-900 px-4 py-2 text-sm font-bold text-white"
+            href="/teacher"
+          >
+            Back to Dashboard
+          </a>
         </div>
       </div>
 
@@ -169,36 +262,104 @@ export default function TeacherResultsPage() {
         <section className="grid gap-4 rounded-lg border border-slate-200 bg-white p-5">
           <div>
             <h2 className="text-lg font-black">Subject Teacher Upload</h2>
-            <p className="text-sm text-slate-500">Template columns: Admission Number, Student Name, CA Score, Exam Score.</p>
+            <p className="text-sm text-slate-500">
+              Template columns: Admission Number, Student Name, CA Score, Exam
+              Score.
+            </p>
           </div>
 
           <div className="grid gap-3 md:grid-cols-5">
             <Field label="Academic Session">
-              <input className="input" value={upload.academicSession} onChange={(e) => setUpload({ ...upload, academicSession: e.target.value })} />
+              <input
+                className="input"
+                value={upload.academicSession}
+                onChange={(e) =>
+                  setUpload({ ...upload, academicSession: e.target.value })
+                }
+              />
             </Field>
             <Field label="Term">
-              <select className="input" value={upload.term} onChange={(e) => setUpload({ ...upload, term: e.target.value })}>
-                {TERMS.map((term) => <option key={term}>{term}</option>)}
+              <select
+                className="input"
+                value={upload.term}
+                onChange={(e) => setUpload({ ...upload, term: e.target.value })}
+              >
+                {TERMS.map((term) => (
+                  <option key={term}>{term}</option>
+                ))}
               </select>
             </Field>
             <Field label="Class">
-              <select className="input" value={upload.className} onChange={(e) => setUpload({ ...upload, className: e.target.value })}>
-                {classOptions.map((item) => <option key={item}>{item}</option>)}
+              <select
+                className="input"
+                value={upload.className}
+                onChange={(e) =>
+                  setUpload({ ...upload, className: e.target.value })
+                }
+              >
+                {classOptions.map((item) => (
+                  <option key={item}>{item}</option>
+                ))}
               </select>
             </Field>
             <Field label="Subject">
-              <select className="input" value={upload.subject} onChange={(e) => setUpload({ ...upload, subject: e.target.value })}>
-                {(subjects.length ? subjects : [teacher.subject]).filter(Boolean).map((item) => <option key={item}>{item}</option>)}
+              <select
+                className="input"
+                value={upload.subject}
+                onChange={(e) =>
+                  setUpload({ ...upload, subject: e.target.value })
+                }
+              >
+                {(subjects.length ? subjects : [teacher.subject])
+                  .filter(Boolean)
+                  .map((item) => (
+                    <option key={item}>{item}</option>
+                  ))}
               </select>
             </Field>
             <Field label="Excel File">
-              <input className="input file:mr-3 file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-1 file:text-blue-700" type="file" accept=".xlsx" onChange={(e) => setUpload({ ...upload, file: e.target.files?.[0] || null })} />
+              <input
+                className="input file:mr-3 file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-1 file:text-blue-700"
+                type="file"
+                accept=".xlsx"
+                onChange={(e) =>
+                  setUpload({ ...upload, file: e.target.files?.[0] || null })
+                }
+              />
             </Field>
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <button disabled={saving} className="btn-primary" onClick={() => submitUpload("POST")}>Upload New Result</button>
-            <button disabled={saving} className="btn-secondary" onClick={() => submitUpload("PATCH")}>Update Existing Scores</button>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={downloadStudentList}
+            >
+              Download Student List
+            </button>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={downloadBroadsheetTemplate}
+            >
+              Download Broadsheet Template
+            </button>
+            <button
+              type="button"
+              disabled={saving}
+              className="btn-primary"
+              onClick={() => submitUpload("POST")}
+            >
+              Upload New Result
+            </button>
+            <button
+              type="button"
+              disabled={saving}
+              className="btn-secondary"
+              onClick={() => submitUpload("PATCH")}
+            >
+              Update Existing Scores
+            </button>
           </div>
         </section>
 
@@ -206,13 +367,47 @@ export default function TeacherResultsPage() {
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h2 className="text-lg font-black">Class Teacher Dashboard</h2>
-              <p className="text-sm text-slate-500">Compile all uploaded subject results, positions, and remarks.</p>
+              <p className="text-sm text-slate-500">
+                Compile all uploaded subject results, positions, and remarks.
+              </p>
             </div>
             <div className="grid gap-2 md:grid-cols-4">
-              <input className="input" value={filters.academicSession} onChange={(e) => setFilters({ ...filters, academicSession: e.target.value })} />
-              <select className="input" value={filters.term} onChange={(e) => setFilters({ ...filters, term: e.target.value })}>{TERMS.map((term) => <option key={term}>{term}</option>)}</select>
-              <select className="input" value={filters.className} onChange={(e) => setFilters({ ...filters, className: e.target.value })}>{classOptions.map((item) => <option key={item}>{item}</option>)}</select>
-              <button className="btn-primary" onClick={loadCompiled}>Load Results</button>
+              <input
+                className="input"
+                value={filters.academicSession}
+                onChange={(e) =>
+                  setFilters({ ...filters, academicSession: e.target.value })
+                }
+              />
+              <select
+                className="input"
+                value={filters.term}
+                onChange={(e) =>
+                  setFilters({ ...filters, term: e.target.value })
+                }
+              >
+                {TERMS.map((term) => (
+                  <option key={term}>{term}</option>
+                ))}
+              </select>
+              <select
+                className="input"
+                value={filters.className}
+                onChange={(e) =>
+                  setFilters({ ...filters, className: e.target.value })
+                }
+              >
+                {classOptions.map((item) => (
+                  <option key={item}>{item}</option>
+                ))}
+              </select>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={loadCompiled}
+              >
+                Load Results
+              </button>
             </div>
           </div>
 
@@ -233,11 +428,23 @@ export default function TeacherResultsPage() {
                   </thead>
                   <tbody>
                     {compiled.students.map((student) => (
-                      <tr key={student.studentId} className="border-t border-slate-100">
+                      <tr
+                        key={student.studentId}
+                        className="border-t border-slate-100"
+                      >
                         <td className="p-3 font-black">{student.position}</td>
                         <td className="p-3 font-bold">{student.studentName}</td>
-                        <td className="p-3 text-slate-500">{student.admissionNumber}</td>
-                        <td className="p-3 text-slate-600">{student.subjects.map((item) => `${item.subject}: ${item.totalScore}${item.grade}`).join(", ") || "No scores"}</td>
+                        <td className="p-3 text-slate-500">
+                          {student.admissionNumber}
+                        </td>
+                        <td className="p-3 text-slate-600">
+                          {student.subjects
+                            .map(
+                              (item) =>
+                                `${item.subject}: ${item.totalScore}${item.grade}`,
+                            )
+                            .join(", ") || "No scores"}
+                        </td>
                         <td className="p-3 font-bold">{student.totalScore}</td>
                         <td className="p-3">{student.averageScore}%</td>
                         <td className="p-3">{student.overallGrade}</td>
@@ -250,20 +457,67 @@ export default function TeacherResultsPage() {
               <div className="grid gap-3">
                 <h3 className="font-black">Editable Remarks</h3>
                 {compiled.students.map((student) => {
-                  const remark = remarks.find((item) => item.studentId === student.studentId) || {};
+                  const remark =
+                    remarks.find(
+                      (item) => item.studentId === student.studentId,
+                    ) || {};
                   return (
-                    <div key={student.studentId} className="grid gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 md:grid-cols-[180px_1fr_1fr_140px]">
+                    <div
+                      key={student.studentId}
+                      className="grid gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 md:grid-cols-[180px_1fr_1fr_140px]"
+                    >
                       <div>
                         <p className="font-bold">{student.studentName}</p>
-                        <p className="text-xs text-slate-500">Avg {student.averageScore}%</p>
+                        <p className="text-xs text-slate-500">
+                          Avg {student.averageScore}%
+                        </p>
                       </div>
-                      <textarea className="input min-h-20" value={remark.classTeacherRemark || ""} onChange={(e) => updateRemark(student.studentId, "classTeacherRemark", e.target.value)} />
-                      <textarea className="input min-h-20" placeholder="Principal remark" value={remark.principalRemark || ""} onChange={(e) => updateRemark(student.studentId, "principalRemark", e.target.value)} />
-                      <input className="input" placeholder="Attendance" value={remark.attendance || ""} onChange={(e) => updateRemark(student.studentId, "attendance", e.target.value)} />
+                      <textarea
+                        className="input min-h-20"
+                        value={remark.classTeacherRemark || ""}
+                        onChange={(e) =>
+                          updateRemark(
+                            student.studentId,
+                            "classTeacherRemark",
+                            e.target.value,
+                          )
+                        }
+                      />
+                      <textarea
+                        className="input min-h-20"
+                        placeholder="Principal remark"
+                        value={remark.principalRemark || ""}
+                        onChange={(e) =>
+                          updateRemark(
+                            student.studentId,
+                            "principalRemark",
+                            e.target.value,
+                          )
+                        }
+                      />
+                      <input
+                        className="input"
+                        placeholder="Attendance"
+                        value={remark.attendance || ""}
+                        onChange={(e) =>
+                          updateRemark(
+                            student.studentId,
+                            "attendance",
+                            e.target.value,
+                          )
+                        }
+                      />
                     </div>
                   );
                 })}
-                <button disabled={saving} className="btn-primary w-fit" onClick={saveRemarks}>Save Remarks</button>
+                <button
+                  type="button"
+                  disabled={saving}
+                  className="btn-primary w-fit"
+                  onClick={saveRemarks}
+                >
+                  Save Remarks
+                </button>
               </div>
             </div>
           )}
@@ -273,12 +527,22 @@ export default function TeacherResultsPage() {
           <h2 className="mb-3 text-lg font-black">My Uploaded Broadsheets</h2>
           <div className="grid gap-2 md:grid-cols-2">
             {batches.map((batch) => (
-              <div key={batch._id} className="rounded-lg border border-slate-200 p-3 text-sm">
-                <p className="font-bold">{batch.subject} - {batch.className}</p>
-                <p className="text-slate-500">{batch.academicSession}, {batch.term} - {batch.scores?.length || 0} score(s)</p>
+              <div
+                key={batch._id}
+                className="rounded-lg border border-slate-200 p-3 text-sm"
+              >
+                <p className="font-bold">
+                  {batch.subject} - {batch.className}
+                </p>
+                <p className="text-slate-500">
+                  {batch.academicSession}, {batch.term} -{" "}
+                  {batch.scores?.length || 0} score(s)
+                </p>
               </div>
             ))}
-            {!batches.length && <p className="text-sm text-slate-500">No uploads yet.</p>}
+            {!batches.length && (
+              <p className="text-sm text-slate-500">No uploads yet.</p>
+            )}
           </div>
         </section>
       </main>
@@ -296,9 +560,9 @@ export default function TeacherResultsPage() {
 
 function Field({ label, children }) {
   return (
-    <label className="grid gap-1 text-xs font-bold uppercase tracking-wider text-slate-500">
+    <div className="grid gap-1 text-xs font-bold uppercase tracking-wider text-slate-500">
       {label}
       {children}
-    </label>
+    </div>
   );
 }
