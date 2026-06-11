@@ -1,6 +1,9 @@
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+const FROM =
+  process.env.RESEND_FROM ||
+  "Winners' Foundation School <onboarding@resend.dev>";
 
 export async function sendVerificationEmail(email, fullName, token) {
   if (!process.env.RESEND_API_KEY) return;
@@ -8,7 +11,7 @@ export async function sendVerificationEmail(email, fullName, token) {
   const verifyUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/verify-email?token=${token}`;
 
   await resend.emails.send({
-    from: "Winners' Foundation School <onboarding@resend.dev>",
+    from: FROM,
     to: email,
     subject: "Verify Your Email – Winners' Foundation School",
     html: `

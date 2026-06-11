@@ -11,10 +11,14 @@ export async function GET() {
     if (!settings) {
       settings = await Settings.create({});
     }
+    const settingsObject = settings.toObject();
 
     return NextResponse.json({
       success: true,
-      settings,
+      settings: {
+        ...settingsObject,
+        requireEmailVerification: settingsObject.requireVerification,
+      },
     });
   } catch (error) {
     console.log(error);
@@ -34,12 +38,19 @@ export async function PATCH(req) {
 
     let settings = await Settings.findOne();
 
+    const requireVerification =
+      body.requireEmailVerification ?? body.requireVerification ?? true;
+
     if (!settings) {
-      settings = await Settings.create(body);
+      settings = await Settings.create({
+        ...body,
+        requireVerification,
+      });
     } else {
       settings.schoolName = body.schoolName;
       settings.supportEmail = body.supportEmail;
       settings.allowRegistration = body.allowRegistration;
+      settings.requireVerification = requireVerification;
       settings.maintenanceMode = body.maintenanceMode;
       settings.maxLoginAttempts = body.maxLoginAttempts;
 
@@ -59,4 +70,3 @@ export async function PATCH(req) {
     });
   }
 }
-

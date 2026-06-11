@@ -50,6 +50,8 @@ export async function POST(req) {
     if (studentIdNumber) application.studentIdNumber = studentIdNumber;
     await application.save();
 
+    let applicantUser = null;
+
     if (application.applicant) {
       const userUpdate = {
         applicationStatus:
@@ -72,29 +74,35 @@ export async function POST(req) {
         userUpdate.parentPhone = application.parentPhone || "";
       }
 
-      await User.findByIdAndUpdate(application.applicant, userUpdate);
+      applicantUser = await User.findByIdAndUpdate(
+        application.applicant,
+        userUpdate,
+        { new: true },
+      );
     }
 
     try {
-      if (application.email) {
+      const recipientEmail = application.email || applicantUser?.email;
+
+      if (recipientEmail) {
         if (status === "Approved") {
           await sendEnrollmentEmail({
-            to: application.email,
-            subject: "Application Approved",
+            to: recipientEmail,
+            subject: "Admission Application Approved",
             html: baseEmail(
               "Application Approved",
-              `<p>Congratulations <strong>${application.fullName}</strong>. Your application has been accepted.</p><p>Your Student ID Number is <strong>${studentIdNumber}</strong>.</p><p>You can now log in through the student portal using your existing password.</p>`,
+              `<p>Congratulations <strong>${application.fullName}</strong>. Your application to Winners' Foundation School has been approved.</p><p>Your Student ID Number is <strong>${studentIdNumber}</strong>.</p><p>You can now log in through the student portal using your existing password.</p>`,
             ),
           });
         }
 
         if (status === "Rejected") {
           await sendEnrollmentEmail({
-            to: application.email,
-            subject: "Application Update",
+            to: recipientEmail,
+            subject: "Admission Application Update",
             html: baseEmail(
               "Application Rejected",
-              `<p>Dear <strong>${application.fullName}</strong>, thank you for applying. Your application was not approved at this time.</p>`,
+              `<p>Dear <strong>${application.fullName}</strong>, thank you for applying to Winners' Foundation School.</p><p>After review, your application was not approved at this time.</p>`,
             ),
           });
         }

@@ -2,7 +2,9 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM = "Admissions <onboarding@resend.dev>";
+const FROM =
+  process.env.RESEND_FROM ||
+  "Winners' Foundation School <onboarding@resend.dev>";
 
 export async function sendEnrollmentEmail({ to, subject, html }) {
   if (!process.env.RESEND_API_KEY || !to) return;

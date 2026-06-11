@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import OurMission from "../components/OurMission"
 
@@ -298,9 +297,6 @@ export default function AboutPage() {
           transform: translateY(-2px);
         }
       `}</style>
-
-      <Navbar />
-
       {/* Hero */}
       <section className="about-hero">
         <div style={{ position: "relative", zIndex: 1 }}>

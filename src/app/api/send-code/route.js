@@ -1,7 +1,12 @@
+import { NextResponse } from "next/server";
+import { Resend } from "resend";
 import { connectMongoDB } from "../../../lib/connect";
 import Code from "../../../models/Code";
-import { NextResponse } from "next/server";
 
+const resend = new Resend(process.env.RESEND_API_KEY);
+const FROM =
+  process.env.RESEND_FROM ||
+  "Winners' Foundation School <onboarding@resend.dev>";
 
 export async function POST(req) {
   try {
@@ -25,17 +30,18 @@ export async function POST(req) {
       });
     }
 
-    // Gmail transporter
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
+    if (!process.env.RESEND_API_KEY) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Email service is not configured",
+        },
+        { status: 500 },
+      );
+    }
 
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+    await resend.emails.send({
+      from: FROM,
       to: email,
       subject: "Admission Access Code",
       html: `
@@ -62,7 +68,6 @@ export async function POST(req) {
       success: true,
       message: "Code sent successfully",
     });
-
   } catch (error) {
     console.log(error);
 

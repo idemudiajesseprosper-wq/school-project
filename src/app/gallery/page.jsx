@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Footer from "../components/Footer";
-import Navbar from "../components/Navbar";
 
 const galleryImages = [
   {
@@ -198,9 +197,6 @@ export default function GalleryPage() {
           }
         }
       `}</style>
-
-      <Navbar />
-
       <section className="gallery-hero">
         <div className="gallery-hero-inner">
           <p className="gallery-eyebrow">School Gallery</p>

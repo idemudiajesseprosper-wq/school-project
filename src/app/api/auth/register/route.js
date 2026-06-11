@@ -1,7 +1,10 @@
+import crypto from "node:crypto";
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 
 import { connectMongoDB } from "../../../../lib/connect";
+import { sendVerificationEmail } from "../../../../lib/email";
+import { requireEmailVerification } from "../../../../lib/emailVerification";
 import { generateStudentIdNumber } from "../../../../lib/enrollment";
 import User from "../../../../models/User";
 
@@ -35,7 +38,8 @@ export async function POST(req) {
 
     await connectMongoDB();
 
-    const existingUser = await User.findOne({ email });
+    const normalizedEmail = email.trim().toLowerCase();
+    const existingUser = await User.findOne({ email: normalizedEmail });
 
     if (existingUser) {
       return NextResponse.json({
@@ -49,16 +53,18 @@ export async function POST(req) {
     const requestedRole = role === "teacher" ? "teacher" : "student";
     const generatedStudentId =
       requestedRole === "student" ? await generateStudentIdNumber() : "";
+    const needsVerification = await requireEmailVerification();
+    const verificationToken = needsVerification
+      ? crypto.randomBytes(32).toString("hex")
+      : null;
 
     await User.create({
       fullName,
-      email,
+      email: normalizedEmail,
       password: hashedPassword,
       role: requestedRole,
-
-      // AUTO VERIFIED — re-enable when domain is ready
-      isVerified: true,
-      verificationToken: null,
+      isVerified: !needsVerification,
+      verificationToken,
 
       // STUDENT INFO
       dateOfBirth: dateOfBirth || "",
@@ -90,14 +96,18 @@ export async function POST(req) {
       qualification: requestedRole === "teacher" ? qualification || "" : "",
     });
 
+    if (needsVerification) {
+      await sendVerificationEmail(normalizedEmail, fullName, verificationToken);
+    }
+
     return NextResponse.json({
       success: true,
       admissionNumber: generatedStudentId,
       studentIdNumber: generatedStudentId,
       message:
         requestedRole === "student"
-          ? `Registration successful. Student ID: ${generatedStudentId}`
-          : "Registration successful. You can now log in.",
+          ? `Registration successful. Student ID: ${generatedStudentId}. Please verify your email before logging in.`
+          : "Registration successful. Please verify your email before logging in.",
     });
   } catch (error) {
     console.log(error);

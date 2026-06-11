@@ -1,6 +1,5 @@
 "use client";
 
-import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
 export default function ContactPage() {
@@ -226,9 +225,6 @@ export default function ContactPage() {
           margin-top: 12px; text-align: center;
         }
       `}</style>
-
-      <Navbar />
-
       {/* Hero */}
       <section className="contact-hero">
         <div style={{ position: "relative", zIndex: 1 }}>

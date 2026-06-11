@@ -1,4 +1,49 @@
+"use client";
+
+import { useState } from "react";
+
 export default function ContactSection() {
+  const [status, setStatus] = useState({ type: "", message: "" });
+  const [sending, setSending] = useState(false);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setSending(true);
+    setStatus({ type: "", message: "" });
+
+    const payload = Object.fromEntries(new FormData(e.currentTarget).entries());
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setStatus({
+          type: "error",
+          message: data.message || "Could not send message. Please try again.",
+        });
+        return;
+      }
+
+      e.currentTarget.reset();
+      setStatus({
+        type: "success",
+        message: "Message sent. We will get back to you shortly.",
+      });
+    } catch {
+      setStatus({
+        type: "error",
+        message: "Could not send message. Please try again.",
+      });
+    } finally {
+      setSending(false);
+    }
+  }
+
   return (
     <>
       <style>{`
@@ -181,6 +226,11 @@ export default function ContactSection() {
           transform: translateY(-2px);
           box-shadow: 0 8px 20px rgba(37,99,235,0.4);
         }
+        .submit-btn:disabled {
+          opacity: 0.65;
+          cursor: not-allowed;
+          transform: none;
+        }
 
         .form-note {
           font-family: 'Lato', sans-serif;
@@ -189,36 +239,73 @@ export default function ContactSection() {
           margin-top: 12px;
           text-align: center;
         }
+        .form-status {
+          font-family: 'Lato', sans-serif;
+          font-size: 0.82rem;
+          font-weight: 700;
+          line-height: 1.5;
+          margin-top: 12px;
+          text-align: center;
+        }
+        .form-status.success { color: #15803d; }
+        .form-status.error { color: #dc2626; }
       `}</style>
 
       <section className="contact-section">
-
         {/* ── LEFT: Info ── */}
         <div className="contact-info">
           <p className="contact-eyebrow">Get In Touch</p>
-          <h2 className="contact-heading">We'd Love to<br />Hear From You</h2>
+          <h2 className="contact-heading">
+            We'd Love to
+            <br />
+            Hear From You
+          </h2>
           <div className="contact-rule" />
           <p className="contact-intro">
-            Whether you are a parent looking to enrol your child, or simply want to learn more about Winners' Foundation School — we are happy to help. Reach out and our team will get back to you promptly.
+            Whether you are a parent looking to enrol your child, or simply want
+            to learn more about Winners' Foundation School — we are happy to
+            help. Reach out and our team will get back to you promptly.
           </p>
 
           <div className="contact-detail">
             <div className="contact-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round">
-                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
-                <circle cx="12" cy="9" r="2.5"/>
+              <svg
+                aria-hidden="true"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#2563EB"
+                strokeWidth="2"
+                strokeLinecap="round"
+              >
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+                <circle cx="12" cy="9" r="2.5" />
               </svg>
             </div>
             <div>
               <div className="contact-detail-label">Address</div>
-              <div className="contact-detail-value">[2, AIRHUEGHIOMON STREET, OFF ETETE ROAD, ENOGIE, BENIN CITY]<br />[BENIN CITY, EDO STATE]</div>
+              <div className="contact-detail-value">
+                [2, AIRHUEGHIOMON STREET, OFF ETETE ROAD, ENOGIE, BENIN CITY]
+                <br />
+                [BENIN CITY, EDO STATE]
+              </div>
             </div>
           </div>
 
           <div className="contact-detail">
             <div className="contact-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round">
-                <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 0115.93 2.18 2 2 0 0118 4.36v3a2 2 0 01-1.56 1.95 16 16 0 00-1.48.56 13 13 0 01-5.61-5.61 16 16 0 00.56-1.48A2 2 0 0122 16.92z"/>
+              <svg
+                aria-hidden="true"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#2563EB"
+                strokeWidth="2"
+                strokeLinecap="round"
+              >
+                <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 0115.93 2.18 2 2 0 0118 4.36v3a2 2 0 01-1.56 1.95 16 16 0 00-1.48.56 13 13 0 01-5.61-5.61 16 16 0 00.56-1.48A2 2 0 0122 16.92z" />
               </svg>
             </div>
             <div>
@@ -229,60 +316,122 @@ export default function ContactSection() {
 
           <div className="contact-detail">
             <div className="contact-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round">
-                <rect x="2" y="4" width="20" height="16" rx="2"/>
-                <path d="M2 7l10 7 10-7"/>
+              <svg
+                aria-hidden="true"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#2563EB"
+                strokeWidth="2"
+                strokeLinecap="round"
+              >
+                <rect x="2" y="4" width="20" height="16" rx="2" />
+                <path d="M2 7l10 7 10-7" />
               </svg>
             </div>
             <div>
               <div className="contact-detail-label">Email</div>
-              <div className="contact-detail-value">[wfsonline1999@gmail.com]</div>
+              <div className="contact-detail-value">
+                [wfsonline1999@gmail.com]
+              </div>
             </div>
           </div>
 
           <div className="contact-detail">
             <div className="contact-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round">
-                <circle cx="12" cy="12" r="10"/>
-                <path d="M12 6v6l4 2"/>
+              <svg
+                aria-hidden="true"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#2563EB"
+                strokeWidth="2"
+                strokeLinecap="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 6v6l4 2" />
               </svg>
             </div>
             <div>
               <div className="contact-detail-label">School Hours</div>
-              <div className="contact-detail-value">Mon – Fri: 7:30am – 3:30pm</div>
+              <div className="contact-detail-value">
+                Mon – Fri: 7:30am – 3:30pm
+              </div>
             </div>
           </div>
         </div>
 
         {/* ── RIGHT: Form ── */}
         <div className="contact-form-col">
-          <form onSubmit={(e) => { e.preventDefault(); alert("Message sent! We will get back to you shortly."); }}>
-
+          <form onSubmit={handleSubmit} aria-busy={sending}>
             <div className="form-row">
               <div className="form-group">
-                <label className="form-label">First Name</label>
-                <input className="form-input" type="text" placeholder="e.g. Eseosa" required />
+                <label className="form-label" htmlFor="contact-first-name">
+                  First Name
+                </label>
+                <input
+                  id="contact-first-name"
+                  className="form-input"
+                  name="firstName"
+                  type="text"
+                  placeholder="e.g. Eseosa"
+                  required
+                />
               </div>
               <div className="form-group">
-                <label className="form-label">Last Name</label>
-                <input className="form-input" type="text" placeholder="e.g. Osayi" required />
+                <label className="form-label" htmlFor="contact-last-name">
+                  Last Name
+                </label>
+                <input
+                  id="contact-last-name"
+                  className="form-input"
+                  name="lastName"
+                  type="text"
+                  placeholder="e.g. Osayi"
+                  required
+                />
               </div>
             </div>
 
             <div className="form-row">
               <div className="form-group">
-                <label className="form-label">Phone Number</label>
-                <input className="form-input" type="tel" placeholder="e.g. 08012345678" />
+                <label className="form-label" htmlFor="contact-phone">
+                  Phone Number
+                </label>
+                <input
+                  id="contact-phone"
+                  className="form-input"
+                  name="phone"
+                  type="tel"
+                  placeholder="e.g. 08012345678"
+                />
               </div>
               <div className="form-group">
-                <label className="form-label">Email Address</label>
-                <input className="form-input" type="email" placeholder="e.g. you@email.com" />
+                <label className="form-label" htmlFor="contact-email">
+                  Email Address
+                </label>
+                <input
+                  id="contact-email"
+                  className="form-input"
+                  name="email"
+                  type="email"
+                  placeholder="e.g. you@email.com"
+                />
               </div>
             </div>
 
             <div className="form-group">
-              <label className="form-label">I Am A</label>
-              <select className="form-select" required>
+              <label className="form-label" htmlFor="contact-audience">
+                I Am A
+              </label>
+              <select
+                id="contact-audience"
+                className="form-select"
+                name="audience"
+                required
+              >
                 <option value="">-- Select --</option>
                 <option>Parent / Guardian</option>
                 <option>Prospective Student</option>
@@ -293,21 +442,44 @@ export default function ContactSection() {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Subject</label>
-              <input className="form-input" type="text" placeholder="e.g. Admission Enquiry" required />
+              <label className="form-label" htmlFor="contact-subject">
+                Subject
+              </label>
+              <input
+                id="contact-subject"
+                className="form-input"
+                name="subject"
+                type="text"
+                placeholder="e.g. Admission Enquiry"
+                required
+              />
             </div>
 
             <div className="form-group">
-              <label className="form-label">Message</label>
-              <textarea className="form-textarea" placeholder="Write your message here..." required />
+              <label className="form-label" htmlFor="contact-message">
+                Message
+              </label>
+              <textarea
+                id="contact-message"
+                className="form-textarea"
+                name="message"
+                placeholder="Write your message here..."
+                required
+              />
             </div>
 
-            <button type="submit" className="submit-btn">Send Message →</button>
-            <p className="form-note">We typically respond within 1 – 2 business days.</p>
+            <button type="submit" className="submit-btn" disabled={sending}>
+              Send Message →
+            </button>
+            <p className="form-note">
+              We typically respond within 1 – 2 business days.
+            </p>
 
+            {status.message && (
+              <p className={`form-status ${status.type}`}>{status.message}</p>
+            )}
           </form>
         </div>
-
       </section>
     </>
   );
