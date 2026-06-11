@@ -3,7 +3,10 @@ import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 
 import { connectMongoDB } from "../../../../lib/connect";
-import { sendVerificationEmail } from "../../../../lib/email";
+import {
+  getRequestBaseUrl,
+  sendVerificationEmail,
+} from "../../../../lib/email";
 import { requireEmailVerification } from "../../../../lib/emailVerification";
 import { generateStudentIdNumber } from "../../../../lib/enrollment";
 import User from "../../../../models/User";
@@ -97,7 +100,12 @@ export async function POST(req) {
     });
 
     if (needsVerification) {
-      await sendVerificationEmail(normalizedEmail, fullName, verificationToken);
+      await sendVerificationEmail(
+        normalizedEmail,
+        fullName,
+        verificationToken,
+        getRequestBaseUrl(req),
+      );
     }
 
     return NextResponse.json({

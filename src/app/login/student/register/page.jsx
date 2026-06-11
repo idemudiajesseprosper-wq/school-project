@@ -1,18 +1,28 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { useState } from "react";
 import toast from "react-hot-toast";
 
 const STEPS = ["Access", "Personal", "Parent", "Account"];
 
 const CLASSES = [
-  "Nursery 1", "Nursery 2",
-  "Primary 1", "Primary 2", "Primary 3", "Primary 4", "Primary 5", "Primary 6",
-  "JSS1", "JSS2", "JSS3",
-  "SS1", "SS2", "SS3",
+  "Nursery 1",
+  "Nursery 2",
+  "Primary 1",
+  "Primary 2",
+  "Primary 3",
+  "Primary 4",
+  "Primary 5",
+  "Primary 6",
+  "JSS1",
+  "JSS2",
+  "JSS3",
+  "SS1",
+  "SS2",
+  "SS3",
 ];
 
 export default function RegisterPage() {
@@ -49,15 +59,21 @@ export default function RegisterPage() {
   const handleGoogle = async () => {
     setGoogleLoading(true);
     try {
-      const result = await signIn("google", { callbackUrl: "/student", redirect: false });
-      if (result?.error) { toast.error("Google sign-up failed. Try again."); setGoogleLoading(false); }
-      else if (result?.url) router.push(result.url);
-    } catch { toast.error("Something went wrong"); setGoogleLoading(false); }
+      await signIn("google", {
+        callbackUrl: "/api/auth/google-session?callbackUrl=/student",
+      });
+    } catch {
+      toast.error("Something went wrong");
+      setGoogleLoading(false);
+    }
   };
 
   // STEP 0 — verify access code
   const verifyCode = async () => {
-    if (!form.accessCode.trim()) { toast.error("Enter your access code"); return; }
+    if (!form.accessCode.trim()) {
+      toast.error("Enter your access code");
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch("/api/verify-code", {
@@ -66,43 +82,90 @@ export default function RegisterPage() {
         body: JSON.stringify({ code: form.accessCode.trim() }),
       });
       const data = await res.json();
-      if (data.valid) { toast.success("Code verified!"); update("accountType", "student"); setStep(1); }
-      else toast.error(data.message || "Invalid access code");
-    } catch { toast.error("Could not verify code"); }
+      if (data.valid) {
+        toast.success("Code verified!");
+        update("accountType", "student");
+        setStep(1);
+      } else toast.error(data.message || "Invalid access code");
+    } catch {
+      toast.error("Could not verify code");
+    }
     setLoading(false);
   };
 
   // STEP 1 — personal info validation (admissionNumber is optional)
   const nextToParent = () => {
-    if (!form.fullName.trim()) { toast.error("Full name is required"); return; }
+    if (!form.fullName.trim()) {
+      toast.error("Full name is required");
+      return;
+    }
     if (form.accountType === "teacher") {
-      if (!form.phoneNumber.trim()) { toast.error("Phone number is required"); return; }
-      if (!form.subject.trim()) { toast.error("Subject is required"); return; }
-      if (!form.assignedClasses.length) { toast.error("Select at least one assigned class"); return; }
+      if (!form.phoneNumber.trim()) {
+        toast.error("Phone number is required");
+        return;
+      }
+      if (!form.subject.trim()) {
+        toast.error("Subject is required");
+        return;
+      }
+      if (!form.assignedClasses.length) {
+        toast.error("Select at least one assigned class");
+        return;
+      }
       setStep(3);
       return;
     }
-    if (!form.dateOfBirth) { toast.error("Date of birth is required"); return; }
-    if (!form.gender) { toast.error("Gender is required"); return; }
-    if (!form.studentClass) { toast.error("Class is required"); return; }
-    if (!form.phoneNumber.trim()) { toast.error("Phone number is required"); return; }
+    if (!form.dateOfBirth) {
+      toast.error("Date of birth is required");
+      return;
+    }
+    if (!form.gender) {
+      toast.error("Gender is required");
+      return;
+    }
+    if (!form.studentClass) {
+      toast.error("Class is required");
+      return;
+    }
+    if (!form.phoneNumber.trim()) {
+      toast.error("Phone number is required");
+      return;
+    }
     setStep(2);
   };
 
   // STEP 2 — parent info validation
   const nextToAccount = () => {
-    if (!form.parentName.trim()) { toast.error("Parent/guardian name is required"); return; }
-    if (!form.parentPhone.trim()) { toast.error("Parent phone number is required"); return; }
-    if (!form.relationship) { toast.error("Relationship is required"); return; }
+    if (!form.parentName.trim()) {
+      toast.error("Parent/guardian name is required");
+      return;
+    }
+    if (!form.parentPhone.trim()) {
+      toast.error("Parent phone number is required");
+      return;
+    }
+    if (!form.relationship) {
+      toast.error("Relationship is required");
+      return;
+    }
     setStep(3);
   };
 
   // STEP 3 — final submit
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.email || !form.password || !form.confirmPassword) { toast.error("All fields are required"); return; }
-    if (form.password.length < 6) { toast.error("Password must be at least 6 characters"); return; }
-    if (form.password !== form.confirmPassword) { toast.error("Passwords do not match"); return; }
+    if (!form.email || !form.password || !form.confirmPassword) {
+      toast.error("All fields are required");
+      return;
+    }
+    if (form.password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+    if (form.password !== form.confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch("/api/auth/register", {
@@ -134,7 +197,9 @@ export default function RegisterPage() {
       } else {
         toast.error(data.message || "Registration failed");
       }
-    } catch { toast.error("Something went wrong"); }
+    } catch {
+      toast.error("Something went wrong");
+    }
     setLoading(false);
   };
 
@@ -218,11 +283,16 @@ export default function RegisterPage() {
         <div className="rp-grid-bg" />
 
         <div className="rp-card">
-
           {/* Brand */}
           <div className="rp-brand">
             <div className="rp-logo-ring">
-              <img src="/logo.PNG" alt="WFS" width={26} height={26} style={{ objectFit: "contain" }} />
+              <img
+                src="/logo.PNG"
+                alt="WFS"
+                width={26}
+                height={26}
+                style={{ objectFit: "contain" }}
+              />
             </div>
             <div className="rp-school-name">
               Winners&apos; <span>Foundation</span> School
@@ -232,20 +302,43 @@ export default function RegisterPage() {
           {/* Step tracker */}
           <div className="rp-steps">
             {STEPS.map((label, i) => {
-              const state = i < step ? "done" : i === step ? "active" : "inactive";
+              const state =
+                i < step ? "done" : i === step ? "active" : "inactive";
               return (
-                <div key={i} style={{ display: "flex", alignItems: "center", flex: i < STEPS.length - 1 ? 1 : "0 0 auto" }}>
+                <div
+                  key={i}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    flex: i < STEPS.length - 1 ? 1 : "0 0 auto",
+                  }}
+                >
                   <div className="rp-step">
                     <div className={`rp-step-dot ${state}`}>
                       {i < step ? (
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
-                          <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <svg
+                          width="11"
+                          height="11"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                        >
+                          <path
+                            d="M5 13l4 4L19 7"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
                         </svg>
-                      ) : i + 1}
+                      ) : (
+                        i + 1
+                      )}
                     </div>
                     <span className={`rp-step-label ${state}`}>{label}</span>
                   </div>
-                  {i < STEPS.length - 1 && <div className={`rp-step-line ${i < step ? "done" : ""}`} />}
+                  {i < STEPS.length - 1 && (
+                    <div className={`rp-step-line ${i < step ? "done" : ""}`} />
+                  )}
                 </div>
               );
             })}
@@ -256,19 +349,41 @@ export default function RegisterPage() {
             <div style={{ animation: "fadeIn 0.4s ease both" }}>
               <div className="rp-heading">
                 <p className="rp-eyebrow">Step 1 of 4</p>
-                <h1 className="rp-title">Enter Access <em>Code</em></h1>
+                <h1 className="rp-title">
+                  Enter Access <em>Code</em>
+                </h1>
                 <p className="rp-subtitle">
-                  Your access code was provided by the school office. Both new and returning students need this to register.
+                  Your access code was provided by the school office. Both new
+                  and returning students need this to register.
                 </p>
               </div>
 
-              <button className="rp-btn-google" onClick={handleGoogle} disabled={googleLoading}>
-                {googleLoading ? <div className="google-spinner" /> : (
+              <button
+                type="button"
+                className="rp-btn-google"
+                onClick={handleGoogle}
+                disabled={googleLoading}
+              >
+                {googleLoading ? (
+                  <div className="google-spinner" />
+                ) : (
                   <svg width="17" height="17" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    <path
+                      fill="#4285F4"
+                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
+                    />
+                    <path
+                      fill="#EA4335"
+                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                    />
                   </svg>
                 )}
                 {googleLoading ? "Signing up..." : "Continue with Google"}
@@ -293,23 +408,32 @@ export default function RegisterPage() {
               <div className="rp-info-box">
                 <span className="rp-info-icon">ℹ</span>
                 <p className="rp-info-text">
-                  Don&apos;t have a code? Contact the school office at <strong>wfsonline1999@gmail.com</strong> or visit in person.
+                  Don&apos;t have a code? Contact the school office at{" "}
+                  <strong>wfsonline1999@gmail.com</strong> or visit in person.
                 </p>
               </div>
 
               <div className="rp-field">
-                <label className="rp-label">Access Code <span>*</span></label>
+                <label className="rp-label">
+                  Access Code <span>*</span>
+                </label>
                 <input
                   className="rp-code-input"
                   placeholder="Enter your code"
                   value={form.accessCode}
-                  onChange={(e) => update("accessCode", e.target.value.toUpperCase())}
+                  onChange={(e) =>
+                    update("accessCode", e.target.value.toUpperCase())
+                  }
                   onKeyDown={(e) => e.key === "Enter" && verifyCode()}
                   maxLength={30}
                 />
               </div>
 
-              <button className="rp-btn rp-btn-primary" onClick={verifyCode} disabled={loading}>
+              <button
+                className="rp-btn rp-btn-primary"
+                onClick={verifyCode}
+                disabled={loading}
+              >
                 {loading ? "Verifying..." : "Verify Code →"}
               </button>
             </div>
@@ -320,48 +444,84 @@ export default function RegisterPage() {
             <div style={{ animation: "fadeIn 0.4s ease both" }}>
               <div className="rp-heading">
                 <p className="rp-eyebrow">Step 2 of 4</p>
-                <h1 className="rp-title"><em>{form.accountType === "teacher" ? "Teacher" : "Student"}</em> Information</h1>
-                <p className="rp-subtitle">Enter the account details. Fields marked * are required.</p>
+                <h1 className="rp-title">
+                  <em>
+                    {form.accountType === "teacher" ? "Teacher" : "Student"}
+                  </em>{" "}
+                  Information
+                </h1>
+                <p className="rp-subtitle">
+                  Enter the account details. Fields marked * are required.
+                </p>
               </div>
 
               <div className="rp-field">
-                <label className="rp-label">Full Name <span>*</span></label>
-                <input className="rp-input" placeholder="e.g. Chukwuemeka Daniel Obi" value={form.fullName} onChange={(e) => update("fullName", e.target.value)} />
+                <label className="rp-label">
+                  Full Name <span>*</span>
+                </label>
+                <input
+                  className="rp-input"
+                  placeholder="e.g. Chukwuemeka Daniel Obi"
+                  value={form.fullName}
+                  onChange={(e) => update("fullName", e.target.value)}
+                />
               </div>
 
               {form.accountType === "student" && (
                 <>
-              <div className="rp-grid-2">
-                <div className="rp-field">
-                  <label className="rp-label">Date of Birth <span>*</span></label>
-                  <input type="date" className="rp-input" value={form.dateOfBirth} onChange={(e) => update("dateOfBirth", e.target.value)} style={{ colorScheme: "dark" }} />
-                </div>
-                <div className="rp-field">
-                  <label className="rp-label">Gender <span>*</span></label>
-                  <select className="rp-select" value={form.gender} onChange={(e) => update("gender", e.target.value)}>
-                    <option value="">Select</option>
-                    <option>Male</option>
-                    <option>Female</option>
-                  </select>
-                </div>
-              </div>
+                  <div className="rp-grid-2">
+                    <div className="rp-field">
+                      <label className="rp-label">
+                        Date of Birth <span>*</span>
+                      </label>
+                      <input
+                        type="date"
+                        className="rp-input"
+                        value={form.dateOfBirth}
+                        onChange={(e) => update("dateOfBirth", e.target.value)}
+                        style={{ colorScheme: "dark" }}
+                      />
+                    </div>
+                    <div className="rp-field">
+                      <label className="rp-label">
+                        Gender <span>*</span>
+                      </label>
+                      <select
+                        className="rp-select"
+                        value={form.gender}
+                        onChange={(e) => update("gender", e.target.value)}
+                      >
+                        <option value="">Select</option>
+                        <option>Male</option>
+                        <option>Female</option>
+                      </select>
+                    </div>
+                  </div>
 
-              <div className="rp-grid-2">
-                <div className="rp-field">
-                  <label className="rp-label">Class <span>*</span></label>
-                  <select className="rp-select" value={form.studentClass} onChange={(e) => update("studentClass", e.target.value)}>
-                    <option value="">Select class</option>
-                    {CLASSES.map((c) => <option key={c}>{c}</option>)}
-                  </select>
-                </div>
-                <div className="rp-info-box" style={{ marginBottom: 0 }}>
-                  <span className="rp-info-icon">ID</span>
-                  <p className="rp-info-text">
-                    A student ID will be assigned automatically after account
-                    creation.
-                  </p>
-                </div>
-              </div>
+                  <div className="rp-grid-2">
+                    <div className="rp-field">
+                      <label className="rp-label">
+                        Class <span>*</span>
+                      </label>
+                      <select
+                        className="rp-select"
+                        value={form.studentClass}
+                        onChange={(e) => update("studentClass", e.target.value)}
+                      >
+                        <option value="">Select class</option>
+                        {CLASSES.map((c) => (
+                          <option key={c}>{c}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="rp-info-box" style={{ marginBottom: 0 }}>
+                      <span className="rp-info-icon">ID</span>
+                      <p className="rp-info-text">
+                        A student ID will be assigned automatically after
+                        account creation.
+                      </p>
+                    </div>
+                  </div>
                 </>
               )}
 
@@ -369,29 +529,67 @@ export default function RegisterPage() {
                 <>
                   <div className="rp-grid-2">
                     <div className="rp-field">
-                      <label className="rp-label">Main Subject <span>*</span></label>
-                      <input className="rp-input" placeholder="e.g. Mathematics" value={form.subject} onChange={(e) => update("subject", e.target.value)} />
+                      <label className="rp-label">
+                        Main Subject <span>*</span>
+                      </label>
+                      <input
+                        className="rp-input"
+                        placeholder="e.g. Mathematics"
+                        value={form.subject}
+                        onChange={(e) => update("subject", e.target.value)}
+                      />
                     </div>
                     <div className="rp-field">
-                      <label className="rp-label">Qualification <small>(optional)</small></label>
-                      <input className="rp-input" placeholder="e.g. B.Ed" value={form.qualification} onChange={(e) => update("qualification", e.target.value)} />
+                      <label className="rp-label">
+                        Qualification <small>(optional)</small>
+                      </label>
+                      <input
+                        className="rp-input"
+                        placeholder="e.g. B.Ed"
+                        value={form.qualification}
+                        onChange={(e) =>
+                          update("qualification", e.target.value)
+                        }
+                      />
                     </div>
                   </div>
 
                   <div className="rp-field">
-                    <label className="rp-label">Assigned Classes <span>*</span></label>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8 }}>
+                    <label className="rp-label">
+                      Assigned Classes <span>*</span>
+                    </label>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                        gap: 8,
+                      }}
+                    >
                       {CLASSES.map((className) => (
-                        <label key={className} style={{ display: "flex", alignItems: "center", gap: 8, color: "rgba(255,255,255,0.75)", fontFamily: "Lato, sans-serif", fontSize: 12 }}>
+                        <label
+                          key={className}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                            color: "rgba(255,255,255,0.75)",
+                            fontFamily: "Lato, sans-serif",
+                            fontSize: 12,
+                          }}
+                        >
                           <input
                             type="checkbox"
                             checked={form.assignedClasses.includes(className)}
-                            onChange={(e) => update(
-                              "assignedClasses",
-                              e.target.checked
-                                ? [...form.assignedClasses, className]
-                                : form.assignedClasses.filter((item) => item !== className)
-                            )}
+                            onChange={(e) =>
+                              update(
+                                "assignedClasses",
+                                e.target.checked
+                                  ? [...form.assignedClasses, className]
+                                  : form.assignedClasses.filter(
+                                      (item) => item !== className,
+                                    ),
+                              )
+                            }
                           />
                           {className}
                         </label>
@@ -402,12 +600,26 @@ export default function RegisterPage() {
               )}
 
               <div className="rp-field">
-                <label className="rp-label">Phone Number <span>*</span></label>
-                <input className="rp-input" placeholder="e.g. 08012345678" value={form.phoneNumber} onChange={(e) => update("phoneNumber", e.target.value)} />
+                <label className="rp-label">
+                  Phone Number <span>*</span>
+                </label>
+                <input
+                  className="rp-input"
+                  placeholder="e.g. 08012345678"
+                  value={form.phoneNumber}
+                  onChange={(e) => update("phoneNumber", e.target.value)}
+                />
               </div>
 
-              <button className="rp-btn rp-btn-primary" onClick={nextToParent}>Continue →</button>
-              <button className="rp-btn rp-btn-ghost" onClick={() => setStep(0)}>← Back</button>
+              <button className="rp-btn rp-btn-primary" onClick={nextToParent}>
+                Continue →
+              </button>
+              <button
+                className="rp-btn rp-btn-ghost"
+                onClick={() => setStep(0)}
+              >
+                ← Back
+              </button>
             </div>
           )}
 
@@ -416,19 +628,36 @@ export default function RegisterPage() {
             <div style={{ animation: "fadeIn 0.4s ease both" }}>
               <div className="rp-heading">
                 <p className="rp-eyebrow">Step 3 of 4</p>
-                <h1 className="rp-title"><em>Parent</em> / Guardian</h1>
-                <p className="rp-subtitle">Contact information for the student's parent or guardian.</p>
+                <h1 className="rp-title">
+                  <em>Parent</em> / Guardian
+                </h1>
+                <p className="rp-subtitle">
+                  Contact information for the student's parent or guardian.
+                </p>
               </div>
 
               <div className="rp-field">
-                <label className="rp-label">Full Name <span>*</span></label>
-                <input className="rp-input" placeholder="Parent or guardian's full name" value={form.parentName} onChange={(e) => update("parentName", e.target.value)} />
+                <label className="rp-label">
+                  Full Name <span>*</span>
+                </label>
+                <input
+                  className="rp-input"
+                  placeholder="Parent or guardian's full name"
+                  value={form.parentName}
+                  onChange={(e) => update("parentName", e.target.value)}
+                />
               </div>
 
               <div className="rp-grid-2">
                 <div className="rp-field">
-                  <label className="rp-label">Relationship <span>*</span></label>
-                  <select className="rp-select" value={form.relationship} onChange={(e) => update("relationship", e.target.value)}>
+                  <label className="rp-label">
+                    Relationship <span>*</span>
+                  </label>
+                  <select
+                    className="rp-select"
+                    value={form.relationship}
+                    onChange={(e) => update("relationship", e.target.value)}
+                  >
                     <option value="">Select</option>
                     <option>Father</option>
                     <option>Mother</option>
@@ -438,63 +667,130 @@ export default function RegisterPage() {
                   </select>
                 </div>
                 <div className="rp-field">
-                  <label className="rp-label">Phone Number <span>*</span></label>
-                  <input className="rp-input" placeholder="080XXXXXXXX" value={form.parentPhone} onChange={(e) => update("parentPhone", e.target.value)} />
+                  <label className="rp-label">
+                    Phone Number <span>*</span>
+                  </label>
+                  <input
+                    className="rp-input"
+                    placeholder="080XXXXXXXX"
+                    value={form.parentPhone}
+                    onChange={(e) => update("parentPhone", e.target.value)}
+                  />
                 </div>
               </div>
 
               <div className="rp-field">
-                <label className="rp-label">Email Address <small>(optional)</small></label>
-                <input type="email" className="rp-input" placeholder="parent@email.com" value={form.parentEmail} onChange={(e) => update("parentEmail", e.target.value)} />
+                <label className="rp-label">
+                  Email Address <small>(optional)</small>
+                </label>
+                <input
+                  type="email"
+                  className="rp-input"
+                  placeholder="parent@email.com"
+                  value={form.parentEmail}
+                  onChange={(e) => update("parentEmail", e.target.value)}
+                />
               </div>
 
-              <button className="rp-btn rp-btn-primary" onClick={nextToAccount}>Continue →</button>
-              <button className="rp-btn rp-btn-ghost" onClick={() => setStep(1)}>← Back</button>
+              <button className="rp-btn rp-btn-primary" onClick={nextToAccount}>
+                Continue →
+              </button>
+              <button
+                className="rp-btn rp-btn-ghost"
+                onClick={() => setStep(1)}
+              >
+                ← Back
+              </button>
             </div>
           )}
 
           {/* ── STEP 3: ACCOUNT ── */}
           {step === 3 && (
-            <form onSubmit={handleSubmit} style={{ animation: "fadeIn 0.4s ease both" }}>
+            <form
+              onSubmit={handleSubmit}
+              style={{ animation: "fadeIn 0.4s ease both" }}
+            >
               <div className="rp-heading">
                 <p className="rp-eyebrow">Step 4 of 4</p>
-                <h1 className="rp-title">Create <em>Account</em></h1>
-                <p className="rp-subtitle">Set up the login credentials for the student portal.</p>
-              </div>
-
-              <div className="rp-field">
-                <label className="rp-label">Email Address <span>*</span></label>
-                <input type="email" className="rp-input" placeholder="student@email.com" value={form.email} onChange={(e) => update("email", e.target.value)} />
-              </div>
-
-              <div className="rp-field">
-                <label className="rp-label">Password <span>*</span></label>
-                <input type="password" className="rp-input" placeholder="Min. 6 characters" value={form.password} onChange={(e) => update("password", e.target.value)} />
-              </div>
-
-              <div className="rp-field">
-                <label className="rp-label">Confirm Password <span>*</span></label>
-                <input type="password" className="rp-input" placeholder="Re-enter password" value={form.confirmPassword} onChange={(e) => update("confirmPassword", e.target.value)} />
-              </div>
-
-              <div className="rp-info-box" style={{ marginTop: "8px", marginBottom: "14px" }}>
-                <span className="rp-info-icon">✓</span>
-                <p className="rp-info-text">
-                  Registering <strong>{form.fullName}</strong> — <strong>{form.studentClass}</strong>
+                <h1 className="rp-title">
+                  Create <em>Account</em>
+                </h1>
+                <p className="rp-subtitle">
+                  Set up the login credentials for the student portal.
                 </p>
               </div>
 
-              <button type="submit" className="rp-btn rp-btn-primary" disabled={loading}>
+              <div className="rp-field">
+                <label className="rp-label">
+                  Email Address <span>*</span>
+                </label>
+                <input
+                  type="email"
+                  className="rp-input"
+                  placeholder="student@email.com"
+                  value={form.email}
+                  onChange={(e) => update("email", e.target.value)}
+                />
+              </div>
+
+              <div className="rp-field">
+                <label className="rp-label">
+                  Password <span>*</span>
+                </label>
+                <input
+                  type="password"
+                  className="rp-input"
+                  placeholder="Min. 6 characters"
+                  value={form.password}
+                  onChange={(e) => update("password", e.target.value)}
+                />
+              </div>
+
+              <div className="rp-field">
+                <label className="rp-label">
+                  Confirm Password <span>*</span>
+                </label>
+                <input
+                  type="password"
+                  className="rp-input"
+                  placeholder="Re-enter password"
+                  value={form.confirmPassword}
+                  onChange={(e) => update("confirmPassword", e.target.value)}
+                />
+              </div>
+
+              <div
+                className="rp-info-box"
+                style={{ marginTop: "8px", marginBottom: "14px" }}
+              >
+                <span className="rp-info-icon">✓</span>
+                <p className="rp-info-text">
+                  Registering <strong>{form.fullName}</strong> —{" "}
+                  <strong>{form.studentClass}</strong>
+                </p>
+              </div>
+
+              <button
+                type="submit"
+                className="rp-btn rp-btn-primary"
+                disabled={loading}
+              >
                 {loading ? "Creating Account..." : "Create Account →"}
               </button>
-              <button type="button" className="rp-btn rp-btn-ghost" onClick={() => setStep(2)}>← Back</button>
+              <button
+                type="button"
+                className="rp-btn rp-btn-ghost"
+                onClick={() => setStep(2)}
+              >
+                ← Back
+              </button>
             </form>
           )}
 
           <p className="rp-foot">
-            Already have an account? <Link href="/login/student">Sign in here</Link>
+            Already have an account?{" "}
+            <Link href="/login/student">Sign in here</Link>
           </p>
-
         </div>
       </div>
     </>

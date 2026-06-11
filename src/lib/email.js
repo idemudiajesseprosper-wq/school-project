@@ -5,10 +5,48 @@ const FROM =
   process.env.RESEND_FROM ||
   "Winners' Foundation School <onboarding@resend.dev>";
 
-export async function sendVerificationEmail(email, fullName, token) {
+const FALLBACK_BASE_URL = "https://winnersfoundationschool.com";
+
+function cleanBaseUrl(value) {
+  if (!value) return "";
+
+  const trimmed = value.trim().replace(/\/+$/, "");
+  try {
+    const url = new URL(trimmed);
+    return url.origin;
+  } catch {
+    return "";
+  }
+}
+
+function getConfiguredBaseUrl() {
+  return (
+    cleanBaseUrl(process.env.NEXT_PUBLIC_BASE_URL) ||
+    cleanBaseUrl(process.env.NEXTAUTH_URL) ||
+    cleanBaseUrl(process.env.APP_BASE_URL) ||
+    FALLBACK_BASE_URL
+  );
+}
+
+export function getRequestBaseUrl(req) {
+  const forwardedHost = req.headers.get("x-forwarded-host");
+  const forwardedProto = req.headers.get("x-forwarded-proto") || "https";
+  const host = forwardedHost || req.headers.get("host");
+  const requestBaseUrl = cleanBaseUrl(
+    host ? `${forwardedProto}://${host}` : "",
+  );
+
+  if (requestBaseUrl && !requestBaseUrl.includes("localhost")) {
+    return requestBaseUrl;
+  }
+
+  return getConfiguredBaseUrl();
+}
+
+export async function sendVerificationEmail(email, fullName, token, baseUrl) {
   if (!process.env.RESEND_API_KEY) return;
 
-  const verifyUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/verify-email?token=${token}`;
+  const verifyUrl = `${cleanBaseUrl(baseUrl) || getConfiguredBaseUrl()}/verify-email?token=${token}`;
 
   await resend.emails.send({
     from: FROM,

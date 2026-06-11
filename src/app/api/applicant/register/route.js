@@ -4,7 +4,10 @@ import { NextResponse } from "next/server";
 
 import { requireApplicantEmailVerification } from "../../../../lib/applicantVerification";
 import { connectMongoDB } from "../../../../lib/connect";
-import { sendVerificationEmail } from "../../../../lib/email";
+import {
+  getRequestBaseUrl,
+  sendVerificationEmail,
+} from "../../../../lib/email";
 import { generateApplicantId } from "../../../../lib/enrollment";
 import User from "../../../../models/User";
 
@@ -64,6 +67,7 @@ export async function POST(req) {
         normalizedEmail,
         fullName.trim(),
         verificationToken,
+        getRequestBaseUrl(req),
       );
     }
 
