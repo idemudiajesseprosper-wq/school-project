@@ -2,18 +2,30 @@ import { NextResponse } from "next/server";
 import * as XLSX from "xlsx";
 
 import { getAuthUser, unauthorized } from "../../../../lib/authUser";
-import { gradeFromTotal, normalizeText, toScoreNumber } from "../../../../lib/results";
+import {
+  classQueryValues,
+  normalizeClassList,
+  normalizeClassName,
+} from "../../../../lib/classes";
+import {
+  gradeFromTotal,
+  normalizeText,
+  toScoreNumber,
+} from "../../../../lib/results";
 import ResultBatch from "../../../../models/ResultBatch";
 import User from "../../../../models/User";
 
 function teacherCanUpload(teacher, className, subject) {
-  const classes = teacher.assignedClasses || [];
+  const classes = normalizeClassList(teacher.assignedClasses || []);
   const subjects = [
     teacher.subject,
     ...(teacher.assignedSubjects || []),
   ].filter(Boolean);
 
-  return classes.includes(className) && subjects.includes(subject);
+  return (
+    classes.includes(normalizeClassName(className)) &&
+    subjects.includes(subject)
+  );
 }
 
 function readRowsFromWorkbook(buffer) {
@@ -37,13 +49,14 @@ function pick(row, names) {
 }
 
 async function buildScores(rows, className) {
+  const studentClassValues = classQueryValues([className]);
   const admissionNumbers = rows
     .map((row) => normalizeText(pick(row, ["admissionnumber", "admissionno"])))
     .filter(Boolean);
 
   const students = await User.find({
     role: "student",
-    studentClass: className,
+    studentClass: { $in: studentClassValues },
     admissionNumber: { $in: admissionNumbers },
     isDeleted: { $ne: true },
   })
@@ -51,7 +64,7 @@ async function buildScores(rows, className) {
     .lean();
 
   const studentsByAdmission = new Map(
-    students.map((student) => [student.admissionNumber, student])
+    students.map((student) => [student.admissionNumber, student]),
   );
   const scores = [];
   const errors = [];
@@ -60,7 +73,7 @@ async function buildScores(rows, className) {
   rows.forEach((row, index) => {
     const rowNumber = index + 2;
     const admissionNumber = normalizeText(
-      pick(row, ["admissionnumber", "admissionno"])
+      pick(row, ["admissionnumber", "admissionno"]),
     );
     const studentName = normalizeText(pick(row, ["studentname", "name"]));
     const caScore = toScoreNumber(pick(row, ["cascore", "ca"]));
@@ -79,7 +92,9 @@ async function buildScores(rows, className) {
 
     const student = studentsByAdmission.get(admissionNumber);
     if (!student) {
-      errors.push(`Row ${rowNumber}: ${admissionNumber} was not found in ${className}.`);
+      errors.push(
+        `Row ${rowNumber}: ${admissionNumber} was not found in ${className}.`,
+      );
       return;
     }
 
@@ -89,7 +104,9 @@ async function buildScores(rows, className) {
     }
 
     if (caScore < 0 || examScore < 0 || caScore + examScore > 100) {
-      errors.push(`Row ${rowNumber}: scores must be positive and total must not exceed 100.`);
+      errors.push(
+        `Row ${rowNumber}: scores must be positive and total must not exceed 100.`,
+      );
       return;
     }
 
@@ -115,28 +132,36 @@ async function handleUpload(req, { allowUpdate }) {
   const formData = await req.formData();
   const academicSession = normalizeText(formData.get("academicSession"));
   const term = normalizeText(formData.get("term"));
-  const className = normalizeText(formData.get("className"));
+  const className = normalizeClassName(
+    normalizeText(formData.get("className")),
+  );
   const subject = normalizeText(formData.get("subject"));
   const file = formData.get("file");
 
   if (!academicSession || !term || !className || !subject) {
     return NextResponse.json(
-      { success: false, message: "Session, term, class, and subject are required." },
-      { status: 400 }
+      {
+        success: false,
+        message: "Session, term, class, and subject are required.",
+      },
+      { status: 400 },
     );
   }
 
   if (!teacherCanUpload(auth.user, className, subject)) {
     return NextResponse.json(
-      { success: false, message: "You are not assigned to this class and subject." },
-      { status: 403 }
+      {
+        success: false,
+        message: "You are not assigned to this class and subject.",
+      },
+      { status: 403 },
     );
   }
 
   if (!file || !file.name?.toLowerCase().endsWith(".xlsx")) {
     return NextResponse.json(
       { success: false, message: "Upload a valid .xlsx Excel file." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -151,9 +176,10 @@ async function handleUpload(req, { allowUpdate }) {
     return NextResponse.json(
       {
         success: false,
-        message: "A result already exists for this subject, class, session, and term. Use Update Scores instead.",
+        message:
+          "A result already exists for this subject, class, session, and term. Use Update Scores instead.",
       },
-      { status: 409 }
+      { status: 409 },
     );
   }
 
@@ -162,7 +188,7 @@ async function handleUpload(req, { allowUpdate }) {
   if (!rows.length) {
     return NextResponse.json(
       { success: false, message: "The Excel sheet is empty." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -170,7 +196,7 @@ async function handleUpload(req, { allowUpdate }) {
   if (errors.length) {
     return NextResponse.json(
       { success: false, message: "Please fix the upload file.", errors },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -185,12 +211,14 @@ async function handleUpload(req, { allowUpdate }) {
       scores,
       isDeleted: false,
     },
-    { new: true, upsert: true, runValidators: true }
+    { new: true, upsert: true, runValidators: true },
   );
 
   return NextResponse.json({
     success: true,
-    message: existing ? "Scores updated successfully." : "Scores uploaded successfully.",
+    message: existing
+      ? "Scores updated successfully."
+      : "Scores uploaded successfully.",
     batch,
   });
 }

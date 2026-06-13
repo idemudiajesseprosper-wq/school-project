@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 
 import { getAuthUser, unauthorized } from "../../../../lib/authUser";
+import {
+  classQueryValues,
+  normalizeClassList,
+  normalizeClassName,
+} from "../../../../lib/classes";
 import Timetable from "../../../../models/Timetable";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
@@ -17,8 +22,10 @@ function normalizeDays(days = [], teacher) {
         periodNumber: index + 1,
         type,
         subject: type === "subject" ? period.subject || "" : "",
-        teacherName: type === "subject" ? period.teacherName || teacher.fullName : "",
-        teacherId: type === "subject" ? period.teacherId || teacher._id : undefined,
+        teacherName:
+          type === "subject" ? period.teacherName || teacher.fullName : "",
+        teacherId:
+          type === "subject" ? period.teacherId || teacher._id : undefined,
         startTime: period.startTime || "",
         endTime: period.endTime || "",
       };
@@ -35,13 +42,19 @@ export async function GET(req) {
     return unauthorized(auth.error, auth.status);
   }
 
-  const className = req.nextUrl.searchParams.get("class");
+  const className = normalizeClassName(req.nextUrl.searchParams.get("class"));
+  const allowedClasses = normalizeClassList(auth.user.assignedClasses || []);
 
-  if (!className || !(auth.user.assignedClasses || []).includes(className)) {
-    return NextResponse.json({ success: false, message: "Invalid class" }, { status: 403 });
+  if (!className || !allowedClasses.includes(className)) {
+    return NextResponse.json(
+      { success: false, message: "Invalid class" },
+      { status: 403 },
+    );
   }
 
-  const timetable = await Timetable.findOne({ class: className }).lean();
+  const timetable = await Timetable.findOne({
+    class: { $in: classQueryValues([className]) },
+  }).lean();
 
   return NextResponse.json({ success: true, timetable });
 }
@@ -54,10 +67,14 @@ export async function PATCH(req) {
   }
 
   const body = await req.json();
-  const className = body.class;
+  const className = normalizeClassName(body.class);
+  const allowedClasses = normalizeClassList(auth.user.assignedClasses || []);
 
-  if (!className || !(auth.user.assignedClasses || []).includes(className)) {
-    return NextResponse.json({ success: false, message: "Invalid class" }, { status: 403 });
+  if (!className || !allowedClasses.includes(className)) {
+    return NextResponse.json(
+      { success: false, message: "Invalid class" },
+      { status: 403 },
+    );
   }
 
   const timetable = await Timetable.findOneAndUpdate(
@@ -67,7 +84,7 @@ export async function PATCH(req) {
       days: normalizeDays(body.days, auth.user),
       lastUpdatedBy: auth.user.fullName,
     },
-    { upsert: true, new: true }
+    { upsert: true, new: true },
   );
 
   return NextResponse.json({ success: true, timetable });

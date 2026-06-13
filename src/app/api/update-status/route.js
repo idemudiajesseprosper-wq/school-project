@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getAuthUser, unauthorized } from "../../../lib/authUser";
+import { normalizeClassName } from "../../../lib/classes";
 import { connectMongoDB } from "../../../lib/connect";
 import { generateStudentIdNumber } from "../../../lib/enrollment";
 import { baseEmail, sendEnrollmentEmail } from "../../../lib/enrollmentEmail";
@@ -66,7 +67,7 @@ export async function POST(req) {
         userUpdate.role = "student";
         userUpdate.studentIdNumber = studentIdNumber;
         userUpdate.admissionNumber = studentIdNumber;
-        userUpdate.studentClass = application.classApplying || "";
+        userUpdate.studentClass = normalizeClassName(application.classApplying);
         userUpdate.fullName = application.fullName || "";
         userUpdate.avatar = application.passport || "";
         userUpdate.phoneNumber = application.phone || "";

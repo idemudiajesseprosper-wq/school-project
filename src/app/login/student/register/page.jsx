@@ -6,23 +6,29 @@ import { signIn } from "next-auth/react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
+import { CLASS_OPTIONS } from "../../../../lib/classes";
+
 const STEPS = ["Access", "Personal", "Parent", "Account"];
 
-const CLASSES = [
-  "Nursery 1",
-  "Nursery 2",
-  "Primary 1",
-  "Primary 2",
-  "Primary 3",
-  "Primary 4",
-  "Primary 5",
-  "Primary 6",
-  "JSS1",
-  "JSS2",
-  "JSS3",
-  "SS1",
-  "SS2",
-  "SS3",
+const SUBJECT_OPTIONS = [
+  "Mathematics",
+  "English Language",
+  "Basic Science",
+  "Basic Technology",
+  "Civic Education",
+  "Social Studies",
+  "Computer Studies",
+  "Agricultural Science",
+  "Business Studies",
+  "Christian Religious Studies",
+  "Physics",
+  "Chemistry",
+  "Biology",
+  "Economics",
+  "Government",
+  "Literature in English",
+  "Accounting",
+  "Commerce",
 ];
 
 export default function RegisterPage() {
@@ -49,7 +55,7 @@ export default function RegisterPage() {
     password: "",
     confirmPassword: "",
     assignedClasses: [],
-    subject: "",
+    assignedSubjects: [],
     qualification: "",
   });
 
@@ -104,8 +110,8 @@ export default function RegisterPage() {
         toast.error("Phone number is required");
         return;
       }
-      if (!form.subject.trim()) {
-        toast.error("Subject is required");
+      if (!form.assignedSubjects.length) {
+        toast.error("Select at least one subject");
         return;
       }
       if (!form.assignedClasses.length) {
@@ -186,7 +192,8 @@ export default function RegisterPage() {
           accessCode: form.accessCode,
           role: form.accountType,
           assignedClasses: form.assignedClasses,
-          subject: form.subject,
+          subject: form.assignedSubjects[0] || "",
+          assignedSubjects: form.assignedSubjects,
           qualification: form.qualification,
         }),
       });
@@ -249,6 +256,8 @@ export default function RegisterPage() {
         .rp-input:focus, .rp-select:focus { border-color: rgba(37,99,235,0.6); background: rgba(37,99,235,0.06); }
         .rp-select { cursor: pointer; }
         .rp-select option { background: #1a2035; color: rgba(255,255,255,0.85); }
+        .rp-check-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; max-height: 174px; overflow: auto; padding-right: 2px; }
+        .rp-check-option { display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,0.75); font-family: 'Lato', sans-serif; font-size: 12px; line-height: 1.25; }
         .rp-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         @media (max-width: 400px) { .rp-grid-2 { grid-template-columns: 1fr; } }
         .rp-code-input { width: 100%; background: rgba(37,99,235,0.06); border: 1px solid rgba(37,99,235,0.25); border-radius: 8px; padding: 14px 18px; font-family: 'Lato', sans-serif; font-size: 18px; font-weight: 700; letter-spacing: 0.25em; text-align: center; color: #93c5fd; outline: none; transition: border-color 0.2s; text-transform: uppercase; }
@@ -509,7 +518,7 @@ export default function RegisterPage() {
                         onChange={(e) => update("studentClass", e.target.value)}
                       >
                         <option value="">Select class</option>
-                        {CLASSES.map((c) => (
+                        {CLASS_OPTIONS.map((c) => (
                           <option key={c}>{c}</option>
                         ))}
                       </select>
@@ -530,14 +539,29 @@ export default function RegisterPage() {
                   <div className="rp-grid-2">
                     <div className="rp-field">
                       <label className="rp-label">
-                        Main Subject <span>*</span>
+                        Subjects <span>*</span>
                       </label>
-                      <input
-                        className="rp-input"
-                        placeholder="e.g. Mathematics"
-                        value={form.subject}
-                        onChange={(e) => update("subject", e.target.value)}
-                      />
+                      <div className="rp-check-grid">
+                        {SUBJECT_OPTIONS.map((subject) => (
+                          <label key={subject} className="rp-check-option">
+                            <input
+                              type="checkbox"
+                              checked={form.assignedSubjects.includes(subject)}
+                              onChange={(e) =>
+                                update(
+                                  "assignedSubjects",
+                                  e.target.checked
+                                    ? [...form.assignedSubjects, subject]
+                                    : form.assignedSubjects.filter(
+                                        (item) => item !== subject,
+                                      ),
+                                )
+                              }
+                            />
+                            {subject}
+                          </label>
+                        ))}
+                      </div>
                     </div>
                     <div className="rp-field">
                       <label className="rp-label">
@@ -565,7 +589,7 @@ export default function RegisterPage() {
                         gap: 8,
                       }}
                     >
-                      {CLASSES.map((className) => (
+                      {CLASS_OPTIONS.map((className) => (
                         <label
                           key={className}
                           style={{
@@ -766,7 +790,11 @@ export default function RegisterPage() {
                 <span className="rp-info-icon">✓</span>
                 <p className="rp-info-text">
                   Registering <strong>{form.fullName}</strong> —{" "}
-                  <strong>{form.studentClass}</strong>
+                  <strong>
+                    {form.accountType === "teacher"
+                      ? form.assignedClasses.join(", ")
+                      : form.studentClass}
+                  </strong>
                 </p>
               </div>
 
@@ -780,7 +808,7 @@ export default function RegisterPage() {
               <button
                 type="button"
                 className="rp-btn rp-btn-ghost"
-                onClick={() => setStep(2)}
+                onClick={() => setStep(form.accountType === "teacher" ? 1 : 2)}
               >
                 ← Back
               </button>

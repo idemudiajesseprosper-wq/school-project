@@ -115,6 +115,18 @@ export default function TeacherDashboard() {
   const [timetable, setTimetable] = useState(emptyDays());
 
   const classes = data?.teacher?.assignedClasses || [];
+  const subjects = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          [
+            data?.teacher?.subject,
+            ...(data?.teacher?.assignedSubjects || []),
+          ].filter(Boolean),
+        ),
+      ),
+    [data?.teacher],
+  );
   const submissions = data?.submissions || [];
   const stats = useMemo(() => ({
     students: data?.students?.length || 0,
@@ -262,7 +274,7 @@ export default function TeacherDashboard() {
                   { label: "Pending Grades", value: stats.pending, color: "#f59f00", bg: "#fff9db" },
                   { label: "Graded", value: stats.graded, color: "#7c3aed", bg: "#f3f0ff" },
                 ].map(s => (
-                  <div key={s.label} style={{ ...S.statCard, borderColor: s.color + "33" }}>
+                  <div key={s.label} style={{ ...S.statCard, borderColor: `${s.color}33` }}>
                     <p style={{ ...S.statValue, color: s.color, background: s.bg }}>{s.value}</p>
                     <p style={S.statLabel}>{s.label}</p>
                   </div>
@@ -283,7 +295,12 @@ export default function TeacherDashboard() {
                 <form onSubmit={createAssignment} style={{ display: "grid", gap: 14, marginTop: 16 }}>
                   <div style={S.formGrid2} className="t-form-grid-2">
                     <FormField label="Title"><input style={S.input} value={assignment.title} onChange={e => setAssignment({ ...assignment, title: e.target.value })} required /></FormField>
-                    <FormField label="Subject"><input style={S.input} value={assignment.subject} onChange={e => setAssignment({ ...assignment, subject: e.target.value })} /></FormField>
+                    <FormField label="Subject">
+                      <select style={S.input} value={assignment.subject} onChange={e => setAssignment({ ...assignment, subject: e.target.value })} required>
+                        <option value="">Select subject</option>
+                        {subjects.map(subject => <option key={subject}>{subject}</option>)}
+                      </select>
+                    </FormField>
                   </div>
                   <FormField label="Description"><textarea style={{ ...S.input, resize: "vertical" }} rows={4} value={assignment.description} onChange={e => setAssignment({ ...assignment, description: e.target.value })} /></FormField>
                   <div style={S.formGrid2} className="t-form-grid-2">

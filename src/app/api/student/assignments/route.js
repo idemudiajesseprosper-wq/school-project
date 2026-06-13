@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getAuthUser, unauthorized } from "../../../../lib/authUser";
+import { classQueryValues, normalizeClassName } from "../../../../lib/classes";
 import Assignment from "../../../../models/Assignment";
 import Notification from "../../../../models/Notification";
 import Submission from "../../../../models/Submission";
@@ -13,10 +14,11 @@ export async function GET(req) {
     return unauthorized(auth.error, auth.status);
   }
 
-  const studentClass = auth.user.studentClass;
+  const studentClass = normalizeClassName(auth.user.studentClass);
+  const studentClassValues = classQueryValues([studentClass]);
   const [assignments, submissions, notices, timetable] = await Promise.all([
     Assignment.find({
-      classes: studentClass,
+      classes: { $in: studentClassValues },
       isDeleted: { $ne: true },
     })
       .sort({ deadline: 1 })
@@ -27,13 +29,13 @@ export async function GET(req) {
       .limit(100)
       .lean(),
     Notification.find({
-      classes: studentClass,
+      classes: { $in: studentClassValues },
       isDeleted: { $ne: true },
     })
       .sort({ createdAt: -1 })
       .limit(20)
       .lean(),
-    Timetable.findOne({ class: studentClass }).lean(),
+    Timetable.findOne({ class: { $in: studentClassValues } }).lean(),
   ]);
 
   return NextResponse.json({
@@ -53,9 +55,10 @@ export async function POST(req) {
   }
 
   const body = await req.json();
+  const studentClass = normalizeClassName(auth.user.studentClass);
   const assignment = await Assignment.findOne({
     _id: body.assignmentId,
-    classes: auth.user.studentClass,
+    classes: { $in: classQueryValues([studentClass]) },
     isDeleted: { $ne: true },
   });
 
@@ -82,7 +85,7 @@ export async function POST(req) {
       assignmentId: assignment._id,
       studentId: auth.user._id,
       studentName: auth.user.fullName,
-      studentClass: auth.user.studentClass,
+      studentClass,
       content: body.content || "",
       fileUrl: body.fileUrl || "",
       fileName: body.fileName || "",

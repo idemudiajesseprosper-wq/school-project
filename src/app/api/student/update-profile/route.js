@@ -1,5 +1,7 @@
-import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
+import { NextResponse } from "next/server";
+
+import { normalizeClassName } from "../../../../lib/classes";
 import { connectMongoDB } from "../../../../lib/connect";
 import User from "../../../../models/User";
 
@@ -27,7 +29,7 @@ export async function PATCH(req) {
     await User.findByIdAndUpdate(decoded.id, {
       fullName: fullName.trim(),
       phoneNumber: phoneNumber?.trim() || "",
-      studentClass: studentClass || "",
+      studentClass: normalizeClassName(studentClass),
       avatar: avatar || "",
     });
 

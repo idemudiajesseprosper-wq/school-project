@@ -1,6 +1,7 @@
 import ResultBatch from "../models/ResultBatch";
 import ResultPublication from "../models/ResultPublication";
 import User from "../models/User";
+import { classQueryValues, normalizeClassName } from "./classes";
 
 export function normalizeText(value) {
   return String(value || "").trim();
@@ -16,8 +17,10 @@ export function gradeFromTotal(total) {
 }
 
 export function remarkFromAverage(average) {
-  if (average >= 80) return "Excellent performance. Keep up the outstanding work.";
-  if (average >= 70) return "Very good performance. Continue striving for excellence.";
+  if (average >= 80)
+    return "Excellent performance. Keep up the outstanding work.";
+  if (average >= 70)
+    return "Very good performance. Continue striving for excellence.";
   if (average >= 60) return "Good performance. There is room for improvement.";
   if (average >= 50) return "Fair performance. More effort is required.";
   return "Needs significant improvement and closer attention to studies.";
@@ -34,11 +37,17 @@ export function toScoreNumber(value) {
   return number;
 }
 
-export async function compileClassResults({ academicSession, term, className }) {
+export async function compileClassResults({
+  academicSession,
+  term,
+  className,
+}) {
+  const normalizedClassName = normalizeClassName(className);
+  const classValues = classQueryValues([normalizedClassName]);
   const [students, batches, publication] = await Promise.all([
     User.find({
       role: "student",
-      studentClass: className,
+      studentClass: { $in: classValues },
       isDeleted: { $ne: true },
     })
       .select("fullName admissionNumber studentClass avatar")
@@ -47,16 +56,23 @@ export async function compileClassResults({ academicSession, term, className }) 
     ResultBatch.find({
       academicSession,
       term,
-      className,
+      className: { $in: classValues },
       isDeleted: { $ne: true },
     })
       .select("subject scores")
       .lean(),
-    ResultPublication.findOne({ academicSession, term, className }).lean(),
+    ResultPublication.findOne({
+      academicSession,
+      term,
+      className: { $in: classValues },
+    }).lean(),
   ]);
 
   const remarksByStudent = new Map(
-    (publication?.remarks || []).map((remark) => [String(remark.student), remark])
+    (publication?.remarks || []).map((remark) => [
+      String(remark.student),
+      remark,
+    ]),
   );
 
   const rows = students.map((student) => {
@@ -64,7 +80,7 @@ export async function compileClassResults({ academicSession, term, className }) 
 
     for (const batch of batches) {
       const score = batch.scores.find(
-        (item) => String(item.student) === String(student._id)
+        (item) => String(item.student) === String(student._id),
       );
 
       if (score) {
@@ -102,7 +118,10 @@ export async function compileClassResults({ academicSession, term, className }) 
     };
   });
 
-  rows.sort((a, b) => b.totalScore - a.totalScore || a.studentName.localeCompare(b.studentName));
+  rows.sort(
+    (a, b) =>
+      b.totalScore - a.totalScore || a.studentName.localeCompare(b.studentName),
+  );
 
   let previousTotal = null;
   let previousPosition = 0;
@@ -119,7 +138,7 @@ export async function compileClassResults({ academicSession, term, className }) 
   return {
     academicSession,
     term,
-    className,
+    className: normalizedClassName,
     isPublished: Boolean(publication?.isPublished),
     students: rows,
     subjects: batches.map((batch) => batch.subject).sort(),

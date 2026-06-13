@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getAuthUser, unauthorized } from "../../../../lib/authUser";
+import { normalizeClassList } from "../../../../lib/classes";
 import Assignment from "../../../../models/Assignment";
 
 function toArray(value) {
@@ -34,8 +35,16 @@ export async function POST(req) {
   }
 
   const body = await req.json();
-  const classes = toArray(body.classes);
-  const allowedClasses = auth.user.assignedClasses || [];
+  const classes = normalizeClassList(toArray(body.classes));
+  const allowedClasses = normalizeClassList(auth.user.assignedClasses || []);
+  const allowedSubjects = Array.from(
+    new Set(
+      [auth.user.subject, ...(auth.user.assignedSubjects || [])]
+        .map((item) => String(item || "").trim())
+        .filter(Boolean),
+    ),
+  );
+  const subject = String(body.subject || "").trim();
   const invalidClass = classes.find(
     (className) => !allowedClasses.includes(className),
   );
@@ -43,7 +52,7 @@ export async function POST(req) {
   if (
     !body.title ||
     !body.description ||
-    !body.subject ||
+    !subject ||
     !body.deadline ||
     !classes.length
   ) {
@@ -63,10 +72,20 @@ export async function POST(req) {
     );
   }
 
+  if (!allowedSubjects.includes(subject)) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: `You are not assigned to teach ${subject}`,
+      },
+      { status: 403 },
+    );
+  }
+
   const assignment = await Assignment.create({
     title: body.title.trim(),
     description: body.description.trim(),
-    subject: body.subject.trim(),
+    subject,
     classes,
     teacherId: auth.user._id,
     teacherName: auth.user.fullName,

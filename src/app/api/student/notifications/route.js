@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getAuthUser, unauthorized } from "../../../../lib/authUser";
+import { classQueryValues, normalizeClassName } from "../../../../lib/classes";
 import Notification from "../../../../models/Notification";
 
 export async function GET(req) {
@@ -16,8 +17,9 @@ export async function GET(req) {
     100,
   );
   const skip = (page - 1) * limit;
+  const studentClass = normalizeClassName(auth.user.studentClass);
   const filters = {
-    classes: auth.user.studentClass,
+    classes: { $in: classQueryValues([studentClass]) },
     isDeleted: { $ne: true },
   };
 
@@ -33,7 +35,7 @@ export async function GET(req) {
   return NextResponse.json({
     success: true,
     notices,
-    studentClass: auth.user.studentClass,
+    studentClass,
     pagination: {
       page,
       limit,

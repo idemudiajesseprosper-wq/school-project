@@ -2,6 +2,10 @@ import crypto from "node:crypto";
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 
+import {
+  normalizeClassList,
+  normalizeClassName,
+} from "../../../../lib/classes";
 import { connectMongoDB } from "../../../../lib/connect";
 import {
   getRequestBaseUrl,
@@ -29,6 +33,7 @@ export async function POST(req) {
       role,
       assignedClasses,
       subject,
+      assignedSubjects,
       qualification,
     } = await req.json();
 
@@ -54,6 +59,23 @@ export async function POST(req) {
     const hashedPassword = await bcrypt.hash(password, 12);
 
     const requestedRole = role === "teacher" ? "teacher" : "student";
+    const normalizedStudentClass =
+      requestedRole === "student" ? normalizeClassName(studentClass) : "";
+    const normalizedAssignedClasses =
+      requestedRole === "teacher" && Array.isArray(assignedClasses)
+        ? normalizeClassList(assignedClasses)
+        : [];
+    const normalizedAssignedSubjects =
+      requestedRole === "teacher" && Array.isArray(assignedSubjects)
+        ? Array.from(
+            new Set(
+              assignedSubjects
+                .map((item) => String(item || "").trim())
+                .filter(Boolean),
+            ),
+          )
+        : [subject].map((item) => String(item || "").trim()).filter(Boolean);
+    const primarySubject = normalizedAssignedSubjects[0] || "";
     const generatedStudentId =
       requestedRole === "student" ? await generateStudentIdNumber() : "";
     const needsVerification = await requireEmailVerification();
@@ -72,7 +94,7 @@ export async function POST(req) {
       // STUDENT INFO
       dateOfBirth: dateOfBirth || "",
       gender: gender || "",
-      studentClass: studentClass || "",
+      studentClass: normalizedStudentClass,
       admissionNumber: generatedStudentId,
       studentIdNumber: generatedStudentId,
       phoneNumber: phoneNumber || "",
@@ -85,17 +107,11 @@ export async function POST(req) {
       relationship: relationship || "",
 
       // TEACHER INFO
-      assignedClasses:
-        requestedRole === "teacher" && Array.isArray(assignedClasses)
-          ? assignedClasses.filter(Boolean)
-          : [],
-      subject: requestedRole === "teacher" ? subject || "" : "",
+      assignedClasses: normalizedAssignedClasses,
+      subject: requestedRole === "teacher" ? primarySubject : "",
       assignedSubjects:
-        requestedRole === "teacher" ? [subject].filter(Boolean) : [],
-      classTeacherClasses:
-        requestedRole === "teacher" && Array.isArray(assignedClasses)
-          ? assignedClasses.filter(Boolean)
-          : [],
+        requestedRole === "teacher" ? normalizedAssignedSubjects : [],
+      classTeacherClasses: normalizedAssignedClasses,
       qualification: requestedRole === "teacher" ? qualification || "" : "",
     });
 
