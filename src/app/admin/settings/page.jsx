@@ -1,96 +1,213 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
 const TABS = [
-  { id: "general",       label: "General",    icon: "ti-building-school" },
-  { id: "security",      label: "Security",   icon: "ti-shield-lock"    },
-  { id: "notifications", label: "Alerts",     icon: "ti-bell"           },
-  { id: "appearance",    label: "Appearance", icon: "ti-palette"        },
-  { id: "danger",        label: "Danger",     icon: "ti-alert-triangle" },
+  { id: "general", label: "General", icon: "ti-building-school" },
+  { id: "security", label: "Security", icon: "ti-shield-lock" },
+  { id: "notifications", label: "Alerts", icon: "ti-bell" },
+  { id: "appearance", label: "Appearance", icon: "ti-palette" },
+  { id: "danger", label: "Danger", icon: "ti-alert-triangle" },
 ];
 
+const DEFAULT_SETTINGS = {
+  schoolName: "Winners' Foundation School",
+  schoolEmail: "wfsonline1999@gmail.com",
+  schoolAddress:
+    "2, Airhueghiomon street, Osazuwa, Off Etete Road, Enogie, Benin City",
+  supportEmail: "wfsonline1999@gmail.com",
+  schoolWebsite: "",
+  timezone: "Africa/Lagos",
+  language: "en",
+  academicYear: "2025/2026",
+  allowRegistration: true,
+  maintenanceMode: false,
+  maxLoginAttempts: 5,
+  sessionTimeout: 30,
+  requireEmailVerification: true,
+  twoFactorAuth: false,
+  passwordMinLength: 8,
+  emailNotifications: true,
+  smsNotifications: false,
+  notifyOnNewStudent: true,
+  notifyOnLogin: false,
+  notifyOnSystemErrors: true,
+  digestFrequency: "daily",
+  primaryColor: "#2563eb",
+  logoUrl: "/logo.PNG",
+  darkMode: false,
+  compactView: false,
+  showWelcomeMessage: true,
+  welcomeMessage: "Welcome back to Winners' Foundation School Portal.",
+};
+
+const SETTING_LABELS = {
+  schoolName: "School name",
+  schoolEmail: "School email",
+  schoolAddress: "School address",
+  supportEmail: "Support email",
+  schoolWebsite: "School website",
+  timezone: "Timezone",
+  language: "Language",
+  academicYear: "Academic year",
+  allowRegistration: "Allow student registration",
+  maintenanceMode: "Maintenance mode",
+  maxLoginAttempts: "Max login attempts",
+  sessionTimeout: "Session timeout",
+  requireEmailVerification: "Require email verification",
+  twoFactorAuth: "Two-factor authentication",
+  passwordMinLength: "Minimum password length",
+  emailNotifications: "Email notifications",
+  smsNotifications: "SMS notifications",
+  notifyOnNewStudent: "New student registration",
+  notifyOnLogin: "Admin login alerts",
+  notifyOnSystemErrors: "System error alerts",
+  digestFrequency: "Summary digest frequency",
+  primaryColor: "Primary accent color",
+  logoUrl: "Logo URL",
+  darkMode: "Dark mode",
+  compactView: "Compact view",
+  showWelcomeMessage: "Show welcome banner",
+  welcomeMessage: "Welcome message",
+};
+
+const formatSettingValue = (value) => {
+  if (typeof value === "boolean") return value ? "On" : "Off";
+  if (value === "" || value === null || value === undefined) return "Not set";
+  return String(value);
+};
+
+const valuesMatch = (left, right) =>
+  JSON.stringify(left ?? "") === JSON.stringify(right ?? "");
+
 export default function SettingsPage() {
-  const [activeTab, setActiveTab]         = useState("general");
-  const [saving, setSaving]               = useState(false);
+  const [activeTab, setActiveTab] = useState("general");
+  const [saving, setSaving] = useState(false);
+  const [actionLoading, setActionLoading] = useState("");
   const [confirmDelete, setConfirmDelete] = useState("");
 
-  const [settings, setSettings] = useState({
-    schoolName: "Greenfield Academy",
-    supportEmail: "support@greenfield.edu",
-    schoolWebsite: "https://greenfield.edu",
-    timezone: "Africa/Lagos",
-    language: "en",
-    academicYear: "2025/2026",
-    allowRegistration: true,
-    maintenanceMode: false,
-    maxLoginAttempts: 5,
-    sessionTimeout: 30,
-    requireEmailVerification: true,
-    twoFactorAuth: false,
-    passwordMinLength: 8,
-    emailNotifications: true,
-    smsNotifications: false,
-    notifyOnNewStudent: true,
-    notifyOnLogin: false,
-    notifyOnSystemErrors: true,
-    digestFrequency: "daily",
-    primaryColor: "#2563eb",
-    logoUrl: "",
-    darkMode: false,
-    compactView: false,
-    showWelcomeMessage: true,
-    welcomeMessage: "Welcome back to Greenfield Academy Portal.",
-  });
+  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [savedSettings, setSavedSettings] = useState(DEFAULT_SETTINGS);
 
-  useEffect(() => { fetchSettings(); }, []);
-
-  const fetchSettings = async () => {
+  const fetchSettings = useCallback(async () => {
     try {
-      const res  = await fetch("/api/admin/settings");
+      const res = await fetch("/api/admin/settings");
       const data = await res.json();
-      if (data.success && data.settings) setSettings(s => ({ ...s, ...data.settings }));
+      if (data.success && data.settings) {
+        setSettings((s) => {
+          const merged = { ...s, ...data.settings };
+          setSavedSettings(merged);
+          return merged;
+        });
+      }
     } catch {}
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchSettings();
+  }, [fetchSettings]);
 
   const saveSettings = async () => {
     try {
       setSaving(true);
-      const res  = await fetch("/api/admin/settings", {
+      const res = await fetch("/api/admin/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(settings),
       });
       const data = await res.json();
-      if (data.success) toast.success("Settings saved");
-      else toast.error(data.message || "Failed to save");
-    } catch { toast.error("Failed to save settings"); }
-    finally  { setSaving(false); }
+      if (data.success) {
+        const saved = data.settings
+          ? { ...settings, ...data.settings }
+          : settings;
+        setSettings(saved);
+        setSavedSettings(saved);
+        toast.success("Settings saved");
+      } else toast.error(data.message || "Failed to save");
+    } catch {
+      toast.error("Failed to save settings");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const set = (key, value) => setSettings(s => ({ ...s, [key]: value }));
+  const runSettingsAction = async (action, options = {}) => {
+    try {
+      setActionLoading(action);
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, ...options }),
+      });
+      const data = await res.json();
+
+      if (!data.success) {
+        toast.error(data.message || "Action failed");
+        return;
+      }
+
+      if (action === "exportArchive") {
+        const blob = new Blob([JSON.stringify(data, null, 2)], {
+          type: "application/json",
+        });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `wfs-portal-archive-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      if (data.settings) {
+        setSettings((s) => {
+          const merged = { ...s, ...data.settings };
+          setSavedSettings(merged);
+          return merged;
+        });
+      }
+      if (action === "deletePortalData") setConfirmDelete("");
+      toast.success(data.message || "Action completed");
+    } catch {
+      toast.error("Action failed");
+    } finally {
+      setActionLoading("");
+    }
+  };
+
+  const set = (key, value) => setSettings((s) => ({ ...s, [key]: value }));
+  const pendingChanges = Object.entries(settings).filter(
+    ([key, value]) => !valuesMatch(value, savedSettings[key]),
+  );
+  const hasPendingChanges = pendingChanges.length > 0;
 
   return (
     <div className="root">
       <style>{CSS}</style>
 
-      {/* ── HEADER ── */}
+      {/* -- HEADER -- */}
       <header className="page-header">
         <div className="header-inner">
           <div>
             <p className="eyebrow">Administration</p>
             <h1 className="page-title">System Settings</h1>
           </div>
-          <span className={`sys-badge ${settings.maintenanceMode ? "badge-warn" : "badge-ok"}`}>
-            <span className={`dot ${settings.maintenanceMode ? "dot-warn" : "dot-ok"}`} />
+          <span
+            className={`sys-badge ${settings.maintenanceMode ? "badge-warn" : "badge-ok"}`}
+          >
+            <span
+              className={`dot ${settings.maintenanceMode ? "dot-warn" : "dot-ok"}`}
+            />
             {settings.maintenanceMode ? "Maintenance" : "Online"}
           </span>
         </div>
 
         <nav className="desktop-tabs" aria-label="Settings sections">
-          {TABS.map(t => (
+          {TABS.map((t) => (
             <button
+              type="button"
               key={t.id}
               className={`dtab ${activeTab === t.id ? "dtab-active" : ""} ${t.id === "danger" ? "dtab-danger" : ""}`}
               onClick={() => setActiveTab(t.id)}
@@ -102,233 +219,499 @@ export default function SettingsPage() {
         </nav>
       </header>
 
-      {/* ── CONTENT ── */}
+      {/* -- CONTENT -- */}
       <main className="content-area">
         <div className="content-card">
-
           {/* GENERAL */}
-          {activeTab === "general" && <>
-            <SectionTitle>School Information</SectionTitle>
-            <div className="grid-2">
-              <Field label="School Name">
-                <input type="text" value={settings.schoolName} onChange={e => set("schoolName", e.target.value)} />
-              </Field>
-              <Field label="Academic Year">
-                <input type="text" value={settings.academicYear} onChange={e => set("academicYear", e.target.value)} />
-              </Field>
-            </div>
-            <div className="grid-2">
-              <Field label="Support Email">
-                <input type="email" value={settings.supportEmail} onChange={e => set("supportEmail", e.target.value)} />
-              </Field>
-              <Field label="School Website">
-                <input type="url" value={settings.schoolWebsite} onChange={e => set("schoolWebsite", e.target.value)} />
-              </Field>
-            </div>
-            <SectionTitle>Localization</SectionTitle>
-            <div className="grid-2">
-              <Field label="Timezone">
-                <select value={settings.timezone} onChange={e => set("timezone", e.target.value)}>
-                  <option value="Africa/Lagos">Africa/Lagos (WAT)</option>
-                  <option value="Africa/Accra">Africa/Accra (GMT)</option>
-                  <option value="Africa/Nairobi">Africa/Nairobi (EAT)</option>
-                  <option value="Europe/London">Europe/London (BST)</option>
-                  <option value="America/New_York">America/New_York (EDT)</option>
-                  <option value="America/Los_Angeles">America/Los_Angeles (PDT)</option>
-                </select>
-              </Field>
-              <Field label="Language">
-                <select value={settings.language} onChange={e => set("language", e.target.value)}>
-                  <option value="en">English</option>
-                  <option value="fr">French</option>
-                  <option value="yo">Yoruba</option>
-                  <option value="ha">Hausa</option>
-                  <option value="ig">Igbo</option>
-                </select>
-              </Field>
-            </div>
-          </>}
-
-          {/* SECURITY */}
-          {activeTab === "security" && <>
-            <SectionTitle>Access Control</SectionTitle>
-            <Toggle title="Allow Student Registration" desc="Enable or disable new student self-registration."
-              checked={settings.allowRegistration} onChange={v => set("allowRegistration", v)} />
-            <Toggle title="Require Email Verification" desc="New accounts must verify email before accessing the portal."
-              checked={settings.requireEmailVerification} onChange={v => set("requireEmailVerification", v)} />
-            <Toggle title="Two-Factor Authentication" desc="Require admin accounts to use 2FA for all logins."
-              checked={settings.twoFactorAuth} onChange={v => set("twoFactorAuth", v)} />
-            <Toggle
-              title={<>Maintenance Mode {settings.maintenanceMode && <span className="inline-badge badge-warn">Active</span>}</>}
-              desc="Temporarily restricts portal access to admins only."
-              checked={settings.maintenanceMode}
-              onChange={v => set("maintenanceMode", v)}
-              warn={settings.maintenanceMode}
-            />
-            <SectionTitle>Login Policy</SectionTitle>
-            <div className="grid-2">
-              <Field label="Max Login Attempts" hint="Account locked after this many failures.">
-                <input type="number" min={1} max={20} value={settings.maxLoginAttempts}
-                  onChange={e => set("maxLoginAttempts", Number(e.target.value))} />
-              </Field>
-              <Field label="Session Timeout (min)" hint="Inactive users are logged out automatically.">
-                <input type="number" min={5} max={1440} value={settings.sessionTimeout}
-                  onChange={e => set("sessionTimeout", Number(e.target.value))} />
-              </Field>
-            </div>
-            <Field label="Minimum Password Length">
-              <input type="number" min={6} max={32} value={settings.passwordMinLength}
-                onChange={e => set("passwordMinLength", Number(e.target.value))}
-                style={{ maxWidth: 180 }} />
-            </Field>
-          </>}
-
-          {/* NOTIFICATIONS */}
-          {activeTab === "notifications" && <>
-            <SectionTitle>Delivery Channels</SectionTitle>
-            <Toggle title="Email Notifications" desc="Send system alerts and updates via email."
-              checked={settings.emailNotifications} onChange={v => set("emailNotifications", v)} />
-            <Toggle title="SMS Notifications" desc="Send critical alerts via SMS (requires SMS provider)."
-              checked={settings.smsNotifications} onChange={v => set("smsNotifications", v)} />
-            <SectionTitle>Notification Triggers</SectionTitle>
-            <Toggle title="New Student Registration" desc="Notify admins when a new student registers."
-              checked={settings.notifyOnNewStudent} onChange={v => set("notifyOnNewStudent", v)} />
-            <Toggle title="Admin Login Alerts" desc="Get notified on every admin login."
-              checked={settings.notifyOnLogin} onChange={v => set("notifyOnLogin", v)} />
-            <Toggle title="System Error Alerts" desc="Receive immediate alerts for critical system errors."
-              checked={settings.notifyOnSystemErrors} onChange={v => set("notifyOnSystemErrors", v)} />
-            <SectionTitle>Digest</SectionTitle>
-            <Field label="Summary Digest Frequency">
-              <select value={settings.digestFrequency} onChange={e => set("digestFrequency", e.target.value)}
-                style={{ maxWidth: 260 }}>
-                <option value="realtime">Real-time</option>
-                <option value="hourly">Hourly</option>
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="never">Never</option>
-              </select>
-            </Field>
-          </>}
-
-          {/* APPEARANCE */}
-          {activeTab === "appearance" && <>
-            <SectionTitle>Branding</SectionTitle>
-            <Field label="Logo URL" hint="Displayed in the portal header and login screen.">
-              <input type="url" value={settings.logoUrl}
-                placeholder="https://yourschool.edu/logo.png"
-                onChange={e => set("logoUrl", e.target.value)} />
-            </Field>
-            <Field label="Primary Accent Color" hint="Used for buttons, links, and interactive elements.">
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <input type="color" value={settings.primaryColor}
-                  onChange={e => set("primaryColor", e.target.value)}
-                  style={{ width: 44, height: 40, padding: 3, borderRadius: 8,
-                    border: "1.5px solid #e2e8f0", cursor: "pointer", flexShrink: 0 }} />
-                <input type="text" value={settings.primaryColor}
-                  onChange={e => set("primaryColor", e.target.value)}
-                  style={{ maxWidth: 140, fontFamily: "monospace", fontSize: 13 }} />
+          {activeTab === "general" && (
+            <>
+              <SectionTitle>School Information</SectionTitle>
+              <div className="grid-2">
+                <Field label="School Name">
+                  <input
+                    type="text"
+                    value={settings.schoolName}
+                    onChange={(e) => set("schoolName", e.target.value)}
+                  />
+                </Field>
+                <Field label="Academic Year">
+                  <input
+                    type="text"
+                    value={settings.academicYear}
+                    onChange={(e) => set("academicYear", e.target.value)}
+                  />
+                </Field>
               </div>
-            </Field>
-            <SectionTitle>Welcome Banner</SectionTitle>
-            <Toggle title="Show Welcome Banner" desc="Display a welcome message on the student dashboard."
-              checked={settings.showWelcomeMessage} onChange={v => set("showWelcomeMessage", v)} />
-            {settings.showWelcomeMessage && (
-              <Field label="Welcome Message Text">
-                <textarea value={settings.welcomeMessage} rows={3}
-                  onChange={e => set("welcomeMessage", e.target.value)}
-                  style={{ resize: "vertical" }} />
-              </Field>
-            )}
-            <SectionTitle>Display</SectionTitle>
-            <Toggle title="Dark Mode" desc="Enable dark theme for the admin portal."
-              checked={settings.darkMode} onChange={v => set("darkMode", v)} />
-            <Toggle title="Compact View" desc="Reduce spacing for a denser information layout."
-              checked={settings.compactView} onChange={v => set("compactView", v)} />
-          </>}
-
-          {/* DANGER ZONE */}
-          {activeTab === "danger" && <>
-            <SectionTitle danger>Irreversible Actions</SectionTitle>
-
-            <div className="danger-card">
-              <div className="danger-card-icon"><i className="ti ti-logout" aria-hidden="true" /></div>
-              <div className="danger-card-body">
-                <h4>Clear All Sessions</h4>
-                <p>Force logout all active users across the portal.</p>
-                <button className="btn-danger">Clear Sessions</button>
-              </div>
-            </div>
-
-            <div className="danger-card">
-              <div className="danger-card-icon" style={{ color: "#1d4ed8", background: "#eff6ff" }}>
-                <i className="ti ti-download" aria-hidden="true" />
-              </div>
-              <div className="danger-card-body">
-                <h4>Export Data Archive</h4>
-                <p>Download a full backup of students, grades, and settings.</p>
-                <button className="btn-danger" style={{ borderColor: "#93c5fd", color: "#1d4ed8" }}>Export Archive</button>
-              </div>
-            </div>
-
-            <div className="danger-card">
-              <div className="danger-card-icon"><i className="ti ti-refresh" aria-hidden="true" /></div>
-              <div className="danger-card-body">
-                <h4>Reset to Defaults</h4>
-                <p>Revert all settings to factory defaults. School data is unaffected.</p>
-                <button className="btn-danger">Reset Settings</button>
-              </div>
-            </div>
-
-            <div className="danger-card danger-card-critical">
-              <div className="danger-card-icon danger-icon-critical"><i className="ti ti-trash" aria-hidden="true" /></div>
-              <div className="danger-card-body">
-                <h4 style={{ color: "#dc2626" }}>Delete Portal</h4>
-                <p>
-                  Permanently deletes this portal and <strong>all data</strong>. Irreversible.{" "}
-                  Type <code>DELETE</code> to confirm.
-                </p>
+              <Field label="School Address">
                 <input
                   type="text"
-                  className="delete-confirm-input"
-                  placeholder='Type "DELETE" to confirm'
-                  value={confirmDelete}
-                  onChange={e => setConfirmDelete(e.target.value)}
-                  style={{ borderColor: confirmDelete === "DELETE" ? "#ef4444" : undefined }}
+                  value={settings.schoolAddress}
+                  onChange={(e) => set("schoolAddress", e.target.value)}
                 />
-                <button
-                  className="btn-danger btn-danger-critical"
-                  disabled={confirmDelete !== "DELETE"}
-                  style={{ opacity: confirmDelete === "DELETE" ? 1 : 0.4 }}
-                >
-                  <i className="ti ti-trash" style={{ marginRight: 6 }} aria-hidden="true" />
-                  Permanently Delete
-                </button>
+              </Field>
+              <div className="grid-2">
+                <Field label="Support Email">
+                  <input
+                    type="email"
+                    value={settings.supportEmail}
+                    onChange={(e) => set("supportEmail", e.target.value)}
+                  />
+                </Field>
+                <Field label="School Website">
+                  <input
+                    type="url"
+                    value={settings.schoolWebsite}
+                    onChange={(e) => set("schoolWebsite", e.target.value)}
+                  />
+                </Field>
               </div>
-            </div>
-          </>}
+              <SectionTitle>Localization</SectionTitle>
+              <div className="grid-2">
+                <Field label="Timezone">
+                  <select
+                    value={settings.timezone}
+                    onChange={(e) => set("timezone", e.target.value)}
+                  >
+                    <option value="Africa/Lagos">Africa/Lagos (WAT)</option>
+                    <option value="Africa/Accra">Africa/Accra (GMT)</option>
+                    <option value="Africa/Nairobi">Africa/Nairobi (EAT)</option>
+                    <option value="Europe/London">Europe/London (BST)</option>
+                    <option value="America/New_York">
+                      America/New_York (EDT)
+                    </option>
+                    <option value="America/Los_Angeles">
+                      America/Los_Angeles (PDT)
+                    </option>
+                  </select>
+                </Field>
+                <Field label="Language">
+                  <select
+                    value={settings.language}
+                    onChange={(e) => set("language", e.target.value)}
+                  >
+                    <option value="en">English</option>
+                    <option value="fr">French</option>
+                    <option value="yo">Yoruba</option>
+                    <option value="ha">Hausa</option>
+                    <option value="ig">Igbo</option>
+                  </select>
+                </Field>
+              </div>
+            </>
+          )}
+
+          {/* SECURITY */}
+          {activeTab === "security" && (
+            <>
+              <SectionTitle>Access Control</SectionTitle>
+              <Toggle
+                title="Allow Student Registration"
+                desc="Enable or disable new student self-registration."
+                checked={settings.allowRegistration}
+                onChange={(v) => set("allowRegistration", v)}
+              />
+              <Toggle
+                title="Require Email Verification"
+                desc="New accounts must verify email before accessing the portal."
+                checked={settings.requireEmailVerification}
+                onChange={(v) => set("requireEmailVerification", v)}
+              />
+              <Toggle
+                title="Two-Factor Authentication"
+                desc="Require admin accounts to use 2FA for all logins."
+                checked={settings.twoFactorAuth}
+                onChange={(v) => set("twoFactorAuth", v)}
+              />
+              <Toggle
+                title={
+                  <>
+                    Maintenance Mode{" "}
+                    {settings.maintenanceMode && (
+                      <span className="inline-badge badge-warn">Active</span>
+                    )}
+                  </>
+                }
+                desc="Temporarily restricts portal access to admins only."
+                checked={settings.maintenanceMode}
+                onChange={(v) => set("maintenanceMode", v)}
+                warn={settings.maintenanceMode}
+              />
+              <SectionTitle>Login Policy</SectionTitle>
+              <div className="grid-2">
+                <Field
+                  label="Max Login Attempts"
+                  hint="Account locked after this many failures."
+                >
+                  <input
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={settings.maxLoginAttempts}
+                    onChange={(e) =>
+                      set("maxLoginAttempts", Number(e.target.value))
+                    }
+                  />
+                </Field>
+                <Field
+                  label="Session Timeout (min)"
+                  hint="Inactive users are logged out automatically."
+                >
+                  <input
+                    type="number"
+                    min={5}
+                    max={1440}
+                    value={settings.sessionTimeout}
+                    onChange={(e) =>
+                      set("sessionTimeout", Number(e.target.value))
+                    }
+                  />
+                </Field>
+              </div>
+              <Field label="Minimum Password Length">
+                <input
+                  type="number"
+                  min={6}
+                  max={32}
+                  value={settings.passwordMinLength}
+                  onChange={(e) =>
+                    set("passwordMinLength", Number(e.target.value))
+                  }
+                  style={{ maxWidth: 180 }}
+                />
+              </Field>
+            </>
+          )}
+
+          {/* NOTIFICATIONS */}
+          {activeTab === "notifications" && (
+            <>
+              <SectionTitle>Delivery Channels</SectionTitle>
+              <Toggle
+                title="Email Notifications"
+                desc="Send system alerts and updates via email."
+                checked={settings.emailNotifications}
+                onChange={(v) => set("emailNotifications", v)}
+              />
+              <Toggle
+                title="SMS Notifications"
+                desc="Send critical alerts via SMS (requires SMS provider)."
+                checked={settings.smsNotifications}
+                onChange={(v) => set("smsNotifications", v)}
+              />
+              <SectionTitle>Notification Triggers</SectionTitle>
+              <Toggle
+                title="New Student Registration"
+                desc="Notify admins when a new student registers."
+                checked={settings.notifyOnNewStudent}
+                onChange={(v) => set("notifyOnNewStudent", v)}
+              />
+              <Toggle
+                title="Admin Login Alerts"
+                desc="Get notified on every admin login."
+                checked={settings.notifyOnLogin}
+                onChange={(v) => set("notifyOnLogin", v)}
+              />
+              <Toggle
+                title="System Error Alerts"
+                desc="Receive immediate alerts for critical system errors."
+                checked={settings.notifyOnSystemErrors}
+                onChange={(v) => set("notifyOnSystemErrors", v)}
+              />
+              <SectionTitle>Digest</SectionTitle>
+              <Field label="Summary Digest Frequency">
+                <select
+                  value={settings.digestFrequency}
+                  onChange={(e) => set("digestFrequency", e.target.value)}
+                  style={{ maxWidth: 260 }}
+                >
+                  <option value="realtime">Real-time</option>
+                  <option value="hourly">Hourly</option>
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="never">Never</option>
+                </select>
+              </Field>
+            </>
+          )}
+
+          {/* APPEARANCE */}
+          {activeTab === "appearance" && (
+            <>
+              <SectionTitle>Branding</SectionTitle>
+              <Field
+                label="Logo URL"
+                hint="Displayed in the portal header and login screen."
+              >
+                <input
+                  type="url"
+                  value={settings.logoUrl}
+                  placeholder="https://yourschool.edu/logo.png"
+                  onChange={(e) => set("logoUrl", e.target.value)}
+                />
+              </Field>
+              <Field
+                label="Primary Accent Color"
+                hint="Used for buttons, links, and interactive elements."
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <input
+                    type="color"
+                    value={settings.primaryColor}
+                    onChange={(e) => set("primaryColor", e.target.value)}
+                    style={{
+                      width: 44,
+                      height: 40,
+                      padding: 3,
+                      borderRadius: 8,
+                      border: "1.5px solid #e2e8f0",
+                      cursor: "pointer",
+                      flexShrink: 0,
+                    }}
+                  />
+                  <input
+                    type="text"
+                    value={settings.primaryColor}
+                    onChange={(e) => set("primaryColor", e.target.value)}
+                    style={{
+                      maxWidth: 140,
+                      fontFamily: "monospace",
+                      fontSize: 13,
+                    }}
+                  />
+                </div>
+              </Field>
+              <SectionTitle>Welcome Banner</SectionTitle>
+              <Toggle
+                title="Show Welcome Banner"
+                desc="Display a welcome message on the student dashboard."
+                checked={settings.showWelcomeMessage}
+                onChange={(v) => set("showWelcomeMessage", v)}
+              />
+              {settings.showWelcomeMessage && (
+                <Field label="Welcome Message Text">
+                  <textarea
+                    value={settings.welcomeMessage}
+                    rows={3}
+                    onChange={(e) => set("welcomeMessage", e.target.value)}
+                    style={{ resize: "vertical" }}
+                  />
+                </Field>
+              )}
+              <SectionTitle>Display</SectionTitle>
+              <Toggle
+                title="Dark Mode"
+                desc="Enable dark theme for the admin portal."
+                checked={settings.darkMode}
+                onChange={(v) => set("darkMode", v)}
+              />
+              <Toggle
+                title="Compact View"
+                desc="Reduce spacing for a denser information layout."
+                checked={settings.compactView}
+                onChange={(v) => set("compactView", v)}
+              />
+            </>
+          )}
+
+          {/* DANGER ZONE */}
+          {activeTab === "danger" && (
+            <>
+              <SectionTitle danger>Irreversible Actions</SectionTitle>
+
+              <div className="danger-card">
+                <div className="danger-card-icon">
+                  <i className="ti ti-logout" aria-hidden="true" />
+                </div>
+                <div className="danger-card-body">
+                  <h4>Clear All Sessions</h4>
+                  <p>Force logout all active users across the portal.</p>
+                  <button
+                    type="button"
+                    className="btn-danger"
+                    disabled={actionLoading === "clearSessions"}
+                    onClick={() => runSettingsAction("clearSessions")}
+                  >
+                    {actionLoading === "clearSessions"
+                      ? "Clearing..."
+                      : "Clear Sessions"}
+                  </button>
+                </div>
+              </div>
+
+              <div className="danger-card">
+                <div
+                  className="danger-card-icon"
+                  style={{ color: "#1d4ed8", background: "#eff6ff" }}
+                >
+                  <i className="ti ti-download" aria-hidden="true" />
+                </div>
+                <div className="danger-card-body">
+                  <h4>Export Data Archive</h4>
+                  <p>
+                    Download a full backup of students, grades, and settings.
+                  </p>
+                  <button
+                    type="button"
+                    className="btn-danger"
+                    style={{ borderColor: "#93c5fd", color: "#1d4ed8" }}
+                    disabled={actionLoading === "exportArchive"}
+                    onClick={() => runSettingsAction("exportArchive")}
+                  >
+                    {actionLoading === "exportArchive"
+                      ? "Exporting..."
+                      : "Export Archive"}
+                  </button>
+                </div>
+              </div>
+
+              <div className="danger-card">
+                <div className="danger-card-icon">
+                  <i className="ti ti-refresh" aria-hidden="true" />
+                </div>
+                <div className="danger-card-body">
+                  <h4>Reset to Defaults</h4>
+                  <p>
+                    Revert all settings to factory defaults. School data is
+                    unaffected.
+                  </p>
+                  <button
+                    type="button"
+                    className="btn-danger"
+                    disabled={actionLoading === "resetDefaults"}
+                    onClick={() => runSettingsAction("resetDefaults")}
+                  >
+                    {actionLoading === "resetDefaults"
+                      ? "Resetting..."
+                      : "Reset Settings"}
+                  </button>
+                </div>
+              </div>
+
+              <div className="danger-card danger-card-critical">
+                <div className="danger-card-icon danger-icon-critical">
+                  <i className="ti ti-trash" aria-hidden="true" />
+                </div>
+                <div className="danger-card-body">
+                  <h4 style={{ color: "#dc2626" }}>Delete Portal</h4>
+                  <p>
+                    Permanently deletes this portal and{" "}
+                    <strong>all data</strong>. Irreversible. Type{" "}
+                    <code>DELETE</code> to confirm.
+                  </p>
+                  <input
+                    type="text"
+                    className="delete-confirm-input"
+                    placeholder='Type "DELETE" to confirm'
+                    value={confirmDelete}
+                    onChange={(e) => setConfirmDelete(e.target.value)}
+                    style={{
+                      borderColor:
+                        confirmDelete === "DELETE" ? "#ef4444" : undefined,
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="btn-danger btn-danger-critical"
+                    disabled={
+                      confirmDelete !== "DELETE" ||
+                      actionLoading === "deletePortalData"
+                    }
+                    style={{ opacity: confirmDelete === "DELETE" ? 1 : 0.4 }}
+                    onClick={() =>
+                      runSettingsAction("deletePortalData", {
+                        confirm: confirmDelete,
+                      })
+                    }
+                  >
+                    <i
+                      className="ti ti-trash"
+                      style={{ marginRight: 6 }}
+                      aria-hidden="true"
+                    />
+                    {actionLoading === "deletePortalData"
+                      ? "Deleting..."
+                      : "Permanently Delete Data"}
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
 
           {/* SAVE BAR */}
           {activeTab !== "danger" && (
-            <div className="save-bar">
-              <p className="save-hint">
-                <i className="ti ti-info-circle" aria-hidden="true" />
-                Changes apply after saving.
-              </p>
-              <button className="btn-primary" onClick={saveSettings} disabled={saving}>
-                {saving
-                  ? <><i className="ti ti-loader-2 spin" aria-hidden="true" /> Saving…</>
-                  : <><i className="ti ti-device-floppy" aria-hidden="true" /> Save Changes</>
-                }
-              </button>
-            </div>
+            <>
+              <div className="changes-panel">
+                <div className="changes-head">
+                  <div>
+                    <p className="changes-kicker">Review before saving</p>
+                    <h3>
+                      {hasPendingChanges
+                        ? `${pendingChanges.length} unsaved change${pendingChanges.length === 1 ? "" : "s"}`
+                        : "No unsaved changes"}
+                    </h3>
+                  </div>
+                  <span
+                    className={`changes-status ${hasPendingChanges ? "changes-status-pending" : ""}`}
+                  >
+                    {hasPendingChanges ? "Pending" : "Saved"}
+                  </span>
+                </div>
+                {hasPendingChanges ? (
+                  <div className="changes-list">
+                    {pendingChanges.map(([key, value]) => (
+                      <div className="change-item" key={key}>
+                        <span>{SETTING_LABELS[key] || key}</span>
+                        <strong>
+                          {formatSettingValue(savedSettings[key])} -&gt;{" "}
+                          {formatSettingValue(value)}
+                        </strong>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="changes-empty">
+                    Toggle or edit a setting and the exact change will appear
+                    here before you save.
+                  </p>
+                )}
+              </div>
+              <div className="save-bar">
+                <p className="save-hint">
+                  <i className="ti ti-info-circle" aria-hidden="true" />
+                  Changes apply after saving.
+                </p>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={saveSettings}
+                  disabled={saving || !hasPendingChanges}
+                >
+                  {saving ? (
+                    <>
+                      <i className="ti ti-loader-2 spin" aria-hidden="true" />{" "}
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <i className="ti ti-device-floppy" aria-hidden="true" />{" "}
+                      Save{" "}
+                      {hasPendingChanges
+                        ? `${pendingChanges.length} Change${pendingChanges.length === 1 ? "" : "s"}`
+                        : "Changes"}
+                    </>
+                  )}
+                </button>
+              </div>
+            </>
           )}
         </div>
       </main>
 
-      {/* ── MOBILE BOTTOM TAB BAR ── */}
+      {/* -- MOBILE BOTTOM TAB BAR -- */}
       <nav className="mobile-tabbar" aria-label="Settings sections">
-        {TABS.map(t => (
+        {TABS.map((t) => (
           <button
+            type="button"
             key={t.id}
             className={`mtab ${activeTab === t.id ? "mtab-active" : ""} ${t.id === "danger" ? "mtab-danger" : ""}`}
             onClick={() => setActiveTab(t.id)}
@@ -343,11 +726,14 @@ export default function SettingsPage() {
   );
 }
 
-/* ── SUB-COMPONENTS ── */
+/* -- SUB-COMPONENTS -- */
 
 function SectionTitle({ children, danger }) {
   return (
-    <p className="section-title" style={danger ? { color: "#ef4444", borderColor: "#fecaca" } : {}}>
+    <p
+      className="section-title"
+      style={danger ? { color: "#ef4444", borderColor: "#fecaca" } : {}}
+    >
       {children}
     </p>
   );
@@ -356,7 +742,7 @@ function SectionTitle({ children, danger }) {
 function Field({ label, hint, children }) {
   return (
     <div className="field">
-      <label>{label}</label>
+      <span className="field-label">{label}</span>
       {children}
       {hint && <small>{hint}</small>}
     </div>
@@ -371,14 +757,18 @@ function Toggle({ title, desc, checked, onChange, warn }) {
         <p>{desc}</p>
       </div>
       <label className="switch">
-        <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} />
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={(e) => onChange(e.target.checked)}
+        />
         <span className="slider" />
       </label>
     </div>
   );
 }
 
-/* ── STYLES ── */
+/* -- STYLES -- */
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Serif+Display&display=swap');
 @import url('https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/tabler-icons.min.css');
@@ -458,7 +848,7 @@ const CSS = `
 }
 
 .field { margin-bottom: 20px; padding: 0 24px; }
-.field label {
+.field-label {
   display: block; font-size: 13px; font-weight: 600;
   color: #374151; margin-bottom: 7px; letter-spacing: 0.02em;
 }
@@ -555,6 +945,41 @@ input:checked + .slider:before { transform: translateX(20px); }
 .btn-danger:disabled { cursor: not-allowed; }
 .btn-danger-critical { width: 100%; max-width: 220px; justify-content: center; }
 
+.changes-panel {
+  margin: 18px 24px 0; padding: 16px;
+  border: 1.5px solid #e2e8f0; border-radius: 14px;
+  background: #f8fafc;
+}
+.changes-head {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 12px; margin-bottom: 12px;
+}
+.changes-kicker {
+  font-size: 11px; font-weight: 700; color: #64748b;
+  text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 3px;
+}
+.changes-head h3 { font-size: 15px; color: #0f172a; font-weight: 700; }
+.changes-status {
+  display: inline-flex; align-items: center;
+  padding: 4px 10px; border-radius: 999px;
+  background: #dcfce7; color: #166534;
+  font-size: 11px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.changes-status-pending { background: #fef3c7; color: #92400e; }
+.changes-list { display: grid; gap: 8px; }
+.change-item {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 14px; padding: 10px 12px;
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
+}
+.change-item span { font-size: 13px; color: #475569; font-weight: 600; }
+.change-item strong {
+  font-size: 13px; color: #0f172a; text-align: right;
+  overflow-wrap: anywhere;
+}
+.changes-empty { font-size: 13px; color: #64748b; line-height: 1.5; }
+
 .save-bar {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 16px 24px; background: #fff; border-top: 1.5px solid #e2e8f0;
@@ -619,6 +1044,9 @@ input:checked + .slider:before { transform: translateX(20px); }
   .delete-confirm-input { max-width: 100% !important; }
   .btn-danger-critical { max-width: 100%; }
 
+  .changes-panel { margin: 16px 16px 0; padding: 14px; }
+  .change-item { flex-direction: column; gap: 4px; }
+  .change-item strong { text-align: left; }
   .save-bar { padding: 14px 16px; }
   .save-hint { display: none; }
   .btn-primary { width: 100%; justify-content: center; }

@@ -4,25 +4,33 @@ export default function Admissions() {
       step: "1",
       title: "Create Applicant Account",
       content:
-        "Register with the applicant portal using a valid email address. This creates your Applicant ID and keeps the admission process in one place.",
+        "Create an applicant account with a valid email address. This gives you an Applicant ID and keeps your admission process in one dashboard.",
       href: "/applicant/register",
       link: "Create account",
     },
     {
       step: "2",
-      title: "Pay Enrollment Fee",
+      title: "Fill the Enrollment Form",
       content:
-        "Log in to your applicant dashboard and pay the NGN 6,000 enrollment fee through Paystack. Your payment is verified automatically.",
-      href: "/applicant",
-      link: "Go to dashboard",
+        "Log in to your applicant dashboard and complete the student, parent or guardian, medical, school history, and document upload sections.",
+      href: "/apply",
+      link: "Fill form",
     },
     {
       step: "3",
-      title: "Complete Application",
+      title: "Submit for Review",
       content:
-        "Once payment is confirmed, the enrollment form unlocks. Fill in the required student, parent, and document details for review.",
+        "Submit the completed form so the admissions team can review your child's details. You do not need to pay before accessing the form.",
       href: "/apply",
-      link: "Start application",
+      link: "Continue form",
+    },
+    {
+      step: "4",
+      title: "Pay Enrollment Fee",
+      content:
+        "After submitting the form, return to your applicant dashboard and pay the NGN 6,000 enrollment fee through Paystack.",
+      href: "/applicant",
+      link: "Go to dashboard",
     },
   ];
 
@@ -41,7 +49,7 @@ export default function Admissions() {
         </p>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-10 max-w-6xl mx-auto relative">
+      <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto relative">
         {steps.map((item) => (
           <div
             key={item.step}
@@ -78,8 +86,8 @@ export default function Admissions() {
           </h3>
           <p className="text-gray-600 text-sm leading-relaxed">
             The online enrollment fee is <strong>NGN 6,000</strong>. Paystack
-            verifies successful payments instantly, and the application form
-            unlocks automatically after confirmation.
+            verifies successful payments instantly. Applicants can complete the
+            enrollment form before paying.
           </p>
         </div>
       </div>
@@ -89,7 +97,8 @@ export default function Admissions() {
           Ready to Begin?
         </h2>
         <p className="text-gray-600 mb-6">
-          Create an applicant account to start the admission process.
+          Create an applicant account, fill the enrollment form, then pay the
+          enrollment fee after submission.
         </p>
 
         <a

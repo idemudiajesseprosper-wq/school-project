@@ -77,33 +77,14 @@ export default function Apply() {
     return <div className="min-h-screen bg-red-50 p-8 text-red-950">Loading application...</div>;
   }
 
-  if (applicant?.paymentStatus !== "paid") {
-    return (
-      <main className="min-h-screen bg-red-50 px-4 py-24">
-        <section className="mx-auto max-w-lg rounded-2xl border border-red-100 bg-white p-7 text-center shadow-xl">
-          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-red-50 text-red-700">
-            Locked
-          </div>
-          <h1 className="text-2xl font-black text-red-950">Enrollment Form Locked</h1>
-          <p className="mt-3 text-slate-600">
-            Pay the enrollment fee of <strong>₦6,000</strong> from your applicant dashboard to unlock this form automatically.
-          </p>
-          <button onClick={() => router.push("/applicant")} className="mt-6 w-full rounded-lg bg-red-700 px-4 py-3 font-black text-white">
-            Go to Applicant Dashboard
-          </button>
-        </section>
-      </main>
-    );
-  }
-
   return (
     <main className="min-h-screen bg-red-50 px-4 py-20 text-slate-950">
       <section className="mx-auto max-w-5xl overflow-hidden rounded-2xl border border-red-100 bg-white shadow-xl">
         <div className="bg-red-900 px-6 py-7 text-white">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-red-100">Paid Applicant</p>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-red-100">Applicant Form</p>
           <h1 className="mt-2 text-3xl font-black">Student Admission Form</h1>
           <p className="mt-2 text-sm text-red-100">
-            Applicant ID: {applicant.applicantId}. Complete all required details carefully.
+            Applicant ID: {applicant.applicantId}. Complete the form first, then pay the enrollment fee from your dashboard.
           </p>
         </div>
 

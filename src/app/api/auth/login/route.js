@@ -6,17 +6,19 @@ import { requireApplicantEmailVerification } from "../../../../lib/applicantVeri
 import { connectMongoDB } from "../../../../lib/connect";
 import { requireEmailVerification } from "../../../../lib/emailVerification";
 import { logActivity } from "../../../../lib/logActivity";
+import Settings from "../../../../models/Settings";
 import User from "../../../../models/User";
 
-function authCookieOptions() {
+function authCookieOptions(sessionTimeout) {
   const isProduction = process.env.NODE_ENV === "production";
+  const timeoutMinutes = Math.max(Number(sessionTimeout) || 30, 5);
 
   return {
     httpOnly: true,
     secure: isProduction,
     sameSite: isProduction ? "none" : "lax",
     path: "/",
-    maxAge: 60 * 60 * 24 * 7,
+    maxAge: timeoutMinutes * 60,
   };
 }
 
@@ -31,6 +33,11 @@ export async function POST(req) {
     const normalizedUsername = String(username || "").trim();
 
     await connectMongoDB();
+    const settings = await Settings.findOne().lean();
+    const maxLoginAttempts = Math.max(
+      Number(settings?.maxLoginAttempts) || 5,
+      1,
+    );
 
     let user;
 
@@ -42,10 +49,10 @@ export async function POST(req) {
       });
     }
 
-    // STUDENT / TEACHER LOGIN
+    // SHARED PORTAL LOGIN
     else {
       user = await User.findOne({
-        email: normalizedEmail,
+        $or: [{ email: normalizedEmail }, { username: normalizedEmail }],
         isDeleted: { $ne: true },
       });
     }
@@ -66,7 +73,7 @@ export async function POST(req) {
       });
     }
 
-    // ROLE CHECK. The student portal login can authenticate students or teachers.
+    // ROLE CHECK. The shared portal login can authenticate students, teachers, or admins.
     if (role && user.role !== role) {
       return NextResponse.json({
         success: false,
@@ -74,7 +81,7 @@ export async function POST(req) {
       });
     }
 
-    if (!role && !["student", "teacher"].includes(user.role)) {
+    if (!role && !["student", "teacher", "admin"].includes(user.role)) {
       return NextResponse.json({
         success: false,
         message: "Use the correct login page for this account.",
@@ -124,7 +131,7 @@ export async function POST(req) {
         user.email || user.username || normalizedEmail || normalizedUsername;
 
       // LOCK ACCOUNT
-      if (failedLoginAttempts >= 5) {
+      if (failedLoginAttempts >= maxLoginAttempts) {
         await User.updateOne(
           { _id: user._id },
           {
@@ -230,7 +237,11 @@ export async function POST(req) {
     });
 
     // SET COOKIE
-    response.cookies.set("auth_token", token, authCookieOptions());
+    response.cookies.set(
+      "auth_token",
+      token,
+      authCookieOptions(settings?.sessionTimeout),
+    );
 
     return response;
   } catch (error) {

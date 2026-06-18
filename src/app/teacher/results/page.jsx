@@ -220,8 +220,9 @@ export default function TeacherResultsPage() {
       classStudents.map((student) => ({
         "Admission Number": student.admissionNumber || "",
         "Student Name": student.fullName || "",
-        "CA Score": "",
-        "Exam Score": "",
+        "1st CA (10)": "",
+        "2nd CA (10)": "",
+        "Exam (80)": "",
       })),
       "Broadsheet",
       `${safeFileName(upload.className)}-${safeFileName(upload.subject)}-broadsheet-template.xlsx`,
@@ -263,8 +264,8 @@ export default function TeacherResultsPage() {
           <div>
             <h2 className="text-lg font-black">Subject Teacher Upload</h2>
             <p className="text-sm text-slate-500">
-              Template columns: Admission Number, Student Name, CA Score, Exam
-              Score.
+              Template columns: Admission Number, Student Name, 1st CA (10), 2nd
+              CA (10), Exam (80).
             </p>
           </div>
 

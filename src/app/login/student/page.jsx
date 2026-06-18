@@ -30,7 +30,13 @@ export default function StudentLogin() {
       const data = await res.json();
       if (data.success) {
         toast.success("Welcome back");
-        router.push(data.role === "teacher" ? "/teacher" : "/student");
+        const destination =
+          data.role === "admin"
+            ? "/admin"
+            : data.role === "teacher"
+              ? "/teacher"
+              : "/student";
+        router.push(destination);
       } else {
         toast.error(data.message || "Invalid credentials");
       }
@@ -74,7 +80,7 @@ export default function StudentLogin() {
               School Portal
             </h1>
             <p className="text-sm text-gray-500 mt-1">
-              Students and teachers use this same login
+              Students, teachers, and admins use this same login
             </p>
           </div>
 
@@ -142,7 +148,7 @@ export default function StudentLogin() {
                 className="peer w-full px-4 pt-5 pb-2 rounded-xl border border-gray-200 bg-white outline-none focus:ring-2 focus:ring-black/10 transition"
               />
               <label className="absolute left-4 top-2 text-xs text-gray-400 transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-sm peer-placeholder-shown:text-gray-500">
-                Email Address
+                Email or Username
               </label>
             </div>
 

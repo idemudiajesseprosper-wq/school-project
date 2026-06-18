@@ -146,16 +146,34 @@ export default function ApplicantDashboardPage() {
       </section>
 
       <section className="mx-4 mb-8 rounded-xl border border-red-100 bg-white p-5 shadow-sm md:mx-8">
-        {!paid ? (
+        {!applicationStatus || applicationStatus === "not_started" ? (
           <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
             <div>
               <h2 className="text-xl font-black text-red-950">
-                Enrollment form locked
+                Start Your Enrollment Form
               </h2>
               <p className="mt-2 text-sm text-slate-600">
-                Pay exactly NGN 6,000 through Paystack to unlock the application
-                form. Paystack verifies the payment automatically and settles
-                the balance into the school's bank account after fees.
+                Complete the admission form first. After submitting it, you can
+                pay the NGN 6,000 enrollment fee from this dashboard.
+              </p>
+            </div>
+            <a
+              href="/apply"
+              className="rounded-lg bg-red-700 px-6 py-4 text-center text-base font-black text-white shadow-lg hover:bg-red-800"
+            >
+              Start Application
+            </a>
+          </div>
+        ) : !paid ? (
+          <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
+            <div>
+              <h2 className="text-xl font-black text-red-950">
+                Enrollment Fee Pending
+              </h2>
+              <p className="mt-2 text-sm text-slate-600">
+                Your form is available without payment. Pay exactly NGN 6,000
+                through Paystack when you are ready to complete the enrollment
+                fee step.
               </p>
             </div>
             <button
@@ -209,10 +227,10 @@ export default function ApplicantDashboardPage() {
           <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
             <div>
               <h2 className="text-xl font-black text-red-950">
-                Payment Successful
+                Enrollment Fee Paid
               </h2>
               <p className="mt-2 text-sm text-slate-600">
-                Enrollment fee paid. You may now proceed with your application.
+                Payment confirmed. You may now complete your admission form.
               </p>
             </div>
             <a

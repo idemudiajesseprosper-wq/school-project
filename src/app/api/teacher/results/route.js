@@ -42,7 +42,7 @@ function readRowsFromWorkbook(buffer) {
 function pick(row, names) {
   const entries = Object.entries(row);
   for (const [key, value] of entries) {
-    const normalized = key.toLowerCase().replace(/\s+/g, "");
+    const normalized = key.toLowerCase().replace(/[^a-z0-9]/g, "");
     if (names.includes(normalized)) return value;
   }
   return "";
@@ -76,8 +76,18 @@ async function buildScores(rows, className) {
       pick(row, ["admissionnumber", "admissionno"]),
     );
     const studentName = normalizeText(pick(row, ["studentname", "name"]));
-    const caScore = toScoreNumber(pick(row, ["cascore", "ca"]));
-    const examScore = toScoreNumber(pick(row, ["examscore", "exam"]));
+    const firstCaScore = toScoreNumber(
+      pick(row, ["1stca", "firstca", "ca1", "firstcascore"]),
+    );
+    const secondCaScore = toScoreNumber(
+      pick(row, ["2ndca", "secondca", "ca2", "secondcascore"]),
+    );
+    const oldCaScore = toScoreNumber(pick(row, ["cascore", "ca"]));
+    const caScore =
+      firstCaScore !== null || secondCaScore !== null
+        ? (firstCaScore || 0) + (secondCaScore || 0)
+        : oldCaScore;
+    const examScore = toScoreNumber(pick(row, ["examscore", "exam", "exam80"]));
 
     if (!admissionNumber) {
       errors.push(`Row ${rowNumber}: Admission Number is required.`);
@@ -98,8 +108,28 @@ async function buildScores(rows, className) {
       return;
     }
 
+    if (
+      (firstCaScore === null && secondCaScore !== null) ||
+      (firstCaScore !== null && secondCaScore === null)
+    ) {
+      errors.push(`Row ${rowNumber}: enter both 1st CA and 2nd CA.`);
+      return;
+    }
+
     if (caScore === null || examScore === null) {
-      errors.push(`Row ${rowNumber}: CA Score and Exam Score must be numbers.`);
+      errors.push(
+        `Row ${rowNumber}: 1st CA, 2nd CA, and Exam Score must be numbers.`,
+      );
+      return;
+    }
+
+    if (firstCaScore !== null && (firstCaScore < 0 || firstCaScore > 10)) {
+      errors.push(`Row ${rowNumber}: 1st CA must be between 0 and 10.`);
+      return;
+    }
+
+    if (secondCaScore !== null && (secondCaScore < 0 || secondCaScore > 10)) {
+      errors.push(`Row ${rowNumber}: 2nd CA must be between 0 and 10.`);
       return;
     }
 
@@ -110,12 +140,23 @@ async function buildScores(rows, className) {
       return;
     }
 
+    if ((firstCaScore !== null || secondCaScore !== null) && examScore > 80) {
+      errors.push(`Row ${rowNumber}: Exam score must be between 0 and 80.`);
+      return;
+    }
+
     const totalScore = caScore + examScore;
+    const savedFirstCaScore =
+      firstCaScore ?? Math.min(Math.max(caScore, 0), 10);
+    const savedSecondCaScore =
+      secondCaScore ?? Math.min(Math.max(caScore - savedFirstCaScore, 0), 10);
     scores.push({
       student: student._id,
       admissionNumber,
       studentName: student.fullName || studentName,
       caScore,
+      firstCaScore: savedFirstCaScore,
+      secondCaScore: savedSecondCaScore,
       examScore,
       totalScore,
       grade: gradeFromTotal(totalScore),

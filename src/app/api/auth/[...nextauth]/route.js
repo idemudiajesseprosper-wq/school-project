@@ -31,7 +31,7 @@ export const authOptions = {
 
         if (
           existingUser &&
-          !["student", "teacher"].includes(existingUser.role)
+          !["student", "teacher", "admin"].includes(existingUser.role)
         ) {
           return false;
         }

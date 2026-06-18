@@ -20,7 +20,8 @@ function authCookieOptions() {
 
 function getSafeCallbackUrl(req, role) {
   const { searchParams } = new URL(req.url);
-  const fallback = role === "teacher" ? "/teacher" : "/student";
+  const fallback =
+    role === "admin" ? "/admin" : role === "teacher" ? "/teacher" : "/student";
   const callbackUrl = searchParams.get("callbackUrl") || fallback;
 
   if (!callbackUrl.startsWith("/") || callbackUrl.startsWith("//")) {
@@ -28,6 +29,10 @@ function getSafeCallbackUrl(req, role) {
   }
 
   if (role === "teacher" && callbackUrl.startsWith("/teacher")) {
+    return callbackUrl;
+  }
+
+  if (role === "admin" && callbackUrl.startsWith("/admin")) {
     return callbackUrl;
   }
 
@@ -55,7 +60,7 @@ export async function GET(req) {
 
     if (
       !user ||
-      !["student", "teacher"].includes(user.role) ||
+      !["student", "teacher", "admin"].includes(user.role) ||
       user.isSuspended
     ) {
       return NextResponse.redirect(

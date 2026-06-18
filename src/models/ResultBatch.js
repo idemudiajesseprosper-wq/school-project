@@ -23,6 +23,18 @@ const ScoreSchema = new mongoose.Schema(
       min: 0,
       max: 100,
     },
+    firstCaScore: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 10,
+    },
+    secondCaScore: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 10,
+    },
     examScore: {
       type: Number,
       required: true,

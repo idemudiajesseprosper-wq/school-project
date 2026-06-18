@@ -15,26 +15,30 @@ export async function GET(req) {
   if (!academicSession || !term || !className) {
     return NextResponse.json(
       { success: false, message: "Session and term are required." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
-  const result = await compileClassResults({ academicSession, term, className });
+  const result = await compileClassResults({
+    academicSession,
+    term,
+    className,
+  });
   if (!result.isPublished) {
     return NextResponse.json(
       { success: false, message: "This result has not been published yet." },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
   const student = result.students.find(
-    (item) => item.studentId === String(auth.user._id)
+    (item) => item.studentId === String(auth.user._id),
   );
 
   if (!student) {
     return NextResponse.json(
       { success: false, message: "Result not found." },
-      { status: 404 }
+      { status: 404 },
     );
   }
 
@@ -46,6 +50,12 @@ export async function GET(req) {
       className,
       schoolName: "Winners' Foundation School",
       schoolLogo: "/logo.PNG",
+      schoolMotto: "Excellence through faith and industry",
+      schoolAddress:
+        "2, Airhueghiomon street, Osazuwa, Off Etete Road, Enogie, Benin City",
+      schoolState: "Edo State",
+      schoolContact: "wfsonline1999@gmail.com",
+      classAverage: result.classAverage,
       student,
     },
   });

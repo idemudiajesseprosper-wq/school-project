@@ -4,7 +4,9 @@ import { requireApplicantEmailVerification } from "../../../lib/applicantVerific
 import { getAuthUser, unauthorized } from "../../../lib/authUser";
 import { connectMongoDB } from "../../../lib/connect";
 import { baseEmail, sendEnrollmentEmail } from "../../../lib/enrollmentEmail";
+import { logActivity } from "../../../lib/logActivity";
 import Application from "../../../models/Application";
+import Settings from "../../../models/Settings";
 import User from "../../../models/User";
 
 export async function POST(req) {
@@ -24,16 +26,6 @@ export async function POST(req) {
       );
     }
 
-    if (auth.user.paymentStatus !== "paid") {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Pay the enrollment fee before starting application.",
-        },
-        { status: 403 },
-      );
-    }
-
     if (
       !data.fullName ||
       !data.classApplying ||
@@ -47,6 +39,10 @@ export async function POST(req) {
     }
 
     await connectMongoDB();
+    const [settings, existingApplication] = await Promise.all([
+      Settings.findOne().lean(),
+      Application.findOne({ applicant: auth.user._id }).lean(),
+    ]);
 
     const application = await Application.findOneAndUpdate(
       { applicant: auth.user._id },
@@ -54,8 +50,8 @@ export async function POST(req) {
         applicant: auth.user._id,
         applicantId: auth.user.applicantId,
         email: auth.user.email,
-        paymentStatus: "paid",
-        paystackReference: auth.user.paystackReference,
+        paymentStatus: auth.user.paymentStatus === "paid" ? "paid" : "unpaid",
+        paystackReference: auth.user.paystackReference || "",
         fullName: data.fullName,
         passport: data.passport,
         birthCertificate: data.birthCertificate || "",
@@ -102,6 +98,56 @@ export async function POST(req) {
         `<p>Dear <strong>${data.fullName}</strong>, your application has been submitted and is now under review.</p>`,
       ),
     });
+
+    if (settings?.notifyOnNewStudent !== false) {
+      const isNewApplication = !existingApplication;
+      await logActivity({
+        userId: auth.user._id,
+        userName: data.fullName,
+        action: isNewApplication
+          ? "APPLICATION_SUBMITTED"
+          : "APPLICATION_RESUBMITTED",
+        target: auth.user.email,
+        metadata: {
+          role: "applicant",
+          applicantId: auth.user.applicantId,
+          applicationId: String(application._id),
+          classApplying: data.classApplying,
+          parentName: data.parentName,
+          parentPhone: data.parentPhone,
+          paymentStatus: application.paymentStatus,
+          status: application.status,
+          alertType: "admission_application_pending_approval",
+          emailNotifications: settings?.emailNotifications !== false,
+          smsNotifications: settings?.smsNotifications === true,
+        },
+      });
+
+      if (settings?.emailNotifications !== false) {
+        const adminEmail =
+          settings?.supportEmail ||
+          settings?.schoolEmail ||
+          "wfsonline1999@gmail.com";
+
+        await sendEnrollmentEmail({
+          to: adminEmail,
+          subject: isNewApplication
+            ? "New admission application pending approval"
+            : "Admission application resubmitted",
+          html: baseEmail(
+            isNewApplication
+              ? "New Admission Application"
+              : "Admission Application Resubmitted",
+            `<p><strong>${data.fullName}</strong> submitted an admission application and is waiting for admin review.</p>
+             <p><strong>Class applying:</strong> ${data.classApplying}</p>
+             <p><strong>Applicant ID:</strong> ${auth.user.applicantId || "Not set"}</p>
+             <p><strong>Email:</strong> ${auth.user.email}</p>
+             <p><strong>Parent/Guardian:</strong> ${data.parentName} (${data.parentPhone})</p>
+             <p><strong>Payment status:</strong> ${application.paymentStatus}</p>`,
+          ),
+        });
+      }
+    }
 
     return NextResponse.json({
       success: true,

@@ -26,6 +26,27 @@ export function remarkFromAverage(average) {
   return "Needs significant improvement and closer attention to studies.";
 }
 
+export function principalRemarkFromAverage(average) {
+  if (average >= 80)
+    return "An outstanding result. The school is proud of this performance.";
+  if (average >= 70)
+    return "A very good result. Keep working hard and aim even higher.";
+  if (average >= 60)
+    return "A good result. More consistency will lead to stronger performance.";
+  if (average >= 50)
+    return "A fair result. Greater effort and focus are needed next term.";
+  return "Performance is below expectation. Serious improvement is required.";
+}
+
+export function subjectRemarkFromTotal(total) {
+  if (total >= 75) return "Excellent";
+  if (total >= 70) return "Very Good";
+  if (total >= 60) return "Good";
+  if (total >= 50) return "Average";
+  if (total >= 45) return "Pass";
+  return "Needs Improvement";
+}
+
 export function overallGradeFromAverage(average) {
   return gradeFromTotal(Math.round(average || 0));
 }
@@ -79,6 +100,25 @@ export async function compileClassResults({
     const subjects = [];
 
     for (const batch of batches) {
+      const rankedScores = [...(batch.scores || [])].sort(
+        (a, b) =>
+          b.totalScore - a.totalScore ||
+          (a.studentName || "").localeCompare(b.studentName || ""),
+      );
+      const subjectPositions = new Map();
+      let previousSubjectTotal = null;
+      let previousSubjectPosition = 0;
+      rankedScores.forEach((item, index) => {
+        if (item.totalScore === previousSubjectTotal) {
+          subjectPositions.set(String(item.student), previousSubjectPosition);
+        } else {
+          const position = index + 1;
+          subjectPositions.set(String(item.student), position);
+          previousSubjectPosition = position;
+          previousSubjectTotal = item.totalScore;
+        }
+      });
+
       const score = batch.scores.find(
         (item) => String(item.student) === String(student._id),
       );
@@ -87,9 +127,13 @@ export async function compileClassResults({
         subjects.push({
           subject: batch.subject,
           caScore: score.caScore,
+          firstCaScore: score.firstCaScore ?? score.caScore ?? 0,
+          secondCaScore: score.secondCaScore ?? 0,
           examScore: score.examScore,
           totalScore: score.totalScore,
           grade: score.grade,
+          position: subjectPositions.get(String(student._id)) || "",
+          remark: subjectRemarkFromTotal(score.totalScore),
         });
       }
     }
@@ -113,7 +157,9 @@ export async function compileClassResults({
       position: null,
       classTeacherRemark:
         savedRemark?.classTeacherRemark || remarkFromAverage(averageScore),
-      principalRemark: savedRemark?.principalRemark || "",
+      principalRemark:
+        savedRemark?.principalRemark ||
+        principalRemarkFromAverage(averageScore),
       attendance: savedRemark?.attendance || "",
     };
   });
@@ -135,10 +181,23 @@ export async function compileClassResults({
     }
   });
 
+  const classAverage = rows.length
+    ? Number(
+        (
+          rows.reduce((sum, row) => sum + row.averageScore, 0) / rows.length
+        ).toFixed(2),
+      )
+    : 0;
+
+  rows.forEach((row) => {
+    row.classAverage = classAverage;
+  });
+
   return {
     academicSession,
     term,
     className: normalizedClassName,
+    classAverage,
     isPublished: Boolean(publication?.isPublished),
     students: rows,
     subjects: batches.map((batch) => batch.subject).sort(),

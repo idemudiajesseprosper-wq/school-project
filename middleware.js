@@ -34,7 +34,7 @@ export function middleware(req) {
     if (!token) {
       console.log("NO ADMIN TOKEN FOUND");
 
-      return NextResponse.redirect(new URL("/admin/login", req.url));
+      return NextResponse.redirect(new URL("/login/student", req.url));
     }
 
     if (role !== "admin") {

@@ -13,6 +13,12 @@ import {
 } from "../../../../lib/email";
 import { requireEmailVerification } from "../../../../lib/emailVerification";
 import { generateStudentIdNumber } from "../../../../lib/enrollment";
+import {
+  baseEmail,
+  sendEnrollmentEmail,
+} from "../../../../lib/enrollmentEmail";
+import { logActivity } from "../../../../lib/logActivity";
+import Settings from "../../../../models/Settings";
 import User from "../../../../models/User";
 
 export async function POST(req) {
@@ -45,6 +51,25 @@ export async function POST(req) {
     }
 
     await connectMongoDB();
+    const settings = await Settings.findOne().lean();
+
+    if (settings?.allowRegistration === false) {
+      return NextResponse.json({
+        success: false,
+        message: "Registration is currently disabled.",
+      });
+    }
+
+    const minPasswordLength = Math.max(
+      Number(settings?.passwordMinLength) || 8,
+      6,
+    );
+    if (password.length < minPasswordLength) {
+      return NextResponse.json({
+        success: false,
+        message: `Password must be at least ${minPasswordLength} characters.`,
+      });
+    }
 
     const normalizedEmail = email.trim().toLowerCase();
     const existingUser = await User.findOne({ email: normalizedEmail });
@@ -83,7 +108,7 @@ export async function POST(req) {
       ? crypto.randomBytes(32).toString("hex")
       : null;
 
-    await User.create({
+    const createdUser = await User.create({
       fullName,
       email: normalizedEmail,
       password: hashedPassword,
@@ -114,6 +139,45 @@ export async function POST(req) {
       classTeacherClasses: normalizedAssignedClasses,
       qualification: requestedRole === "teacher" ? qualification || "" : "",
     });
+
+    if (requestedRole === "student" && settings?.notifyOnNewStudent !== false) {
+      await logActivity({
+        userId: createdUser._id,
+        userName: fullName,
+        action: "REGISTER",
+        target: normalizedEmail,
+        metadata: {
+          role: "student",
+          studentClass: normalizedStudentClass,
+          admissionNumber: generatedStudentId,
+          alertType: "new_student_registration",
+          emailNotifications: settings?.emailNotifications !== false,
+          smsNotifications: settings?.smsNotifications === true,
+        },
+      });
+
+      if (settings?.emailNotifications !== false) {
+        try {
+          const adminEmail =
+            settings?.supportEmail ||
+            settings?.schoolEmail ||
+            "wfsonline1999@gmail.com";
+          await sendEnrollmentEmail({
+            to: adminEmail,
+            subject: "New student registration",
+            html: baseEmail(
+              "New student registration",
+              `<p><strong>${fullName}</strong> just registered as a student.</p>
+               <p><strong>Class:</strong> ${normalizedStudentClass || "Not set"}</p>
+               <p><strong>Student ID:</strong> ${generatedStudentId}</p>
+               <p><strong>Email:</strong> ${normalizedEmail}</p>`,
+            ),
+          });
+        } catch (emailError) {
+          console.log("New student alert email failed:", emailError.message);
+        }
+      }
+    }
 
     if (needsVerification) {
       await sendVerificationEmail(
