@@ -1,6 +1,6 @@
+import { NextResponse } from "next/server";
 import { connectMongoDB } from "../../../lib/connect";
 import Code from "../../../models/Code";
-import { NextResponse } from "next/server";
 
 function generateCode() {
   const random = Math.floor(1000 + Math.random() * 9000);
@@ -19,9 +19,9 @@ export async function POST() {
 
     return NextResponse.json({ code: code.code });
   } catch (error) {
-  console.log("ERROR:", error);
-  return NextResponse.json({ error: error.message });
-}
+    console.log("ERROR:", error);
+    return NextResponse.json({ error: error.message });
+  }
 }
 
 // ✅ ADD THIS (so browser can access it)

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getAuthUser, unauthorized } from "../../../../lib/authUser";
 import { normalizeClassList } from "../../../../lib/classes";
 import Assignment from "../../../../models/Assignment";
+import Notification from "../../../../models/Notification";
 
 function toArray(value) {
   if (Array.isArray(value)) return value.filter(Boolean);
@@ -92,6 +93,21 @@ export async function POST(req) {
     fileUrl: body.fileUrl || "",
     fileName: body.fileName || "",
     deadline: new Date(body.deadline),
+  });
+
+  const deadlineText = new Date(body.deadline).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+
+  await Notification.create({
+    title: `New assignment: ${assignment.title}`,
+    message: `${auth.user.fullName} posted a ${subject} assignment due ${deadlineText}.`,
+    classes,
+    teacherId: auth.user._id,
+    teacherName: auth.user.fullName,
   });
 
   return NextResponse.json({ success: true, assignment });

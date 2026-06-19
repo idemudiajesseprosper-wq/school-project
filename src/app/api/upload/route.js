@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
+import { NextResponse } from "next/server";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -28,29 +28,37 @@ export async function POST(req) {
     }
 
     if (file.size > maxSize) {
-      return NextResponse.json({ success: false, error: "File must not exceed 5MB" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: "File must not exceed 5MB" },
+        { status: 400 },
+      );
     }
 
     if (file.type && !allowedTypes.has(file.type)) {
-      return NextResponse.json({ success: false, error: "Unsupported file type" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: "Unsupported file type" },
+        { status: 400 },
+      );
     }
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
     const upload = await new Promise((resolve, reject) => {
-      cloudinary.uploader.upload_stream(
-        {
-          folder,
-          resource_type: "auto",
-          use_filename: true,
-          unique_filename: true,
-        },
-        (err, result) => {
-          if (err) reject(err);
-          else resolve(result);
-        }
-      ).end(buffer);
+      cloudinary.uploader
+        .upload_stream(
+          {
+            folder,
+            resource_type: "auto",
+            use_filename: true,
+            unique_filename: true,
+          },
+          (err, result) => {
+            if (err) reject(err);
+            else resolve(result);
+          },
+        )
+        .end(buffer);
     });
 
     return NextResponse.json({
@@ -59,7 +67,6 @@ export async function POST(req) {
       publicId: upload.public_id,
       originalName: file.name,
     });
-
   } catch (error) {
     console.log("UPLOAD ERROR:", error);
     return NextResponse.json({ success: false, error: "Upload failed" });

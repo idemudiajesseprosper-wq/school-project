@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import { NextResponse } from "next/server";
 import { connectMongoDB } from "../../../lib/connect";
 import User from "../../../models/User";
 
@@ -19,15 +19,14 @@ export async function GET() {
         role: "admin",
         isVerified: true,
       },
-      { upsert: true, new: true }
+      { upsert: true, new: true },
     );
 
     return NextResponse.json({
       success: true,
       message: "Admin ready",
     });
-
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json({
       success: false,
       message: "Error creating admin",

@@ -1,27 +1,19 @@
-import { NextResponse }
-from "next/server";
-
 import jwt from "jsonwebtoken";
+import { NextResponse } from "next/server";
 
-import { connectMongoDB }
-from "../../../../../lib/connect";
+import { connectMongoDB } from "../../../../../lib/connect";
 
-import User
-from "../../../../../models/User";
+import User from "../../../../../models/User";
 
 export async function GET(req, context) {
-
   try {
-
     await connectMongoDB();
 
     // FIX: await params in Next.js App Router
     const { id } = await context.params;
 
     // GET TOKEN
-    const token =
-      req.cookies.get("auth_token")
-      ?.value;
+    const token = req.cookies.get("auth_token")?.value;
 
     // NO TOKEN
     if (!token) {
@@ -32,10 +24,7 @@ export async function GET(req, context) {
     }
 
     // VERIFY TOKEN
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET
-    );
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // CHECK ADMIN
     if (decoded.role !== "admin") {
@@ -46,9 +35,7 @@ export async function GET(req, context) {
     }
 
     // GET USER
-    const student =
-      await User.findById(id)
-        .select("-password");
+    const student = await User.findById(id).select("-password");
 
     // NOT FOUND
     if (!student) {
@@ -62,9 +49,7 @@ export async function GET(req, context) {
       success: true,
       student,
     });
-
   } catch (error) {
-
     console.log(error);
 
     return NextResponse.json({

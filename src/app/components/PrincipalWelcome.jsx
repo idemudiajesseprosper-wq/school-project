@@ -217,7 +217,6 @@ export default function PrincipalWelcome() {
       `}</style>
 
       <section className="welcome-section">
-
         {/* ── LEFT: Portrait ── */}
         <div className="portrait-col">
           <div className="portrait-frame">
@@ -239,39 +238,52 @@ export default function PrincipalWelcome() {
         <div className="speech-col">
           <p className="section-eyebrow">A Word From Our Proprietor</p>
           <h2 className="section-heading">
-            Welcome to<br /><em>Winners' Foundation School</em>
+            Welcome to
+            <br />
+            <em>Winners' Foundation School</em>
           </h2>
           <div className="rule" />
 
-          <p className="speech-intro">
-            Dear Parent and Student,
-          </p>
+          <p className="speech-intro">Dear Parent and Student,</p>
 
           <p className="speech-body">
-            It is with great joy and a deep sense of purpose that I welcome you to Winners' Foundation School — a place where we believe every child carries within them the seed of greatness, and our role is simply to help it flourish.
+            It is with great joy and a deep sense of purpose that I welcome you
+            to Winners' Foundation School — a place where we believe every child
+            carries within them the seed of greatness, and our role is simply to
+            help it flourish.
           </p>
 
           <div className="quote-block">
             <p>
-              "We do not just educate the mind — we shape character, nurture faith, and build leaders who will leave lasting footprints in their generation."
+              "We do not just educate the mind — we shape character, nurture
+              faith, and build leaders who will leave lasting footprints in
+              their generation."
             </p>
           </div>
 
           <p className="speech-body">
-            We live in a world that is changing rapidly, and we understand the responsibility that comes with preparing your child not only for examinations, but for life. Our curriculum is deliberately designed to develop the whole child — intellectually, socially, morally, and spiritually.
+            We live in a world that is changing rapidly, and we understand the
+            responsibility that comes with preparing your child not only for
+            examinations, but for life. Our curriculum is deliberately designed
+            to develop the whole child — intellectually, socially, morally, and
+            spiritually.
           </p>
 
           <p className="speech-body">
-            At Winners' Foundation School, we are committed to partnering with you as parents because we firmly believe that the home and school must work together as one. Together, we can raise a generation of young people who are grounded in values, driven by purpose, and equipped for excellence.
+            At Winners' Foundation School, we are committed to partnering with
+            you as parents because we firmly believe that the home and school
+            must work together as one. Together, we can raise a generation of
+            young people who are grounded in values, driven by purpose, and
+            equipped for excellence.
           </p>
 
           <p className="speech-body">
-            Thank you for entrusting us with what matters most to you. We do not take that privilege lightly.
+            Thank you for entrusting us with what matters most to you. We do not
+            take that privilege lightly.
           </p>
 
           <button className="read-more-btn">Read Full Message →</button>
         </div>
-
       </section>
     </>
   );

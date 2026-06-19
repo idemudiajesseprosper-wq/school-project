@@ -3,81 +3,123 @@
 import { useEffect, useState } from "react";
 
 const EVENT_TYPES = {
-  login:        { label: "Login",          icon: "ti-login",          bg: "#eff6ff", color: "#2563eb" },
-  logout:       { label: "Logout",         icon: "ti-logout",         bg: "#f0fdf4", color: "#16a34a" },
-  failed_login: { label: "Failed Login",   icon: "ti-shield-x",       bg: "#fef2f2", color: "#dc2626" },
-  password:     { label: "Password Reset", icon: "ti-key",            bg: "#fefce8", color: "#ca8a04" },
-  register:     { label: "Registration",   icon: "ti-user-plus",      bg: "#f5f3ff", color: "#7c3aed" },
-  admin:        { label: "Admin Action",   icon: "ti-settings",       bg: "#fff7ed", color: "#ea580c" },
+  login: { label: "Login", icon: "ti-login", bg: "#eff6ff", color: "#2563eb" },
+  logout: {
+    label: "Logout",
+    icon: "ti-logout",
+    bg: "#f0fdf4",
+    color: "#16a34a",
+  },
+  failed_login: {
+    label: "Failed Login",
+    icon: "ti-shield-x",
+    bg: "#fef2f2",
+    color: "#dc2626",
+  },
+  password: {
+    label: "Password Reset",
+    icon: "ti-key",
+    bg: "#fefce8",
+    color: "#ca8a04",
+  },
+  register: {
+    label: "Registration",
+    icon: "ti-user-plus",
+    bg: "#f5f3ff",
+    color: "#7c3aed",
+  },
+  admin: {
+    label: "Admin Action",
+    icon: "ti-settings",
+    bg: "#fff7ed",
+    color: "#ea580c",
+  },
 };
 
 const ROLE_COLORS = {
-  admin:   { bg: "#ede9fe", color: "#6d28d9" },
+  admin: { bg: "#ede9fe", color: "#6d28d9" },
   student: { bg: "#dbeafe", color: "#1d4ed8" },
   teacher: { bg: "#dcfce7", color: "#15803d" },
-  staff:   { bg: "#fef9c3", color: "#854d0e" },
+  staff: { bg: "#fef9c3", color: "#854d0e" },
 };
 
-const FILTERS = ["All", "Login", "Logout", "Failed Login", "Registration", "Admin Action"];
+const FILTERS = [
+  "All",
+  "Login",
+  "Logout",
+  "Failed Login",
+  "Registration",
+  "Admin Action",
+];
 
 export default function ActivityPage() {
-  const [activities, setActivities]   = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [search, setSearch]           = useState("");
-  const [filter, setFilter]           = useState("All");
-  const [sortDesc, setSortDesc]       = useState(true);
-  const [page, setPage]               = useState(1);
-  const [expandedId, setExpandedId]   = useState(null);
+  const [activities, setActivities] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("All");
+  const [sortDesc, setSortDesc] = useState(true);
+  const [page, setPage] = useState(1);
+  const [expandedId, setExpandedId] = useState(null);
   const PER_PAGE = 8;
 
-  useEffect(() => { fetchActivities(); }, []);
+  useEffect(() => {
+    fetchActivities();
+  }, []);
 
   const fetchActivities = async () => {
     try {
-      const res  = await fetch("/api/admin/activity");
+      const res = await fetch("/api/admin/activity");
       const data = await res.json();
       if (data.success) setActivities(data.activities);
-    } catch (e) { console.log(e); }
-    finally { setLoading(false); }
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   /* ── derived data ── */
   const filtered = activities
-    .filter(a => {
+    .filter((a) => {
       const matchSearch =
         !search ||
         a.fullName?.toLowerCase().includes(search.toLowerCase()) ||
         a.ip?.includes(search) ||
         a.device?.toLowerCase().includes(search.toLowerCase());
       const matchFilter =
-        filter === "All" ||
-        (EVENT_TYPES[a.type]?.label || "Login") === filter;
+        filter === "All" || (EVENT_TYPES[a.type]?.label || "Login") === filter;
       return matchSearch && matchFilter;
     })
     .sort((a, b) =>
       sortDesc
         ? new Date(b.time) - new Date(a.time)
-        : new Date(a.time) - new Date(b.time)
+        : new Date(a.time) - new Date(b.time),
     );
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
-  const paginated  = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+  const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
   const stats = {
-    total:   activities.length,
-    logins:  activities.filter(a => a.type === "login" || !a.type).length,
-    failed:  activities.filter(a => a.type === "failed_login").length,
-    unique:  new Set(activities.map(a => a.ip)).size,
+    total: activities.length,
+    logins: activities.filter((a) => a.type === "login" || !a.type).length,
+    failed: activities.filter((a) => a.type === "failed_login").length,
+    unique: new Set(activities.map((a) => a.ip)).size,
   };
 
-  const handleSearch = v => { setSearch(v); setPage(1); };
-  const handleFilter = v => { setFilter(v); setPage(1); };
+  const handleSearch = (v) => {
+    setSearch(v);
+    setPage(1);
+  };
+  const handleFilter = (v) => {
+    setFilter(v);
+    setPage(1);
+  };
 
   /* ── helpers ── */
   const relativeTime = (iso) => {
     const diff = Date.now() - new Date(iso);
     const m = Math.floor(diff / 60000);
-    if (m < 1)  return "Just now";
+    if (m < 1) return "Just now";
     if (m < 60) return `${m}m ago`;
     const h = Math.floor(m / 60);
     if (h < 24) return `${h}h ago`;
@@ -94,9 +136,15 @@ export default function ActivityPage() {
           <div>
             <p className="eyebrow">Administration</p>
             <h1 className="page-title">Activity Monitor</h1>
-            <p className="page-sub">Real-time login activity and security events.</p>
+            <p className="page-sub">
+              Real-time login activity and security events.
+            </p>
           </div>
-          <button className="btn-refresh" onClick={fetchActivities} title="Refresh">
+          <button
+            className="btn-refresh"
+            onClick={fetchActivities}
+            title="Refresh"
+          >
             <i className="ti ti-refresh" aria-hidden="true" />
             <span>Refresh</span>
           </button>
@@ -105,28 +153,44 @@ export default function ActivityPage() {
         {/* Stats row */}
         <div className="stats-row">
           <div className="stat-card">
-            <i className="ti ti-activity stat-icon" style={{ color: "#2563eb" }} aria-hidden="true" />
+            <i
+              className="ti ti-activity stat-icon"
+              style={{ color: "#2563eb" }}
+              aria-hidden="true"
+            />
             <div>
               <p className="stat-val">{stats.total}</p>
               <p className="stat-label">Total Events</p>
             </div>
           </div>
           <div className="stat-card">
-            <i className="ti ti-login stat-icon" style={{ color: "#16a34a" }} aria-hidden="true" />
+            <i
+              className="ti ti-login stat-icon"
+              style={{ color: "#16a34a" }}
+              aria-hidden="true"
+            />
             <div>
               <p className="stat-val">{stats.logins}</p>
               <p className="stat-label">Logins</p>
             </div>
           </div>
           <div className="stat-card">
-            <i className="ti ti-shield-x stat-icon" style={{ color: "#dc2626" }} aria-hidden="true" />
+            <i
+              className="ti ti-shield-x stat-icon"
+              style={{ color: "#dc2626" }}
+              aria-hidden="true"
+            />
             <div>
               <p className="stat-val stat-danger">{stats.failed}</p>
               <p className="stat-label">Failed</p>
             </div>
           </div>
           <div className="stat-card">
-            <i className="ti ti-world stat-icon" style={{ color: "#7c3aed" }} aria-hidden="true" />
+            <i
+              className="ti ti-world stat-icon"
+              style={{ color: "#7c3aed" }}
+              aria-hidden="true"
+            />
             <div>
               <p className="stat-val">{stats.unique}</p>
               <p className="stat-label">Unique IPs</p>
@@ -144,17 +208,21 @@ export default function ActivityPage() {
             className="search-input"
             placeholder="Search by name, IP, or device…"
             value={search}
-            onChange={e => handleSearch(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)}
           />
           {search && (
-            <button className="search-clear" onClick={() => handleSearch("")} aria-label="Clear search">
+            <button
+              className="search-clear"
+              onClick={() => handleSearch("")}
+              aria-label="Clear search"
+            >
               <i className="ti ti-x" aria-hidden="true" />
             </button>
           )}
         </div>
 
         <div className="filter-chips">
-          {FILTERS.map(f => (
+          {FILTERS.map((f) => (
             <button
               key={f}
               className={`chip ${filter === f ? "chip-active" : ""}`}
@@ -167,10 +235,13 @@ export default function ActivityPage() {
 
         <button
           className="btn-sort"
-          onClick={() => setSortDesc(d => !d)}
+          onClick={() => setSortDesc((d) => !d)}
           title={sortDesc ? "Oldest first" : "Newest first"}
         >
-          <i className={`ti ${sortDesc ? "ti-sort-descending" : "ti-sort-ascending"}`} aria-hidden="true" />
+          <i
+            className={`ti ${sortDesc ? "ti-sort-descending" : "ti-sort-ascending"}`}
+            aria-hidden="true"
+          />
           <span>{sortDesc ? "Newest" : "Oldest"}</span>
         </button>
       </div>
@@ -187,98 +258,134 @@ export default function ActivityPage() {
             <i className="ti ti-inbox empty-icon" aria-hidden="true" />
             <p>No activity found.</p>
             {(search || filter !== "All") && (
-              <button className="btn-clear-filters" onClick={() => { handleSearch(""); handleFilter("All"); }}>
+              <button
+                className="btn-clear-filters"
+                onClick={() => {
+                  handleSearch("");
+                  handleFilter("All");
+                }}
+              >
                 Clear filters
               </button>
             )}
           </div>
         ) : (
-          <>
-            {paginated.map((item, idx) => {
-              const type   = EVENT_TYPES[item.type] || EVENT_TYPES.login;
-              const role   = ROLE_COLORS[item.role] || ROLE_COLORS.student;
-              const isOpen = expandedId === idx;
+          paginated.map((item, idx) => {
+            const type = EVENT_TYPES[item.type] || EVENT_TYPES.login;
+            const role = ROLE_COLORS[item.role] || ROLE_COLORS.student;
+            const isOpen = expandedId === idx;
 
-              return (
+            return (
+              <div
+                key={idx}
+                className={`activity-row ${isOpen ? "activity-row-open" : ""}`}
+                onClick={() => setExpandedId(isOpen ? null : idx)}
+              >
+                {/* Left: icon */}
                 <div
-                  key={idx}
-                  className={`activity-row ${isOpen ? "activity-row-open" : ""}`}
-                  onClick={() => setExpandedId(isOpen ? null : idx)}
+                  className="act-icon"
+                  style={{ background: type.bg, color: type.color }}
                 >
-                  {/* Left: icon */}
-                  <div className="act-icon" style={{ background: type.bg, color: type.color }}>
-                    <i className={`ti ${type.icon}`} aria-hidden="true" />
-                  </div>
-
-                  {/* Middle: info */}
-                  <div className="act-body">
-                    <div className="act-top">
-                      <span className="act-name">{item.fullName || "Unknown User"}</span>
-                      {item.role && (
-                        <span className="role-badge" style={{ background: role.bg, color: role.color }}>
-                          {item.role}
-                        </span>
-                      )}
-                      <span className="event-badge" style={{ background: type.bg, color: type.color }}>
-                        {type.label}
-                      </span>
-                    </div>
-                    <p className="act-device">
-                      <i className="ti ti-device-laptop" aria-hidden="true" style={{ marginRight: 4 }} />
-                      {item.device || "Unknown device"}
-                    </p>
-                    <div className="act-meta">
-                      <span className="ip-chip">
-                        <i className="ti ti-network" aria-hidden="true" />
-                        {item.ip || "—"}
-                      </span>
-                      <span className="act-time">
-                        <i className="ti ti-clock" aria-hidden="true" />
-                        {item.time ? relativeTime(item.time) : "—"}
-                      </span>
-                    </div>
-
-                    {/* Expanded detail */}
-                    {isOpen && (
-                      <div className="act-detail">
-                        <div className="detail-row">
-                          <span className="detail-key">Full timestamp</span>
-                          <span className="detail-val">{item.time ? new Date(item.time).toLocaleString() : "—"}</span>
-                        </div>
-                        {item.email && (
-                          <div className="detail-row">
-                            <span className="detail-key">Email</span>
-                            <span className="detail-val">{item.email}</span>
-                          </div>
-                        )}
-                        {item.location && (
-                          <div className="detail-row">
-                            <span className="detail-key">Location</span>
-                            <span className="detail-val">{item.location}</span>
-                          </div>
-                        )}
-                        {item.browser && (
-                          <div className="detail-row">
-                            <span className="detail-key">Browser</span>
-                            <span className="detail-val">{item.browser}</span>
-                          </div>
-                        )}
-                        {item.type === "failed_login" && (
-                          <div className="detail-row">
-                            <span className="detail-key" style={{ color: "#dc2626" }}>Security note</span>
-                            <span className="detail-val" style={{ color: "#dc2626" }}>Failed authentication attempt</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Right: chevron */}
-                  <i className={`ti ti-chevron-down act-chevron ${isOpen ? "chevron-open" : ""}`} aria-hidden="true" />
+                  <i className={`ti ${type.icon}`} aria-hidden="true" />
                 </div>
-              );
-            })}
-          </>
+
+                {/* Middle: info */}
+                <div className="act-body">
+                  <div className="act-top">
+                    <span className="act-name">
+                      {item.fullName || "Unknown User"}
+                    </span>
+                    {item.role && (
+                      <span
+                        className="role-badge"
+                        style={{ background: role.bg, color: role.color }}
+                      >
+                        {item.role}
+                      </span>
+                    )}
+                    <span
+                      className="event-badge"
+                      style={{ background: type.bg, color: type.color }}
+                    >
+                      {type.label}
+                    </span>
+                  </div>
+                  <p className="act-device">
+                    <i
+                      className="ti ti-device-laptop"
+                      aria-hidden="true"
+                      style={{ marginRight: 4 }}
+                    />
+                    {item.device || "Unknown device"}
+                  </p>
+                  <div className="act-meta">
+                    <span className="ip-chip">
+                      <i className="ti ti-network" aria-hidden="true" />
+                      {item.ip || "—"}
+                    </span>
+                    <span className="act-time">
+                      <i className="ti ti-clock" aria-hidden="true" />
+                      {item.time ? relativeTime(item.time) : "—"}
+                    </span>
+                  </div>
+
+                  {/* Expanded detail */}
+                  {isOpen && (
+                    <div className="act-detail">
+                      <div className="detail-row">
+                        <span className="detail-key">Full timestamp</span>
+                        <span className="detail-val">
+                          {item.time
+                            ? new Date(item.time).toLocaleString()
+                            : "—"}
+                        </span>
+                      </div>
+                      {item.email && (
+                        <div className="detail-row">
+                          <span className="detail-key">Email</span>
+                          <span className="detail-val">{item.email}</span>
+                        </div>
+                      )}
+                      {item.location && (
+                        <div className="detail-row">
+                          <span className="detail-key">Location</span>
+                          <span className="detail-val">{item.location}</span>
+                        </div>
+                      )}
+                      {item.browser && (
+                        <div className="detail-row">
+                          <span className="detail-key">Browser</span>
+                          <span className="detail-val">{item.browser}</span>
+                        </div>
+                      )}
+                      {item.type === "failed_login" && (
+                        <div className="detail-row">
+                          <span
+                            className="detail-key"
+                            style={{ color: "#dc2626" }}
+                          >
+                            Security note
+                          </span>
+                          <span
+                            className="detail-val"
+                            style={{ color: "#dc2626" }}
+                          >
+                            Failed authentication attempt
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Right: chevron */}
+                <i
+                  className={`ti ti-chevron-down act-chevron ${isOpen ? "chevron-open" : ""}`}
+                  aria-hidden="true"
+                />
+              </div>
+            );
+          })
         )}
       </div>
 
@@ -288,7 +395,7 @@ export default function ActivityPage() {
           <button
             className="page-btn"
             disabled={page === 1}
-            onClick={() => setPage(p => p - 1)}
+            onClick={() => setPage((p) => p - 1)}
           >
             <i className="ti ti-chevron-left" aria-hidden="true" /> Prev
           </button>
@@ -298,7 +405,7 @@ export default function ActivityPage() {
           <button
             className="page-btn"
             disabled={page === totalPages}
-            onClick={() => setPage(p => p + 1)}
+            onClick={() => setPage((p) => p + 1)}
           >
             Next <i className="ti ti-chevron-right" aria-hidden="true" />
           </button>

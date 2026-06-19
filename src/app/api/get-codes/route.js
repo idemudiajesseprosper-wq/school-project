@@ -1,6 +1,6 @@
+import { NextResponse } from "next/server";
 import { connectMongoDB } from "../../../lib/connect";
 import Code from "../../../models/Code";
-import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
@@ -14,8 +14,7 @@ export async function GET() {
       success: true,
       codes,
     });
-
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json({
       success: false,
       codes: [],

@@ -17,7 +17,10 @@ export async function PATCH(req, { params }) {
   const submission = await Submission.findById(id);
 
   if (!submission) {
-    return NextResponse.json({ success: false, message: "Submission not found" }, { status: 404 });
+    return NextResponse.json(
+      { success: false, message: "Submission not found" },
+      { status: 404 },
+    );
   }
 
   const assignment = await Assignment.findOne({
@@ -27,7 +30,10 @@ export async function PATCH(req, { params }) {
   });
 
   if (!assignment) {
-    return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
+    return NextResponse.json(
+      { success: false, message: "Forbidden" },
+      { status: 403 },
+    );
   }
 
   submission.grade = grade || "";

@@ -1,38 +1,62 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
 /* ─── Design tokens ──────────────────────────────────────────── */
 const T = {
-  bg:        "#F8F9FC",
-  surface:   "#FFFFFF",
-  card:      "#FFFFFF",
+  bg: "#F8F9FC",
+  surface: "#FFFFFF",
+  card: "#FFFFFF",
   cardHover: "#F5F6FA",
-  border:    "rgba(0,0,0,0.08)",
+  border: "rgba(0,0,0,0.08)",
   borderMid: "rgba(0,0,0,0.14)",
-  amber:     "#F5A623",
-  amberDim:  "rgba(245,166,35,0.10)",
+  amber: "#F5A623",
+  amberDim: "rgba(245,166,35,0.10)",
   amberGlow: "rgba(245,166,35,0.25)",
-  green:     "#3ECFA0",
-  greenDim:  "rgba(62,207,160,0.10)",
-  blue:      "#4C8FE8",
-  blueDim:   "rgba(76,143,232,0.10)",
-  t1:        "#0F1629",
-  t2:        "#4A5378",
-  t3:        "#8B93B0",
+  green: "#3ECFA0",
+  greenDim: "rgba(62,207,160,0.10)",
+  blue: "#4C8FE8",
+  blueDim: "rgba(76,143,232,0.10)",
+  t1: "#0F1629",
+  t2: "#4A5378",
+  t3: "#8B93B0",
 };
 
 /* ─── Period accent palette ──────────────────────────────────── */
 const SUBJECT_COLORS = [
-  { bg: "rgba(76,143,232,0.10)",  border: "rgba(76,143,232,0.25)",  text: "#4C8FE8"  },
-  { bg: "rgba(245,166,35,0.10)",  border: "rgba(245,166,35,0.25)",  text: "#D4890A"  },
-  { bg: "rgba(62,207,160,0.10)",  border: "rgba(62,207,160,0.25)",  text: "#2BA882"  },
-  { bg: "rgba(240,82,82,0.10)",   border: "rgba(240,82,82,0.25)",   text: "#D94040"  },
-  { bg: "rgba(149,97,226,0.10)",  border: "rgba(149,97,226,0.25)",  text: "#8B5CD6"  },
-  { bg: "rgba(245,158,11,0.10)",  border: "rgba(245,158,11,0.25)",  text: "#B45309"  },
+  {
+    bg: "rgba(76,143,232,0.10)",
+    border: "rgba(76,143,232,0.25)",
+    text: "#4C8FE8",
+  },
+  {
+    bg: "rgba(245,166,35,0.10)",
+    border: "rgba(245,166,35,0.25)",
+    text: "#D4890A",
+  },
+  {
+    bg: "rgba(62,207,160,0.10)",
+    border: "rgba(62,207,160,0.25)",
+    text: "#2BA882",
+  },
+  {
+    bg: "rgba(240,82,82,0.10)",
+    border: "rgba(240,82,82,0.25)",
+    text: "#D94040",
+  },
+  {
+    bg: "rgba(149,97,226,0.10)",
+    border: "rgba(149,97,226,0.25)",
+    text: "#8B5CD6",
+  },
+  {
+    bg: "rgba(245,158,11,0.10)",
+    border: "rgba(245,158,11,0.25)",
+    text: "#B45309",
+  },
 ];
 
 const GLOBAL_CSS = `
@@ -113,11 +137,36 @@ const GLOBAL_CSS = `
 `;
 
 const NAV_ITEMS = [
-  { label: "Dashboard",   href: "/student",               icon: "M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z M9 22V12h6v10",                                                                            active: false },
-  { label: "Assignments", href: "/student/assignments",   icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2 M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2",    active: false },
-  { label: "Grades",      href: "/student/grades",        icon: "M18 20V10 M12 20V4 M6 20v-6",                                                                                                            active: false },
-  { label: "Timetable",   href: "/student/timetable",     icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z",                                               active: true  },
-  { label: "Alerts",      href: "/student/notifications", icon: "M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9", active: false },
+  {
+    label: "Dashboard",
+    href: "/student",
+    icon: "M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z M9 22V12h6v10",
+    active: false,
+  },
+  {
+    label: "Assignments",
+    href: "/student/assignments",
+    icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2 M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2",
+    active: false,
+  },
+  {
+    label: "Grades",
+    href: "/student/grades",
+    icon: "M18 20V10 M12 20V4 M6 20v-6",
+    active: false,
+  },
+  {
+    label: "Timetable",
+    href: "/student/timetable",
+    icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z",
+    active: true,
+  },
+  {
+    label: "Alerts",
+    href: "/student/notifications",
+    icon: "M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9",
+    active: false,
+  },
 ];
 
 /* ─── Page ───────────────────────────────────────────────────── */
@@ -132,18 +181,23 @@ export default function StudentSchedulePage() {
 
   const todayName = new Date().toLocaleDateString("en-US", { weekday: "long" });
 
-  useEffect(() => { loadSchedule(); }, []);
+  useEffect(() => {
+    loadSchedule();
+  }, [loadSchedule]);
 
   async function loadSchedule() {
-    const res  = await fetch("/api/student/timetable");
+    const res = await fetch("/api/student/timetable");
     const json = await res.json();
-    if (!json.success) { router.push("/login/student"); return; }
+    if (!json.success) {
+      router.push("/login/student");
+      return;
+    }
     setTimetable(json.timetable);
     setLoading(false);
   }
 
   const activePeriods = useMemo(() => {
-    const day = timetable?.days?.find(d => d.day === activeDay);
+    const day = timetable?.days?.find((d) => d.day === activeDay);
     return day?.periods || [];
   }, [timetable, activeDay]);
 
@@ -151,10 +205,13 @@ export default function StudentSchedulePage() {
   const subjectColorMap = useMemo(() => {
     const map = {};
     let idx = 0;
-    (timetable?.days || []).forEach(d => {
-      (d.periods || []).forEach(p => {
+    (timetable?.days || []).forEach((d) => {
+      (d.periods || []).forEach((p) => {
         const key = (p.subject || p.type || "").toLowerCase();
-        if (key && !map[key]) { map[key] = SUBJECT_COLORS[idx % SUBJECT_COLORS.length]; idx++; }
+        if (key && !map[key]) {
+          map[key] = SUBJECT_COLORS[idx % SUBJECT_COLORS.length];
+          idx++;
+        }
       });
     });
     return map;
@@ -165,17 +222,25 @@ export default function StudentSchedulePage() {
     return subjectColorMap[key] || SUBJECT_COLORS[0];
   }
 
-  if (loading) return (
-    <>
-      <style>{GLOBAL_CSS}</style>
-      <div style={S.loadWrap} className="portal-page">
-        <div style={S.spinner} />
-        <p style={{ fontSize: 14, color: T.t3, marginTop: 12, fontFamily: "'DM Sans',sans-serif" }}>
-          Loading schedule…
-        </p>
-      </div>
-    </>
-  );
+  if (loading)
+    return (
+      <>
+        <style>{GLOBAL_CSS}</style>
+        <div style={S.loadWrap} className="portal-page">
+          <div style={S.spinner} />
+          <p
+            style={{
+              fontSize: 14,
+              color: T.t3,
+              marginTop: 12,
+              fontFamily: "'DM Sans',sans-serif",
+            }}
+          >
+            Loading schedule…
+          </p>
+        </div>
+      </>
+    );
 
   return (
     <div style={S.page} className="portal-page">
@@ -186,13 +251,29 @@ export default function StudentSchedulePage() {
         <aside style={S.sidebar}>
           <div style={S.brandRow}>
             <div style={S.logoMark}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                stroke={T.amber} strokeWidth="2" strokeLinecap="round">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke={T.amber}
+                strokeWidth="2"
+                strokeLinecap="round"
+              >
                 <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
             <div>
-              <p style={{ fontSize: 14, fontWeight: 600, color: T.t1, letterSpacing: "-0.01em" }}>EduPortal</p>
+              <p
+                style={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: T.t1,
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                EduPortal
+              </p>
               <p style={{ fontSize: 11, color: T.t3, marginTop: 1 }}>
                 {timetable?.class || "Winners' Foundation"}
               </p>
@@ -201,11 +282,30 @@ export default function StudentSchedulePage() {
 
           <div style={S.divider} />
 
-          <nav style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1 }}>
-            {NAV_ITEMS.map(n => (
-              <a key={n.label} href={n.href} className={`nav-item${n.active ? " active" : ""}`}>
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <nav
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+              flex: 1,
+            }}
+          >
+            {NAV_ITEMS.map((n) => (
+              <a
+                key={n.label}
+                href={n.href}
+                className={`nav-item${n.active ? " active" : ""}`}
+              >
+                <svg
+                  width="17"
+                  height="17"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <path d={n.icon} />
                 </svg>
                 <span>{n.label}</span>
@@ -215,29 +315,60 @@ export default function StudentSchedulePage() {
 
           {/* Mini week overview */}
           <div style={S.miniWeek}>
-            <p style={{ fontSize: 10, fontWeight: 700, color: T.t3, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>
+            <p
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                color: T.t3,
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+                marginBottom: 8,
+              }}
+            >
               This week
             </p>
-            {DAYS.map(day => {
-              const dayData  = timetable?.days?.find(d => d.day === day);
-              const count    = dayData?.periods?.length || 0;
-              const isToday  = day === todayName;
+            {DAYS.map((day) => {
+              const dayData = timetable?.days?.find((d) => d.day === day);
+              const count = dayData?.periods?.length || 0;
+              const isToday = day === todayName;
               const isActive = day === activeDay;
               return (
-                <button key={day} onClick={() => setActiveDay(day)} style={{
-                  display: "flex", alignItems: "center", justifyContent: "space-between",
-                  width: "100%", padding: "6px 8px", borderRadius: 8,
-                  border: "none", cursor: "pointer",
-                  background: isActive ? T.amberDim : "transparent",
-                  marginBottom: 2,
-                }}>
-                  <span style={{ fontSize: 12, fontWeight: isToday ? 700 : 500, color: isActive ? T.amber : isToday ? T.t1 : T.t3 }}>
-                    {day.slice(0, 3)}{isToday ? " ·" : ""}
+                <button
+                  key={day}
+                  onClick={() => setActiveDay(day)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    width: "100%",
+                    padding: "6px 8px",
+                    borderRadius: 8,
+                    border: "none",
+                    cursor: "pointer",
+                    background: isActive ? T.amberDim : "transparent",
+                    marginBottom: 2,
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: 12,
+                      fontWeight: isToday ? 700 : 500,
+                      color: isActive ? T.amber : isToday ? T.t1 : T.t3,
+                    }}
+                  >
+                    {day.slice(0, 3)}
+                    {isToday ? " ·" : ""}
                   </span>
-                  <span style={{
-                    fontSize: 10, fontWeight: 700, fontFamily: "'JetBrains Mono',monospace",
-                    color: count ? (isActive ? T.amber : T.t2) : T.t3,
-                  }}>{count > 0 ? `${count}p` : "—"}</span>
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      fontFamily: "'JetBrains Mono',monospace",
+                      color: count ? (isActive ? T.amber : T.t2) : T.t3,
+                    }}
+                  >
+                    {count > 0 ? `${count}p` : "—"}
+                  </span>
                 </button>
               );
             })}
@@ -246,8 +377,12 @@ export default function StudentSchedulePage() {
           <div style={S.sideFooter}>
             <div style={S.avatarCircle}>S</div>
             <div>
-              <p style={{ fontSize: 13, fontWeight: 600, color: T.t1 }}>Student</p>
-              <p style={{ fontSize: 11, color: T.t3, marginTop: 1 }}>Class 10B</p>
+              <p style={{ fontSize: 13, fontWeight: 600, color: T.t1 }}>
+                Student
+              </p>
+              <p style={{ fontSize: 11, color: T.t3, marginTop: 1 }}>
+                Class 10B
+              </p>
             </div>
           </div>
         </aside>
@@ -255,26 +390,41 @@ export default function StudentSchedulePage() {
 
       {/* ── Main ────────────────────────────────── */}
       <main className="portal-main" style={S.main}>
-
         {/* Header */}
         <header style={S.header}>
           <div>
             <p style={S.breadcrumb}>Student Portal · Timetable</p>
             <h1 style={S.pageTitle}>
               Class{" "}
-              <em style={{ fontFamily: "'Instrument Serif',serif", fontStyle: "italic", color: T.amber }}>
+              <em
+                style={{
+                  fontFamily: "'Instrument Serif',serif",
+                  fontStyle: "italic",
+                  color: T.amber,
+                }}
+              >
                 Schedule
               </em>
             </h1>
             <p style={{ fontSize: 13, color: T.t3, marginTop: 6 }}>
-              {timetable?.class ? `${timetable.class} · Weekly timetable` : "No timetable published for your class yet."}
+              {timetable?.class
+                ? `${timetable.class} · Weekly timetable`
+                : "No timetable published for your class yet."}
             </p>
           </div>
         </header>
 
         {/* Day tabs */}
-        <div style={{ display: "flex", gap: 8, overflowX: "auto", marginBottom: 24, paddingBottom: 4 }}>
-          {DAYS.map(day => (
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            overflowX: "auto",
+            marginBottom: 24,
+            paddingBottom: 4,
+          }}
+        >
+          {DAYS.map((day) => (
             <button
               key={day}
               onClick={() => setActiveDay(day)}
@@ -282,10 +432,18 @@ export default function StudentSchedulePage() {
             >
               <span style={{ display: "block" }}>{day.slice(0, 3)}</span>
               {day === todayName && (
-                <span style={{
-                  display: "block", fontSize: 9, fontWeight: 700, marginTop: 1,
-                  opacity: 0.7, letterSpacing: "0.06em",
-                }}>TODAY</span>
+                <span
+                  style={{
+                    display: "block",
+                    fontSize: 9,
+                    fontWeight: 700,
+                    marginTop: 1,
+                    opacity: 0.7,
+                    letterSpacing: "0.06em",
+                  }}
+                >
+                  TODAY
+                </span>
               )}
             </button>
           ))}
@@ -296,17 +454,28 @@ export default function StudentSchedulePage() {
           {/* Card head */}
           <div style={S.dayCardHead}>
             <div>
-              <p style={{ fontSize: 15, fontWeight: 700, color: T.t1 }}>{activeDay}</p>
+              <p style={{ fontSize: 15, fontWeight: 700, color: T.t1 }}>
+                {activeDay}
+              </p>
               <p style={{ fontSize: 12, color: T.t3, marginTop: 2 }}>
-                {activePeriods.length} period{activePeriods.length !== 1 ? "s" : ""}
+                {activePeriods.length} period
+                {activePeriods.length !== 1 ? "s" : ""}
               </p>
             </div>
             {activeDay === todayName && (
-              <span style={{
-                fontSize: 11, fontWeight: 700, color: T.amber,
-                background: T.amberDim, border: `1px solid ${T.amberGlow}`,
-                padding: "4px 10px", borderRadius: 20,
-              }}>Today</span>
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: T.amber,
+                  background: T.amberDim,
+                  border: `1px solid ${T.amberGlow}`,
+                  padding: "4px 10px",
+                  borderRadius: 20,
+                }}
+              >
+                Today
+              </span>
             )}
           </div>
 
@@ -314,7 +483,12 @@ export default function StudentSchedulePage() {
           {activePeriods.length > 0 ? (
             <div
               className="period-grid"
-              style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12, padding: 16 }}
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+                gap: 12,
+                padding: 16,
+              }}
             >
               {activePeriods.map((period, i) => {
                 const col = getColor(period);
@@ -330,35 +504,76 @@ export default function StudentSchedulePage() {
                     }}
                   >
                     {/* Period number + type badge */}
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: T.t3, fontFamily: "'JetBrains Mono',monospace" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        marginBottom: 10,
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: T.t3,
+                          fontFamily: "'JetBrains Mono',monospace",
+                        }}
+                      >
                         P{period.periodNumber || i + 1}
                       </span>
                       {isBreak && (
-                        <span style={{
-                          fontSize: 10, fontWeight: 700, color: col.text,
-                          background: T.surface, border: `1px solid ${col.border}`,
-                          padding: "2px 7px", borderRadius: 20, textTransform: "capitalize",
-                        }}>{period.type}</span>
+                        <span
+                          style={{
+                            fontSize: 10,
+                            fontWeight: 700,
+                            color: col.text,
+                            background: T.surface,
+                            border: `1px solid ${col.border}`,
+                            padding: "2px 7px",
+                            borderRadius: 20,
+                            textTransform: "capitalize",
+                          }}
+                        >
+                          {period.type}
+                        </span>
                       )}
                     </div>
 
                     {/* Subject name */}
-                    <p style={{
-                      fontSize: 15, fontWeight: 700, color: col.text,
-                      letterSpacing: "-0.01em", marginBottom: 6, textTransform: "capitalize",
-                    }}>
-                      {period.type === "subject" ? (period.subject || "Subject") : period.type}
+                    <p
+                      style={{
+                        fontSize: 15,
+                        fontWeight: 700,
+                        color: col.text,
+                        letterSpacing: "-0.01em",
+                        marginBottom: 6,
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {period.type === "subject"
+                        ? period.subject || "Subject"
+                        : period.type}
                     </p>
 
                     {/* Time */}
-                    <p style={{ fontSize: 12, color: T.t2, fontFamily: "'JetBrains Mono',monospace", marginBottom: period.teacherName ? 6 : 0 }}>
-                      {period.startTime || "--:--"} – {period.endTime || "--:--"}
+                    <p
+                      style={{
+                        fontSize: 12,
+                        color: T.t2,
+                        fontFamily: "'JetBrains Mono',monospace",
+                        marginBottom: period.teacherName ? 6 : 0,
+                      }}
+                    >
+                      {period.startTime || "--:--"} –{" "}
+                      {period.endTime || "--:--"}
                     </p>
 
                     {/* Teacher */}
                     {period.teacherName && (
-                      <p style={{ fontSize: 12, color: T.t3, marginTop: 2 }}>{period.teacherName}</p>
+                      <p style={{ fontSize: 12, color: T.t3, marginTop: 2 }}>
+                        {period.teacherName}
+                      </p>
                     )}
                   </article>
                 );
@@ -367,12 +582,31 @@ export default function StudentSchedulePage() {
           ) : (
             <div style={{ padding: "56px 20px", textAlign: "center" }}>
               <div style={S.emptyIcon}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={T.amber} strokeWidth="1.6" strokeLinecap="round">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke={T.amber}
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                >
                   <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </div>
-              <p style={{ fontSize: 15, fontWeight: 600, color: T.t1, marginBottom: 6 }}>No periods scheduled</p>
-              <p style={{ fontSize: 13, color: T.t3 }}>Check back after your class teacher updates the timetable.</p>
+              <p
+                style={{
+                  fontSize: 15,
+                  fontWeight: 600,
+                  color: T.t1,
+                  marginBottom: 6,
+                }}
+              >
+                No periods scheduled
+              </p>
+              <p style={{ fontSize: 13, color: T.t3 }}>
+                Check back after your class teacher updates the timetable.
+              </p>
             </div>
           )}
         </div>
@@ -381,9 +615,19 @@ export default function StudentSchedulePage() {
       {/* ── Mobile bottom nav ──────────────────── */}
       <nav className="bottom-nav">
         <div className="bottom-nav-inner">
-          {NAV_ITEMS.map(n => (
-            <a key={n.label} href={n.href} className={`bnav-item${n.active ? " active" : ""}`}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+          {NAV_ITEMS.map((n) => (
+            <a
+              key={n.label}
+              href={n.href}
+              className={`bnav-item${n.active ? " active" : ""}`}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              >
                 <path d={n.icon} />
               </svg>
               {n.label}
@@ -397,26 +641,138 @@ export default function StudentSchedulePage() {
 
 /* ─── Styles ─────────────────────────────────────────────────── */
 const S = {
-  page:        { display: "flex", minHeight: "100vh", background: T.bg },
-  sidebarWrap: { width: 252, flexShrink: 0, position: "sticky", top: 0, height: "100vh" },
-  sidebar:     { height: "100%", display: "flex", flexDirection: "column", padding: "24px 14px", background: T.surface, borderRight: `1px solid ${T.border}` },
-  brandRow:    { display: "flex", alignItems: "center", gap: 10, padding: "0 6px 20px" },
-  logoMark:    { width: 36, height: 36, borderRadius: 10, background: T.amberDim, border: `1px solid ${T.amberGlow}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
-  divider:     { height: "0.5px", background: T.border, margin: "0 0 14px" },
-  miniWeek:    { padding: "14px 4px 4px", borderTop: `1px solid ${T.border}`, marginTop: 12 },
-  sideFooter:  { display: "flex", alignItems: "center", gap: 10, paddingTop: 14, borderTop: `1px solid ${T.border}`, marginTop: 12 },
-  avatarCircle:{ width: 34, height: 34, borderRadius: "50%", background: T.amberDim, border: `1px solid ${T.amberGlow}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: T.amber, flexShrink: 0 },
+  page: { display: "flex", minHeight: "100vh", background: T.bg },
+  sidebarWrap: {
+    width: 252,
+    flexShrink: 0,
+    position: "sticky",
+    top: 0,
+    height: "100vh",
+  },
+  sidebar: {
+    height: "100%",
+    display: "flex",
+    flexDirection: "column",
+    padding: "24px 14px",
+    background: T.surface,
+    borderRight: `1px solid ${T.border}`,
+  },
+  brandRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    padding: "0 6px 20px",
+  },
+  logoMark: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    background: T.amberDim,
+    border: `1px solid ${T.amberGlow}`,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  divider: { height: "0.5px", background: T.border, margin: "0 0 14px" },
+  miniWeek: {
+    padding: "14px 4px 4px",
+    borderTop: `1px solid ${T.border}`,
+    marginTop: 12,
+  },
+  sideFooter: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    paddingTop: 14,
+    borderTop: `1px solid ${T.border}`,
+    marginTop: 12,
+  },
+  avatarCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: "50%",
+    background: T.amberDim,
+    border: `1px solid ${T.amberGlow}`,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 13,
+    fontWeight: 700,
+    color: T.amber,
+    flexShrink: 0,
+  },
 
-  main:        { flex: 1, padding: "36px 40px", maxWidth: "calc(100vw - 252px)", overflowX: "hidden" },
-  header:      { display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16, marginBottom: 24 },
-  breadcrumb:  { fontSize: 11, fontWeight: 600, color: T.t3, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 5 },
-  pageTitle:   { fontSize: 30, fontWeight: 700, color: T.t1, letterSpacing: "-0.025em", lineHeight: 1.1 },
+  main: {
+    flex: 1,
+    padding: "36px 40px",
+    maxWidth: "calc(100vw - 252px)",
+    overflowX: "hidden",
+  },
+  header: {
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    flexWrap: "wrap",
+    gap: 16,
+    marginBottom: 24,
+  },
+  breadcrumb: {
+    fontSize: 11,
+    fontWeight: 600,
+    color: T.t3,
+    textTransform: "uppercase",
+    letterSpacing: "0.1em",
+    marginBottom: 5,
+  },
+  pageTitle: {
+    fontSize: 30,
+    fontWeight: 700,
+    color: T.t1,
+    letterSpacing: "-0.025em",
+    lineHeight: 1.1,
+  },
 
-  dayCard:     { background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, overflow: "hidden" },
-  dayCardHead: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: `1px solid ${T.border}` },
+  dayCard: {
+    background: T.card,
+    border: `1px solid ${T.border}`,
+    borderRadius: 14,
+    overflow: "hidden",
+  },
+  dayCardHead: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "16px 20px",
+    borderBottom: `1px solid ${T.border}`,
+  },
 
-  emptyIcon:   { width: 56, height: 56, borderRadius: "50%", background: T.amberDim, border: `1px solid ${T.amberGlow}`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" },
+  emptyIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: "50%",
+    background: T.amberDim,
+    border: `1px solid ${T.amberGlow}`,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    margin: "0 auto 16px",
+  },
 
-  loadWrap:    { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: T.bg },
-  spinner:     { width: 30, height: 30, border: `2.5px solid ${T.amberDim}`, borderTopColor: T.amber, borderRadius: "50%", animation: "spin 0.7s linear infinite" },
+  loadWrap: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: "100vh",
+    background: T.bg,
+  },
+  spinner: {
+    width: 30,
+    height: 30,
+    border: `2.5px solid ${T.amberDim}`,
+    borderTopColor: T.amber,
+    borderRadius: "50%",
+    animation: "spin 0.7s linear infinite",
+  },
 };

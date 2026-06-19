@@ -61,12 +61,10 @@ export default function TeacherResultsPage() {
     ? teacher.assignedClasses
     : CLASSES;
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: initial dashboard load runs once on mount.
   useEffect(() => {
     loadTeacher();
   }, []);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: this initializes selections after teacher data arrives.
   useEffect(() => {
     if (teacher) {
       const firstClass = classOptions[0] || "";

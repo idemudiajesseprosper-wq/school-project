@@ -27,7 +27,7 @@ export async function POST(req) {
       },
       {
         new: true,
-      }
+      },
     );
 
     if (usedCode) {

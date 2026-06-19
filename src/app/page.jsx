@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import PrincipalWelcome from "./components/PrincipalWelcome";
-import OurMission from "./components/OurMission";
-import WhyChooseUs from "./components/WhyChooseUs";
-import WhatWeOffer from "./components/WhatWeOffer";
 import ContactSection from "./components/ContactSection";
 import Footer from "./components/Footer";
+import OurMission from "./components/OurMission";
+import PrincipalWelcome from "./components/PrincipalWelcome";
+import WhatWeOffer from "./components/WhatWeOffer";
+import WhyChooseUs from "./components/WhyChooseUs";
 
 const GraduationIcon = () => (
   <svg

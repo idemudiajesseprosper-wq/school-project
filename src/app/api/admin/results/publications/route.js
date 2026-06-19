@@ -28,11 +28,15 @@ export async function POST(req) {
   if (!academicSession || !term || !className) {
     return NextResponse.json(
       { success: false, message: "Session, term, and class are required." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
-  const compiled = await compileClassResults({ academicSession, term, className });
+  const compiled = await compileClassResults({
+    academicSession,
+    term,
+    className,
+  });
 
   const publication = await ResultPublication.findOneAndUpdate(
     { academicSession, term, className },
@@ -51,7 +55,7 @@ export async function POST(req) {
         })),
       },
     },
-    { new: true, upsert: true, runValidators: true }
+    { new: true, upsert: true, runValidators: true },
   );
 
   return NextResponse.json({

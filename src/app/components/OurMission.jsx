@@ -139,17 +139,30 @@ export default function OurMission() {
 
         {/* Expandable rest */}
         <div className={`rest-text ${expanded ? "visible" : "hidden"}`}>
-          <p className="mission-body">{REST.split("\n\n").slice(0, -1).join("\n\n")}</p>
+          <p className="mission-body">
+            {REST.split("\n\n").slice(0, -1).join("\n\n")}
+          </p>
           <p className="mission-closing">{REST.split("\n\n").slice(-1)[0]}</p>
         </div>
 
         <div className="mission-pillars">
-          {["Academic Excellence", "Spiritual Growth", "Moral Character", "Talent Development", "Creative Thinking"].map((p) => (
-            <span key={p} className="pillar-tag">{p}</span>
+          {[
+            "Academic Excellence",
+            "Spiritual Growth",
+            "Moral Character",
+            "Talent Development",
+            "Creative Thinking",
+          ].map((p) => (
+            <span key={p} className="pillar-tag">
+              {p}
+            </span>
           ))}
         </div>
 
-        <button className="read-more-btn" onClick={() => setExpanded(!expanded)}>
+        <button
+          className="read-more-btn"
+          onClick={() => setExpanded(!expanded)}
+        >
           {expanded ? "Show Less ↑" : "Read Full Message →"}
         </button>
       </section>

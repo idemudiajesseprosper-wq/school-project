@@ -1,34 +1,34 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
 /* ─── Design tokens ───────────────────────────────────────────────── */
 const T = {
-  bg:        "#F8F9FC",
-  surface:   "#FFFFFF",
-  card:      "#FFFFFF",
+  bg: "#F8F9FC",
+  surface: "#FFFFFF",
+  card: "#FFFFFF",
   cardHover: "#F5F6FA",
-  border:    "rgba(0,0,0,0.08)",
+  border: "rgba(0,0,0,0.08)",
   borderMid: "rgba(0,0,0,0.14)",
 
-  amber:     "#F5A623",
-  amberDim:  "rgba(245,166,35,0.12)",
+  amber: "#F5A623",
+  amberDim: "rgba(245,166,35,0.12)",
   amberGlow: "rgba(245,166,35,0.25)",
 
-  blue:      "#4C8FE8",
-  blueDim:   "rgba(76,143,232,0.12)",
+  blue: "#4C8FE8",
+  blueDim: "rgba(76,143,232,0.12)",
 
-  green:     "#3ECFA0",
-  greenDim:  "rgba(62,207,160,0.12)",
+  green: "#3ECFA0",
+  greenDim: "rgba(62,207,160,0.12)",
 
-  red:       "#F05252",
-  redDim:    "rgba(240,82,82,0.12)",
+  red: "#F05252",
+  redDim: "rgba(240,82,82,0.12)",
 
-  t1:        "#0F1629",
-  t2:        "#4A5378",
-  t3:        "#8B93B0",
+  t1: "#0F1629",
+  t2: "#4A5378",
+  t3: "#8B93B0",
 };
 
 /* ─── Global CSS ─────────────────────────────────────────────────── */
@@ -199,25 +199,46 @@ const GLOBAL_CSS = `
 export default function StudentAssignmentsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState({ assignments: [], submissions: [], notices: [] });
+  const [data, setData] = useState({
+    assignments: [],
+    submissions: [],
+    notices: [],
+  });
   const [drafts, setDrafts] = useState({});
   const [savingId, setSavingId] = useState("");
   const [expandedId, setExpandedId] = useState(null);
-  const [mobileTab, setMobileTab] = useState("assignments");
+  const [_mobileTab, _setMobileTab] = useState("assignments");
 
   const submissionsByAssignment = useMemo(
-    () => Object.fromEntries((data.submissions || []).map((s) => [s.assignmentId, s])),
-    [data.submissions]
+    () =>
+      Object.fromEntries(
+        (data.submissions || []).map((s) => [s.assignmentId, s]),
+      ),
+    [data.submissions],
   );
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, [load]);
 
-  async function load() {
-    const res = await fetch("/api/student/assignments");
-    const json = await res.json();
-    if (!json.success) { router.push("/login/student"); return; }
-    setData(json);
-    setLoading(false);
+  async function load({ redirectOnAuthError = true } = {}) {
+    try {
+      const res = await fetch("/api/student/assignments", {
+        cache: "no-store",
+      });
+      const json = await res.json();
+      if (!json.success) {
+        if (redirectOnAuthError) router.push("/login/student");
+        return false;
+      }
+      setData(json);
+      return true;
+    } catch {
+      if (redirectOnAuthError) router.push("/login/student");
+      return false;
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function uploadFile(file) {
@@ -233,9 +254,11 @@ export default function StudentAssignmentsPage() {
 
   async function submitAssignment(e, assignmentId) {
     e.preventDefault();
+    const form = e.currentTarget;
+    const file = form.file?.files?.[0];
     setSavingId(assignmentId);
     try {
-      const upload = await uploadFile(e.currentTarget.file.files[0]);
+      const upload = await uploadFile(file);
       const res = await fetch("/api/student/assignments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -249,9 +272,19 @@ export default function StudentAssignmentsPage() {
       const json = await res.json();
       if (!json.success) return toast.error(json.message || "Could not submit");
       toast.success("Assignment submitted!");
-      e.currentTarget.reset();
+      form.reset();
+      setDrafts((prev) => ({ ...prev, [assignmentId]: "" }));
+      setData((prev) => ({
+        ...prev,
+        submissions: [
+          json.submission,
+          ...(prev.submissions || []).filter(
+            (submission) => submission.assignmentId !== assignmentId,
+          ),
+        ],
+      }));
       setExpandedId(null);
-      load();
+      load({ redirectOnAuthError: false });
     } catch (err) {
       toast.error(err.message || "Could not submit");
     } finally {
@@ -259,26 +292,36 @@ export default function StudentAssignmentsPage() {
     }
   }
 
-  const pending = (data.assignments || []).filter(a => {
+  const pending = (data.assignments || []).filter((a) => {
     const sub = submissionsByAssignment[a._id];
     return new Date(a.deadline) >= new Date() && !sub;
   });
-  const submitted = (data.assignments || []).filter(a => submissionsByAssignment[a._id]);
-  const overdue   = (data.assignments || []).filter(a => {
+  const submitted = (data.assignments || []).filter(
+    (a) => submissionsByAssignment[a._id],
+  );
+  const overdue = (data.assignments || []).filter((a) => {
     return new Date(a.deadline) < new Date() && !submissionsByAssignment[a._id];
   });
 
-  if (loading) return (
-    <>
-      <style>{GLOBAL_CSS}</style>
-      <div style={S.loadWrap} className="portal-page">
-        <div style={S.loadSpinner} />
-        <p style={{ fontSize: 14, color: T.t3, fontFamily: "'DM Sans', sans-serif", marginTop: 12 }}>
-          Loading assignments…
-        </p>
-      </div>
-    </>
-  );
+  if (loading)
+    return (
+      <>
+        <style>{GLOBAL_CSS}</style>
+        <div style={S.loadWrap} className="portal-page">
+          <div style={S.loadSpinner} />
+          <p
+            style={{
+              fontSize: 14,
+              color: T.t3,
+              fontFamily: "'DM Sans', sans-serif",
+              marginTop: 12,
+            }}
+          >
+            Loading assignments…
+          </p>
+        </div>
+      </>
+    );
 
   return (
     <div style={S.page} className="portal-page">
@@ -291,25 +334,60 @@ export default function StudentAssignmentsPage() {
           <div style={S.logoRow}>
             <div style={S.logoMark}>
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M3 10h14M10 3l7 7-7 7" stroke={T.amber} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path
+                  d="M3 10h14M10 3l7 7-7 7"
+                  stroke={T.amber}
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             </div>
             <div>
-              <p style={{ fontSize: 14, fontWeight: 600, color: T.t1, letterSpacing: "-0.01em" }}>EduPortal</p>
-              <p style={{ fontSize: 11, color: T.t3, marginTop: 1 }}>Winners' Foundation</p>
+              <p
+                style={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: T.t1,
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                EduPortal
+              </p>
+              <p style={{ fontSize: 11, color: T.t3, marginTop: 1 }}>
+                Winners' Foundation
+              </p>
             </div>
           </div>
 
           {/* Stats mini */}
           <div style={S.miniStats}>
             {[
-              { v: pending.length,   l: "Pending",   c: T.amber },
-              { v: submitted.length, l: "Done",       c: T.green },
-              { v: overdue.length,   l: "Overdue",    c: T.red   },
-            ].map(s => (
-              <div key={s.l} style={{ ...S.miniStat, borderColor: s.c + "33" }}>
-                <span style={{ fontSize: 18, fontWeight: 700, color: s.c, fontFamily: "'JetBrains Mono', monospace" }}>{s.v}</span>
-                <span style={{ fontSize: 10, color: T.t3, fontWeight: 500, marginTop: 1 }}>{s.l}</span>
+              { v: pending.length, l: "Pending", c: T.amber },
+              { v: submitted.length, l: "Done", c: T.green },
+              { v: overdue.length, l: "Overdue", c: T.red },
+            ].map((s) => (
+              <div key={s.l} style={{ ...S.miniStat, borderColor: `${s.c}33` }}>
+                <span
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 700,
+                    color: s.c,
+                    fontFamily: "'JetBrains Mono', monospace",
+                  }}
+                >
+                  {s.v}
+                </span>
+                <span
+                  style={{
+                    fontSize: 10,
+                    color: T.t3,
+                    fontWeight: 500,
+                    marginTop: 1,
+                  }}
+                >
+                  {s.l}
+                </span>
               </div>
             ))}
           </div>
@@ -317,9 +395,20 @@ export default function StudentAssignmentsPage() {
           <div style={S.divider} />
 
           {/* Nav */}
-          <nav style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1 }}>
-            {NAV_ITEMS.map(n => (
-              <a key={n.label} href={n.href} className={`nav-item${n.active ? " active" : ""}`}>
+          <nav
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+              flex: 1,
+            }}
+          >
+            {NAV_ITEMS.map((n) => (
+              <a
+                key={n.label}
+                href={n.href}
+                className={`nav-item${n.active ? " active" : ""}`}
+              >
                 <span className="nav-dot" />
                 <span style={{ fontSize: 15 }}>{n.icon}</span>
                 <span>{n.label}</span>
@@ -331,8 +420,12 @@ export default function StudentAssignmentsPage() {
           <div style={S.sideFooter}>
             <div style={S.avatarCircle}>S</div>
             <div>
-              <p style={{ fontSize: 13, fontWeight: 600, color: T.t1 }}>Student</p>
-              <p style={{ fontSize: 11, color: T.t3, marginTop: 1 }}>Class 10B</p>
+              <p style={{ fontSize: 13, fontWeight: 600, color: T.t1 }}>
+                Student
+              </p>
+              <p style={{ fontSize: 11, color: T.t3, marginTop: 1 }}>
+                Class 10B
+              </p>
             </div>
           </div>
         </aside>
@@ -340,19 +433,31 @@ export default function StudentAssignmentsPage() {
 
       {/* ── Main ─────────────────────────────────── */}
       <main className="portal-main" style={S.main}>
-
         {/* Top bar */}
         <header className="page-topbar" style={S.topbar}>
           <div>
             <p style={S.breadcrumb}>Student Portal · Assignments</p>
             <h1 className="page-title" style={S.pageTitle}>
-              My <em style={{ fontFamily: "'Instrument Serif', serif", fontStyle: "italic", color: T.amber }}>Assignments</em>
+              My{" "}
+              <em
+                style={{
+                  fontFamily: "'Instrument Serif', serif",
+                  fontStyle: "italic",
+                  color: T.amber,
+                }}
+              >
+                Assignments
+              </em>
             </h1>
           </div>
           <div className="stats-row" style={S.statsRow}>
-            <StatPill label="Pending"   count={pending.length}   color={T.amber} />
-            <StatPill label="Submitted" count={submitted.length} color={T.green} />
-            <StatPill label="Overdue"   count={overdue.length}   color={T.red}   />
+            <StatPill label="Pending" count={pending.length} color={T.amber} />
+            <StatPill
+              label="Submitted"
+              count={submitted.length}
+              color={T.green}
+            />
+            <StatPill label="Overdue" count={overdue.length} color={T.red} />
           </div>
         </header>
 
@@ -360,14 +465,53 @@ export default function StudentAssignmentsPage() {
         {(data.notices || []).length > 0 && (
           <section style={S.section}>
             <SectionLabel icon="📢" title="Announcements" />
-            <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+            <div
+              style={{
+                display: "grid",
+                gap: 10,
+                gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+              }}
+            >
               {data.notices.map((n, i) => (
-                <div key={n._id} className="notice-card" style={{ animationDelay: `${i * 0.06}s` }}>
-                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: T.amber, marginTop: 6, flexShrink: 0 }} />
+                <div
+                  key={n._id}
+                  className="notice-card"
+                  style={{ animationDelay: `${i * 0.06}s` }}
+                >
+                  <div
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      background: T.amber,
+                      marginTop: 6,
+                      flexShrink: 0,
+                    }}
+                  />
                   <div>
-                    <p style={{ fontSize: 14, fontWeight: 600, color: T.t1 }}>{n.title}</p>
-                    <p style={{ fontSize: 13, color: T.t2, marginTop: 5, lineHeight: 1.55 }}>{n.message}</p>
-                    <p style={{ fontSize: 11, color: T.t3, marginTop: 6, fontStyle: "italic" }}>— {n.teacherName}</p>
+                    <p style={{ fontSize: 14, fontWeight: 600, color: T.t1 }}>
+                      {n.title}
+                    </p>
+                    <p
+                      style={{
+                        fontSize: 13,
+                        color: T.t2,
+                        marginTop: 5,
+                        lineHeight: 1.55,
+                      }}
+                    >
+                      {n.message}
+                    </p>
+                    <p
+                      style={{
+                        fontSize: 11,
+                        color: T.t3,
+                        marginTop: 6,
+                        fontStyle: "italic",
+                      }}
+                    >
+                      — {n.teacherName}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -377,31 +521,38 @@ export default function StudentAssignmentsPage() {
 
         {/* Assignment groups */}
         {[
-          { label: "Pending",   list: pending,   accent: T.amber, icon: "⏳" },
-          { label: "Overdue",   list: overdue,   accent: T.red,   icon: "⚠️" },
-          { label: "Submitted", list: submitted, accent: T.green, icon: "✓"  },
-        ].map(g => g.list.length > 0 && (
-          <section key={g.label} style={S.section}>
-            <SectionLabel icon={g.icon} title={g.label} accent={g.accent} />
-            <div style={{ display: "grid", gap: 10 }}>
-              {g.list.map((a, i) => (
-                <AssignmentCard
-                  key={a._id}
-                  assignment={a}
-                  submission={submissionsByAssignment[a._id]}
-                  accent={g.accent}
-                  draft={drafts[a._id] || ""}
-                  onDraftChange={v => setDrafts({ ...drafts, [a._id]: v })}
-                  onSubmit={e => submitAssignment(e, a._id)}
-                  saving={savingId === a._id}
-                  expanded={expandedId === a._id}
-                  onToggle={() => setExpandedId(expandedId === a._id ? null : a._id)}
-                  delay={i * 0.07}
-                />
-              ))}
-            </div>
-          </section>
-        ))}
+          { label: "Pending", list: pending, accent: T.amber, icon: "⏳" },
+          { label: "Overdue", list: overdue, accent: T.red, icon: "⚠️" },
+          { label: "Submitted", list: submitted, accent: T.green, icon: "✓" },
+        ].map(
+          (g) =>
+            g.list.length > 0 && (
+              <section key={g.label} style={S.section}>
+                <SectionLabel icon={g.icon} title={g.label} accent={g.accent} />
+                <div style={{ display: "grid", gap: 10 }}>
+                  {g.list.map((a, i) => (
+                    <AssignmentCard
+                      key={a._id}
+                      assignment={a}
+                      submission={submissionsByAssignment[a._id]}
+                      accent={g.accent}
+                      draft={drafts[a._id] || ""}
+                      onDraftChange={(v) =>
+                        setDrafts({ ...drafts, [a._id]: v })
+                      }
+                      onSubmit={(e) => submitAssignment(e, a._id)}
+                      saving={savingId === a._id}
+                      expanded={expandedId === a._id}
+                      onToggle={() =>
+                        setExpandedId(expandedId === a._id ? null : a._id)
+                      }
+                      delay={i * 0.07}
+                    />
+                  ))}
+                </div>
+              </section>
+            ),
+        )}
 
         {!data.assignments?.length && <EmptyState />}
       </main>
@@ -409,9 +560,20 @@ export default function StudentAssignmentsPage() {
       {/* ── Mobile bottom nav ─────────────────────── */}
       <nav className="bottom-nav">
         <div className="bottom-nav-inner">
-          {MOBILE_NAV.map(n => (
-            <a key={n.label} href={n.href} className={`bnav-item${n.active ? " active" : ""}`}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          {MOBILE_NAV.map((n) => (
+            <a
+              key={n.label}
+              href={n.href}
+              className={`bnav-item${n.active ? " active" : ""}`}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d={n.path} />
               </svg>
               {n.label}
@@ -426,80 +588,222 @@ export default function StudentAssignmentsPage() {
 /* ─── Sub-components ───────────────────────────────────────────── */
 function StatPill({ label, count, color }) {
   return (
-    <div className="stat-pill" style={{ ...S.statPill, borderColor: color + "33", background: color + "11" }}>
-      <span className="stat-count" style={{ fontSize: 22, fontWeight: 800, color, fontFamily: "'JetBrains Mono', monospace", lineHeight: 1 }}>{count}</span>
-      <span style={{ fontSize: 11, color: T.t3, fontWeight: 500, marginTop: 2 }}>{label}</span>
+    <div
+      className="stat-pill"
+      style={{
+        ...S.statPill,
+        borderColor: `${color}33`,
+        background: `${color}11`,
+      }}
+    >
+      <span
+        className="stat-count"
+        style={{
+          fontSize: 22,
+          fontWeight: 800,
+          color,
+          fontFamily: "'JetBrains Mono', monospace",
+          lineHeight: 1,
+        }}
+      >
+        {count}
+      </span>
+      <span
+        style={{ fontSize: 11, color: T.t3, fontWeight: 500, marginTop: 2 }}
+      >
+        {label}
+      </span>
     </div>
   );
 }
 
 function SectionLabel({ icon, title, accent = T.t2 }) {
   return (
-    <div className="section-title-wrap" style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+    <div
+      className="section-title-wrap"
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        marginBottom: 14,
+      }}
+    >
       <span style={{ fontSize: 14 }}>{icon}</span>
-      <span style={{ fontSize: 11, fontWeight: 700, color: accent, textTransform: "uppercase", letterSpacing: "0.1em" }}>{title}</span>
-      <div style={{ flex: 1, height: "0.5px", background: accent + "33" }} />
+      <span
+        style={{
+          fontSize: 11,
+          fontWeight: 700,
+          color: accent,
+          textTransform: "uppercase",
+          letterSpacing: "0.1em",
+        }}
+      >
+        {title}
+      </span>
+      <div style={{ flex: 1, height: "0.5px", background: `${accent}33` }} />
     </div>
   );
 }
 
-function AssignmentCard({ assignment, submission, accent, draft, onDraftChange, onSubmit, saving, expanded, onToggle, delay }) {
-  const now       = new Date();
-  const deadline  = new Date(assignment.deadline);
-  const overdue   = deadline < now;
-  const daysLeft  = Math.ceil((deadline - now) / 86_400_000);
-  const deadlineStr = deadline.toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+function AssignmentCard({
+  assignment,
+  submission,
+  accent,
+  draft,
+  onDraftChange,
+  onSubmit,
+  saving,
+  expanded,
+  onToggle,
+  delay,
+}) {
+  const now = new Date();
+  const deadline = new Date(assignment.deadline);
+  const overdue = deadline < now;
+  const daysLeft = Math.ceil((deadline - now) / 86_400_000);
+  const deadlineStr = deadline.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
   const statusColor = overdue ? T.red : daysLeft <= 2 ? "#F59E0B" : T.t3;
-  const statusText  = overdue ? "Overdue" : daysLeft === 0 ? "Due today" : daysLeft === 1 ? "Due tomorrow" : `${daysLeft}d left`;
+  const statusText = overdue
+    ? "Overdue"
+    : daysLeft === 0
+      ? "Due today"
+      : daysLeft === 1
+        ? "Due tomorrow"
+        : `${daysLeft}d left`;
 
   return (
-    <article className="assign-card" style={{ borderTop: `2px solid ${accent}44`, animationDelay: `${delay}s` }}>
+    <article
+      className="assign-card"
+      style={{
+        borderTop: `2px solid ${accent}44`,
+        animationDelay: `${delay}s`,
+      }}
+    >
       <div className="card-header" onClick={onToggle}>
         {/* Row 1: subject + deadline */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <div style={{ width: 6, height: 6, borderRadius: "50%", background: accent }} />
-            <span style={{ fontSize: 11, fontWeight: 700, color: T.t3, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            <div
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: "50%",
+                background: accent,
+              }}
+            />
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                color: T.t3,
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+              }}
+            >
               {assignment.subject}
             </span>
           </div>
-          <span style={{ fontSize: 12, fontWeight: 700, color: statusColor, fontFamily: "'JetBrains Mono', monospace" }}>
+          <span
+            style={{
+              fontSize: 12,
+              fontWeight: 700,
+              color: statusColor,
+              fontFamily: "'JetBrains Mono', monospace",
+            }}
+          >
             {statusText}
           </span>
         </div>
 
         {/* Row 2: title + chevron */}
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 600, color: T.t1, lineHeight: 1.3, letterSpacing: "-0.01em" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            gap: 8,
+          }}
+        >
+          <h3
+            style={{
+              fontSize: 16,
+              fontWeight: 600,
+              color: T.t1,
+              lineHeight: 1.3,
+              letterSpacing: "-0.01em",
+            }}
+          >
             {assignment.title}
           </h3>
-          <span style={{
-            color: T.t3, fontSize: 12, marginTop: 3, flexShrink: 0,
-            transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
-            transition: "transform 0.25s ease",
-          }}>▾</span>
+          <span
+            style={{
+              color: T.t3,
+              fontSize: 12,
+              marginTop: 3,
+              flexShrink: 0,
+              transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
+              transition: "transform 0.25s ease",
+            }}
+          >
+            ▾
+          </span>
         </div>
 
         {/* Row 3: teacher + deadline */}
         <p style={{ fontSize: 12, color: T.t3 }}>
-          by <span style={{ color: T.t2 }}>{assignment.teacherName}</span> · Due {deadlineStr}
+          by <span style={{ color: T.t2 }}>{assignment.teacherName}</span> · Due{" "}
+          {deadlineStr}
         </p>
 
         {/* Row 4: pills */}
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 2 }}>
+        <div
+          style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 2 }}
+        >
           {submission && (
-            <span style={{ ...S.badge, background: T.greenDim, color: T.green, borderColor: T.green + "33" }}>
+            <span
+              style={{
+                ...S.badge,
+                background: T.greenDim,
+                color: T.green,
+                borderColor: `${T.green}33`,
+              }}
+            >
               ✓ Submitted
             </span>
           )}
           {submission?.isGraded && (
-            <span style={{ ...S.badge, background: T.amberDim, color: T.amber, borderColor: T.amber + "33" }}>
+            <span
+              style={{
+                ...S.badge,
+                background: T.amberDim,
+                color: T.amber,
+                borderColor: `${T.amber}33`,
+              }}
+            >
               Grade: {submission.grade}
             </span>
           )}
           {overdue && !submission && (
-            <span style={{ ...S.badge, background: T.redDim, color: T.red, borderColor: T.red + "33" }}>
+            <span
+              style={{
+                ...S.badge,
+                background: T.redDim,
+                color: T.red,
+                borderColor: `${T.red}33`,
+              }}
+            >
               Missing
             </span>
           )}
@@ -508,14 +812,37 @@ function AssignmentCard({ assignment, submission, accent, draft, onDraftChange, 
 
       {/* Expanded body */}
       <div className={`card-body${expanded ? " open" : ""}`}>
-        <div style={{ padding: "0 20px 22px", borderTop: `1px solid ${T.border}` }}>
-          <p style={{ fontSize: 14, color: T.t2, lineHeight: 1.65, paddingTop: 16, marginBottom: 14 }}>
+        <div
+          style={{ padding: "0 20px 22px", borderTop: `1px solid ${T.border}` }}
+        >
+          <p
+            style={{
+              fontSize: 14,
+              color: T.t2,
+              lineHeight: 1.65,
+              paddingTop: 16,
+              marginBottom: 14,
+            }}
+          >
             {assignment.description}
           </p>
 
           {assignment.fileUrl && (
-            <a href={assignment.fileUrl} target="_blank" rel="noopener noreferrer" style={S.fileLink}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <a
+              href={assignment.fileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={S.fileLink}
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              >
                 <path d="M21.44 11.05L12.25 20.24a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66L9.41 17.41A2 2 0 016.59 14.59L15.07 6" />
               </svg>
               Teacher's attachment
@@ -524,41 +851,75 @@ function AssignmentCard({ assignment, submission, accent, draft, onDraftChange, 
 
           {submission && (
             <div style={S.submittedBox}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: T.green }}>Submission received</span>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: 12,
+                }}
+              >
+                <span style={{ fontSize: 13, fontWeight: 700, color: T.green }}>
+                  Submission received
+                </span>
                 {submission.fileUrl && (
-                  <a href={submission.fileUrl} target="_blank" rel="noopener noreferrer"
-                    style={{ fontSize: 12, fontWeight: 600, color: T.green, textDecoration: "none" }}>
+                  <a
+                    href={submission.fileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: T.green,
+                      textDecoration: "none",
+                    }}
+                  >
                     View file →
                   </a>
                 )}
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <span style={S.gradeLabel}>Grade</span>
-                <span style={{
-                  fontSize: 16, fontWeight: 800, color: submission.isGraded ? T.amber : T.t3,
-                  fontFamily: "'JetBrains Mono', monospace",
-                }}>
+                <span
+                  style={{
+                    fontSize: 16,
+                    fontWeight: 800,
+                    color: submission.isGraded ? T.amber : T.t3,
+                    fontFamily: "'JetBrains Mono', monospace",
+                  }}
+                >
                   {submission.isGraded ? submission.grade : "Pending"}
                 </span>
               </div>
               {submission.feedback && (
                 <div style={{ marginTop: 10 }}>
                   <span style={S.gradeLabel}>Feedback</span>
-                  <p style={{ fontSize: 13, color: T.t2, lineHeight: 1.55, marginTop: 5 }}>{submission.feedback}</p>
+                  <p
+                    style={{
+                      fontSize: 13,
+                      color: T.t2,
+                      lineHeight: 1.55,
+                      marginTop: 5,
+                    }}
+                  >
+                    {submission.feedback}
+                  </p>
                 </div>
               )}
             </div>
           )}
 
           {!overdue && (
-            <form onSubmit={onSubmit} style={{ display: "grid", gap: 14, marginTop: 16 }}>
+            <form
+              onSubmit={onSubmit}
+              style={{ display: "grid", gap: 14, marginTop: 16 }}
+            >
               <div style={{ display: "grid", gap: 6 }}>
                 <label style={S.fieldLabel}>Answer / Notes</label>
                 <textarea
                   rows={4}
                   value={draft}
-                  onChange={e => onDraftChange(e.target.value)}
+                  onChange={(e) => onDraftChange(e.target.value)}
                   placeholder="Type your answer or notes here…"
                   className="field-textarea"
                 />
@@ -566,7 +927,15 @@ function AssignmentCard({ assignment, submission, accent, draft, onDraftChange, 
               <div style={{ display: "grid", gap: 6 }}>
                 <label style={S.fieldLabel}>Attach File</label>
                 <div className="file-drop">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.t3} strokeWidth="2" strokeLinecap="round">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke={T.t3}
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  >
                     <path d="M21.44 11.05L12.25 20.24a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66L9.41 17.41A2 2 0 016.59 14.59L15.07 6" />
                   </svg>
                   <input name="file" type="file" />
@@ -578,9 +947,15 @@ function AssignmentCard({ assignment, submission, accent, draft, onDraftChange, 
                 className="submit-btn"
                 style={{ background: saving ? T.t3 : accent }}
               >
-                {saving
-                  ? <><Spinner /> Submitting…</>
-                  : submission ? "Update Submission" : "Submit Assignment"}
+                {saving ? (
+                  <>
+                    <Spinner /> Submitting…
+                  </>
+                ) : submission ? (
+                  "Update Submission"
+                ) : (
+                  "Submit Assignment"
+                )}
               </button>
             </form>
           )}
@@ -592,24 +967,52 @@ function AssignmentCard({ assignment, submission, accent, draft, onDraftChange, 
 
 function Spinner() {
   return (
-    <span style={{
-      width: 14, height: 14, border: "2px solid rgba(0,0,0,0.2)",
-      borderTopColor: "rgba(0,0,0,0.7)", borderRadius: "50%",
-      display: "inline-block", animation: "spin 0.6s linear infinite",
-    }} />
+    <span
+      style={{
+        width: 14,
+        height: 14,
+        border: "2px solid rgba(0,0,0,0.2)",
+        borderTopColor: "rgba(0,0,0,0.7)",
+        borderRadius: "50%",
+        display: "inline-block",
+        animation: "spin 0.6s linear infinite",
+      }}
+    />
   );
 }
 
 function EmptyState() {
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "60px 20px", textAlign: "center" }}>
-      <div style={{
-        width: 72, height: 72, borderRadius: "50%",
-        background: T.amberDim, border: `1px solid ${T.amberGlow}`,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: 32, marginBottom: 20,
-      }}>📭</div>
-      <p style={{ fontSize: 18, fontWeight: 600, color: T.t1, marginBottom: 8 }}>No assignments yet</p>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        padding: "60px 20px",
+        textAlign: "center",
+      }}
+    >
+      <div
+        style={{
+          width: 72,
+          height: 72,
+          borderRadius: "50%",
+          background: T.amberDim,
+          border: `1px solid ${T.amberGlow}`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: 32,
+          marginBottom: 20,
+        }}
+      >
+        📭
+      </div>
+      <p
+        style={{ fontSize: 18, fontWeight: 600, color: T.t1, marginBottom: 8 }}
+      >
+        No assignments yet
+      </p>
       <p style={{ fontSize: 14, color: T.t3, maxWidth: 300, lineHeight: 1.6 }}>
         Your teacher hasn't posted any assignments for your class.
       </p>
@@ -619,128 +1022,231 @@ function EmptyState() {
 
 /* ─── Nav data ────────────────────────────────────────────────── */
 const NAV_ITEMS = [
-  { icon: "⊞",  label: "Dashboard",     href: "/student",               active: false },
-  { icon: "📋", label: "Assignments",    href: "#",                       active: true  },
-  { icon: "📊", label: "Grades",         href: "/student/grades",         active: false },
-  { icon: "📅", label: "Schedule",       href: "/student/schedule",       active: false },
-  { icon: "🔔", label: "Notifications",  href: "/student/notifications",  active: false },
+  { icon: "⊞", label: "Dashboard", href: "/student", active: false },
+  { icon: "📋", label: "Assignments", href: "#", active: true },
+  { icon: "📊", label: "Grades", href: "/student/grades", active: false },
+  { icon: "📅", label: "Schedule", href: "/student/schedule", active: false },
+  {
+    icon: "🔔",
+    label: "Notifications",
+    href: "/student/notifications",
+    active: false,
+  },
 ];
 
 const MOBILE_NAV = [
-  { label: "Home",    href: "/student",              active: false, path: "m3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z M9 22V12h6v10" },
-  { label: "Tasks",   href: "#",                      active: true,  path: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2 M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" },
-  { label: "Grades",  href: "/student/grades",        active: false, path: "M18 20V10 M12 20V4 M6 20v-6" },
-  { label: "Schedule",href: "/student/schedule",      active: false, path: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" },
-  { label: "Alerts",  href: "/student/notifications", active: false, path: "M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" },
+  {
+    label: "Home",
+    href: "/student",
+    active: false,
+    path: "m3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z M9 22V12h6v10",
+  },
+  {
+    label: "Tasks",
+    href: "#",
+    active: true,
+    path: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2 M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2",
+  },
+  {
+    label: "Grades",
+    href: "/student/grades",
+    active: false,
+    path: "M18 20V10 M12 20V4 M6 20v-6",
+  },
+  {
+    label: "Schedule",
+    href: "/student/schedule",
+    active: false,
+    path: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z",
+  },
+  {
+    label: "Alerts",
+    href: "/student/notifications",
+    active: false,
+    path: "M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9",
+  },
 ];
 
 /* ─── Styles ─────────────────────────────────────────────────── */
 const S = {
   page: {
-    display: "flex", minHeight: "100vh",
+    display: "flex",
+    minHeight: "100vh",
     background: T.bg,
   },
   sidebarWrap: {
-    width: 252, flexShrink: 0,
-    position: "sticky", top: 0, height: "100vh",
+    width: 252,
+    flexShrink: 0,
+    position: "sticky",
+    top: 0,
+    height: "100vh",
   },
   sidebar: {
-    height: "100%", display: "flex", flexDirection: "column",
+    height: "100%",
+    display: "flex",
+    flexDirection: "column",
     padding: "24px 14px",
     background: T.surface,
-    borderRight: '1px solid rgba(0,0,0,0.08)',
+    borderRight: "1px solid rgba(0,0,0,0.08)",
   },
   logoRow: {
-    display: "flex", alignItems: "center", gap: 10,
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
     padding: "0 6px 22px",
   },
   logoMark: {
-    width: 36, height: 36, borderRadius: 10,
-    background: T.amberDim, border: `1px solid ${T.amberGlow}`,
-    display: "flex", alignItems: "center", justifyContent: "center",
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    background: T.amberDim,
+    border: `1px solid ${T.amberGlow}`,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     flexShrink: 0,
   },
   miniStats: {
-    display: "flex", gap: 6, marginBottom: 18,
+    display: "flex",
+    gap: 6,
+    marginBottom: 18,
   },
   miniStat: {
-    flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
-    padding: "10px 6px", borderRadius: 10, border: "1px solid",
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    padding: "10px 6px",
+    borderRadius: 10,
+    border: "1px solid",
     background: "rgba(255,255,255,0.02)",
   },
   divider: { height: "0.5px", background: T.border, margin: "0 0 14px" },
   sideFooter: {
-    display: "flex", alignItems: "center", gap: 10,
-    paddingTop: 16, borderTop: `1px solid ${T.border}`, marginTop: 16,
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    paddingTop: 16,
+    borderTop: `1px solid ${T.border}`,
+    marginTop: 16,
   },
   avatarCircle: {
-    width: 34, height: 34, borderRadius: "50%",
-    background: T.amberDim, border: `1px solid ${T.amberGlow}`,
-    display: "flex", alignItems: "center", justifyContent: "center",
-    fontSize: 13, fontWeight: 700, color: T.amber, flexShrink: 0,
+    width: 34,
+    height: 34,
+    borderRadius: "50%",
+    background: T.amberDim,
+    border: `1px solid ${T.amberGlow}`,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 13,
+    fontWeight: 700,
+    color: T.amber,
+    flexShrink: 0,
   },
 
   main: {
-    flex: 1, padding: "36px 40px",
-    maxWidth: "calc(100vw - 252px)", overflowX: "hidden",
+    flex: 1,
+    padding: "36px 40px",
+    maxWidth: "calc(100vw - 252px)",
+    overflowX: "hidden",
   },
   topbar: {
-    display: "flex", alignItems: "flex-end", justifyContent: "space-between",
-    flexWrap: "wrap", gap: 16, marginBottom: 36,
+    display: "flex",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+    flexWrap: "wrap",
+    gap: 16,
+    marginBottom: 36,
   },
   breadcrumb: {
-    fontSize: 11, fontWeight: 600, color: T.t3,
-    textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 5,
+    fontSize: 11,
+    fontWeight: 600,
+    color: T.t3,
+    textTransform: "uppercase",
+    letterSpacing: "0.1em",
+    marginBottom: 5,
   },
   pageTitle: {
-    fontSize: 30, fontWeight: 700, color: T.t1,
-    letterSpacing: "-0.025em", lineHeight: 1.1,
+    fontSize: 30,
+    fontWeight: 700,
+    color: T.t1,
+    letterSpacing: "-0.025em",
+    lineHeight: 1.1,
   },
   statsRow: { display: "flex", gap: 10, flexWrap: "wrap" },
   statPill: {
-    display: "flex", flexDirection: "column", alignItems: "center",
-    padding: "10px 18px", borderRadius: 12, border: "1px solid",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    padding: "10px 18px",
+    borderRadius: 12,
+    border: "1px solid",
     minWidth: 72,
   },
 
   section: { marginBottom: 32 },
 
   badge: {
-    display: "inline-flex", alignItems: "center",
-    fontSize: 11, fontWeight: 700,
-    padding: "3px 8px", borderRadius: 6, border: "1px solid",
+    display: "inline-flex",
+    alignItems: "center",
+    fontSize: 11,
+    fontWeight: 700,
+    padding: "3px 8px",
+    borderRadius: 6,
+    border: "1px solid",
   },
 
   fileLink: {
-    display: "inline-flex", alignItems: "center", gap: 7,
-    fontSize: 12, fontWeight: 600, color: T.amber,
-    padding: "7px 12px", background: T.amberDim,
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 7,
+    fontSize: 12,
+    fontWeight: 600,
+    color: T.amber,
+    padding: "7px 12px",
+    background: T.amberDim,
     border: `1px solid ${T.amberGlow}`,
-    borderRadius: 8, textDecoration: "none", marginBottom: 14,
+    borderRadius: 8,
+    textDecoration: "none",
+    marginBottom: 14,
     transition: "filter 0.15s",
   },
 
   submittedBox: {
-    background: T.greenDim, border: `1px solid ${T.green}22`,
-    borderRadius: 10, padding: "14px 16px", marginBottom: 12,
+    background: T.greenDim,
+    border: `1px solid ${T.green}22`,
+    borderRadius: 10,
+    padding: "14px 16px",
+    marginBottom: 12,
   },
   gradeLabel: {
-    fontSize: 11, fontWeight: 700, color: T.t3,
-    textTransform: "uppercase", letterSpacing: "0.07em",
+    fontSize: 11,
+    fontWeight: 700,
+    color: T.t3,
+    textTransform: "uppercase",
+    letterSpacing: "0.07em",
   },
 
   fieldLabel: {
-    fontSize: 11, fontWeight: 700, color: T.t3,
-    textTransform: "uppercase", letterSpacing: "0.08em",
+    fontSize: 11,
+    fontWeight: 700,
+    color: T.t3,
+    textTransform: "uppercase",
+    letterSpacing: "0.08em",
   },
 
   loadWrap: {
-    display: "flex", flexDirection: "column", alignItems: "center",
-    justifyContent: "center", minHeight: "100vh",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: "100vh",
     background: T.bg,
   },
   loadSpinner: {
-    width: 32, height: 32,
+    width: 32,
+    height: 32,
     border: "2.5px solid rgba(245,166,35,0.15)",
     borderTopColor: T.amber,
     borderRadius: "50%",

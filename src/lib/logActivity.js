@@ -20,7 +20,6 @@ export async function logActivity({
       ipAddress,
       metadata,
     });
-
   } catch (error) {
     console.log("Activity log failed:", error.message);
   }

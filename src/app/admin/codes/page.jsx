@@ -98,12 +98,9 @@ Winners Foundation School`;
 
   return (
     <div className="p-6 md:p-8 min-h-screen bg-gray-50">
-
       {/* HEADER */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-        <h1 className="text-3xl font-bold">
-          Access Codes
-        </h1>
+        <h1 className="text-3xl font-bold">Access Codes</h1>
 
         <button
           onClick={generateCode}
@@ -116,10 +113,8 @@ Winners Foundation School`;
 
       {/* TABLE */}
       <div className="bg-white rounded-2xl shadow overflow-hidden">
-
         <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[900px]">
-
             <thead className="bg-gray-100 text-gray-700">
               <tr>
                 <th className="p-4 text-left">Code</th>
@@ -132,7 +127,6 @@ Winners Foundation School`;
             <tbody>
               {codes.map((item, index) => (
                 <tr key={item._id} className="border-t align-top">
-
                   {/* CODE */}
                   <td className="p-4 font-medium">
                     <div className="flex items-center gap-2">
@@ -167,7 +161,6 @@ Winners Foundation School`;
 
                   {/* ACTION */}
                   <td className="p-4 space-y-2 min-w-[220px]">
-
                     <input
                       placeholder="Parent email"
                       value={item.email}
@@ -199,20 +192,15 @@ Winners Foundation School`;
                     >
                       Copy WhatsApp Message
                     </button>
-
                   </td>
-
                 </tr>
               ))}
             </tbody>
-
           </table>
         </div>
 
         {codes.length === 0 && (
-          <p className="p-6 text-center text-gray-500">
-            No codes yet
-          </p>
+          <p className="p-6 text-center text-gray-500">No codes yet</p>
         )}
       </div>
     </div>

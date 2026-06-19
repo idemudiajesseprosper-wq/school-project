@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import BackButton from "./BackButton";
 import BackToTop from "./BackToTop";
 import Navbar from "./Navbar";
+import StudentNotificationListener from "./StudentNotificationListener";
 
 export default function AppChrome({ children }) {
   const pathname = usePathname();
@@ -16,6 +17,7 @@ export default function AppChrome({ children }) {
 
   return (
     <>
+      <StudentNotificationListener />
       {!isPortalRoute && <Navbar />}
       {pathname !== "/" && <BackButton isPortalRoute={isPortalRoute} />}
 

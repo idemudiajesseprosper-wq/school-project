@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
 // ─── Shared Icons ──────────────────────────────────────────────────────────────
@@ -268,7 +268,7 @@ const publicNavLinks = [
   { label: "Contact", href: "/contact" },
 ];
 
-function PublicNavbar() {
+function _PublicNavbar() {
   const [search, setSearch] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -772,7 +772,7 @@ export default function StudentsPage() {
   }, []);
   useEffect(() => {
     filterStudents();
-  }, [search, students, filterStatus]);
+  }, [students, search, filterStatus]);
 
   const fetchStudents = async () => {
     try {
@@ -1438,9 +1438,9 @@ export default function StudentsPage() {
                               }}
                             >
                               <ActionBtn
-                                onClick={() =>
-                                  (window.location.href = `/admin/students/${student._id}`)
-                                }
+                                onClick={() => {
+                                  window.location.href = `/admin/students/${student._id}`;
+                                }}
                                 color="#111"
                                 label="View"
                                 icon={<Icons.Eye />}
@@ -1592,7 +1592,7 @@ function ActionBtn({ onClick, disabled, color, label, icon, iconOnly }) {
         borderRadius: "8px",
         border: "none",
         cursor: disabled ? "not-allowed" : "pointer",
-        background: color + "18",
+        background: `${color}18`,
         color,
         fontSize: "12px",
         fontWeight: "700",

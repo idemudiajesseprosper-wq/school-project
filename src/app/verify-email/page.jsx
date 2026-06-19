@@ -1,7 +1,7 @@
 "use client";
 
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
@@ -13,6 +13,25 @@ function VerifyEmailContent() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
+    async function verifyEmail() {
+      try {
+        const res = await fetch(`/api/auth/verify-email?token=${token}`);
+
+        const data = await res.json();
+
+        if (data.success) {
+          setStatus("success");
+          setMessage(data.message);
+        } else {
+          setStatus("error");
+          setMessage(data.message);
+        }
+      } catch {
+        setStatus("error");
+        setMessage("Something went wrong. Please try again.");
+      }
+    }
+
     if (token) {
       verifyEmail();
     } else {
@@ -20,25 +39,6 @@ function VerifyEmailContent() {
       setMessage("Invalid verification link.");
     }
   }, [token]);
-
-  const verifyEmail = async () => {
-    try {
-      const res = await fetch(`/api/auth/verify-email?token=${token}`);
-
-      const data = await res.json();
-
-      if (data.success) {
-        setStatus("success");
-        setMessage(data.message);
-      } else {
-        setStatus("error");
-        setMessage(data.message);
-      }
-    } catch {
-      setStatus("error");
-      setMessage("Something went wrong. Please try again.");
-    }
-  };
 
   return (
     <div

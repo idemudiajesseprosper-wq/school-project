@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
 export default function StudentProfilePage() {
@@ -26,7 +26,7 @@ export default function StudentProfilePage() {
       } else {
         toast.error(data.message);
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to load profile");
     }
     setLoading(false);

@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import Footer from "../components/Footer";
-import OurMission from "../components/OurMission"
+import OurMission from "../components/OurMission";
 
-const PREVIEW = `Winners' foundation school believes in excellence without compromise in all areas of human endeavor. Hence, our motto is "Excellence through faith and industry" the school was born with the intent of raising a generation of pupils and students with solid academic foundation that will promote excellence in any sphere of life, be it academic, spiritual, social and physical. To realize this we have a team of committed dedicated, loving and inspiring teachers to discharge their duties cheerfully and willingly.
+const _PREVIEW = `Winners' foundation school believes in excellence without compromise in all areas of human endeavor. Hence, our motto is "Excellence through faith and industry" the school was born with the intent of raising a generation of pupils and students with solid academic foundation that will promote excellence in any sphere of life, be it academic, spiritual, social and physical. To realize this we have a team of committed dedicated, loving and inspiring teachers to discharge their duties cheerfully and willingly.
 
 Provision of sound spiritual and moral child upbringing is our major concern this is because of the alarming rate of moral decadence in our society today. Our mission is to produces educated men and women of godly men and women of godly and enviable characters. Winners' foundation school therefore strives to provide a biblically integrated education which seeks to nurture the development of the students spiritually, socially and morally.`;
 
-const REST = `Our staff are spiritually equipped to lead the students to the saving knowledge of Jesus Christ by teaching the undiluted word of God and praying for them whole heartedly in our gospel fellowships and every day morning assemblies. We place the bible at the center of the curriculum to inspire the students to fear God and eschew evil in this corrupt world.
+const _REST = `Our staff are spiritually equipped to lead the students to the saving knowledge of Jesus Christ by teaching the undiluted word of God and praying for them whole heartedly in our gospel fellowships and every day morning assemblies. We place the bible at the center of the curriculum to inspire the students to fear God and eschew evil in this corrupt world.
 
 Further more, in our quest for excellence, we inspire our students to acquire knowledge for self actualization. Knowledge they say is power. Hence we challenge our students to realize their maximum potential academically to enable them imbibe self confidence and earn respect in life. Our mission is not to just educate the child but to help him/her to discover who he/she is.
 
@@ -19,14 +19,26 @@ Quiz competition, excursion etc are not left out in our curriculum. Students are
 WINNERS' FOUNDATION SCHOOL IS TRULY GREAT. UP WINNER'S!!!`;
 
 const values = [
-  { title: "Faith", desc: "Rooted in biblical principles, we nurture spiritual growth in every student." },
-  { title: "Excellence", desc: "We pursue the highest academic and moral standards without compromise." },
-  { title: "Discipline", desc: "We build character through structure, respect, and responsibility." },
-  { title: "Innovation", desc: "We encourage creative thinking and problem-solving for tomorrow's world." },
+  {
+    title: "Faith",
+    desc: "Rooted in biblical principles, we nurture spiritual growth in every student.",
+  },
+  {
+    title: "Excellence",
+    desc: "We pursue the highest academic and moral standards without compromise.",
+  },
+  {
+    title: "Discipline",
+    desc: "We build character through structure, respect, and responsibility.",
+  },
+  {
+    title: "Innovation",
+    desc: "We encourage creative thinking and problem-solving for tomorrow's world.",
+  },
 ];
 
 export default function AboutPage() {
-  const [expanded, setExpanded] = useState(false);
+  const [_expanded, _setExpanded] = useState(false);
 
   return (
     <>
@@ -301,28 +313,42 @@ export default function AboutPage() {
       <section className="about-hero">
         <div style={{ position: "relative", zIndex: 1 }}>
           <p className="about-hero-eyebrow">Who We Are</p>
-          <h1 className="about-hero-heading">About <em>Winners'</em><br />Foundation School</h1>
+          <h1 className="about-hero-heading">
+            About <em>Winners'</em>
+            <br />
+            Foundation School
+          </h1>
           <div className="about-hero-rule" />
           <p className="about-hero-sub">
-            Founded in Benin City, we are a school built on faith, academic excellence, and the total development of every child.
+            Founded in Benin City, we are a school built on faith, academic
+            excellence, and the total development of every child.
           </p>
         </div>
       </section>
 
       {/* History */}
       <section className="history-section">
-<div style={{ flex: 1 }}>
+        <div style={{ flex: 1 }}>
           <p className="history-eyebrow">Our Story</p>
           <h2 className="history-heading">A School Born with Purpose</h2>
           <div className="history-rule" />
           <p className="history-body">
-            Winners' Foundation School was established in Benin City with a clear and unwavering vision — to raise a generation of young Nigerians who are not only academically excellent but are also grounded in faith, strong values, and moral integrity.
+            Winners' Foundation School was established in Benin City with a
+            clear and unwavering vision — to raise a generation of young
+            Nigerians who are not only academically excellent but are also
+            grounded in faith, strong values, and moral integrity.
           </p>
           <p className="history-body">
-            From our very first class, we set out to be different. We understood that true education goes beyond textbooks and examinations. It shapes who a person becomes — how they think, how they treat others, and how they contribute to society. That conviction has guided every decision we have made as a school.
+            From our very first class, we set out to be different. We understood
+            that true education goes beyond textbooks and examinations. It
+            shapes who a person becomes — how they think, how they treat others,
+            and how they contribute to society. That conviction has guided every
+            decision we have made as a school.
           </p>
           <p className="history-body">
-            Today, Winners' Foundation School stands as a thriving community of learners, educators, and families united by a shared belief: that every child is a winner waiting to be discovered.
+            Today, Winners' Foundation School stands as a thriving community of
+            learners, educators, and families united by a shared belief: that
+            every child is a winner waiting to be discovered.
           </p>
         </div>
       </section>
@@ -344,7 +370,7 @@ export default function AboutPage() {
       </section>
 
       {/* Mission */}
-      <OurMission/>
+      <OurMission />
       <Footer />
     </>
   );

@@ -140,10 +140,16 @@ export default function WhyChooseUs() {
       <section className="wcu-section">
         <div className="wcu-header">
           <p className="wcu-eyebrow">Why Choose Us</p>
-          <h2 className="wcu-heading">The Right Choice<br />for Your Child</h2>
+          <h2 className="wcu-heading">
+            The Right Choice
+            <br />
+            for Your Child
+          </h2>
           <div className="wcu-rule" />
           <p className="wcu-subtext">
-            Choosing the right school is one of the most important decisions a parent can make. Here is why families trust Winners' Foundation School.
+            Choosing the right school is one of the most important decisions a
+            parent can make. Here is why families trust Winners' Foundation
+            School.
           </p>
         </div>
 
@@ -160,7 +166,10 @@ export default function WhyChooseUs() {
         </div>
 
         <div className="wcu-note">
-          <strong>Important for parents:</strong> We understand that entrusting your child to a school is a deeply personal decision. At Winners' Foundation School, we welcome you to visit, ask questions, and see our environment for yourself.
+          <strong>Important for parents:</strong> We understand that entrusting
+          your child to a school is a deeply personal decision. At Winners'
+          Foundation School, we welcome you to visit, ask questions, and see our
+          environment for yourself.
         </div>
       </section>
     </>

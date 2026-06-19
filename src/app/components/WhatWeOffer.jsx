@@ -164,19 +164,32 @@ export default function WhatWeOffer() {
       `}</style>
 
       <section className="offer-section">
-
         {/* Header */}
         <p className="offer-eyebrow">What We Offer</p>
-        <h2 className="offer-heading">An Education Worth<br />Investing In</h2>
+        <h2 className="offer-heading">
+          An Education Worth
+          <br />
+          Investing In
+        </h2>
         <div className="offer-rule" />
 
         {/* Text */}
         <div className="offer-text-block">
           <p className="offer-lead">
-            At Winners' Foundation School, we do not just teach — we invest in the total development of every child. Our school offers a rich and balanced education that prepares students for real-world success, grounded in faith, discipline, and academic rigour.
+            At Winners' Foundation School, we do not just teach — we invest in
+            the total development of every child. Our school offers a rich and
+            balanced education that prepares students for real-world success,
+            grounded in faith, discipline, and academic rigour.
           </p>
           <p className="offer-body">
-            Our classrooms are led by qualified, experienced, and caring teachers who understand that every child learns differently. We combine a strong academic curriculum with co-curricular activities, moral instruction, and a safe, structured environment — giving your child every advantage they need to excel in WAEC, NECO, and beyond. When you choose Winners' Foundation School, you are choosing a community that sees your child's potential and commits to developing it fully.
+            Our classrooms are led by qualified, experienced, and caring
+            teachers who understand that every child learns differently. We
+            combine a strong academic curriculum with co-curricular activities,
+            moral instruction, and a safe, structured environment — giving your
+            child every advantage they need to excel in WAEC, NECO, and beyond.
+            When you choose Winners' Foundation School, you are choosing a
+            community that sees your child's potential and commits to developing
+            it fully.
           </p>
         </div>
 
@@ -206,20 +219,29 @@ export default function WhatWeOffer() {
                 src={img.src}
                 alt={img.alt}
                 style={{ objectPosition: img.objectPosition || "center" }}
-                onError={(e) => { e.currentTarget.style.display = "none"; e.currentTarget.nextSibling.style.display = "flex"; }}
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                  e.currentTarget.nextSibling.style.display = "flex";
+                }}
               />
               <div className="img-placeholder" style={{ display: "none" }}>
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <rect x="3" y="3" width="18" height="18" rx="2"/>
-                  <circle cx="8.5" cy="8.5" r="1.5"/>
-                  <path d="M21 15l-5-5L5 21"/>
+                <svg
+                  width="40"
+                  height="40"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                >
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <path d="M21 15l-5-5L5 21" />
                 </svg>
                 <span>Add Image {i + 1}</span>
               </div>
             </div>
           ))}
         </div>
-
       </section>
     </>
   );

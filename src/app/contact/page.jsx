@@ -229,10 +229,17 @@ export default function ContactPage() {
       <section className="contact-hero">
         <div style={{ position: "relative", zIndex: 1 }}>
           <p className="contact-hero-eyebrow">Get In Touch</p>
-          <h1 className="contact-hero-heading">We'd Love to<br />Hear <em>From You</em></h1>
+          <h1 className="contact-hero-heading">
+            We'd Love to
+            <br />
+            Hear <em>From You</em>
+          </h1>
           <div className="contact-hero-rule" />
           <p className="contact-hero-sub">
-            Whether you have a question about admissions, want to schedule a visit, or simply want to learn more — our team is always happy to help. Reach out through any of the channels below or fill in the form and we'll get back to you promptly.
+            Whether you have a question about admissions, want to schedule a
+            visit, or simply want to learn more — our team is always happy to
+            help. Reach out through any of the channels below or fill in the
+            form and we'll get back to you promptly.
           </p>
         </div>
       </section>
@@ -243,24 +250,43 @@ export default function ContactPage() {
         <h2 className="ways-heading">How to Contact the School</h2>
         <div className="ways-rule" />
         <div className="ways-grid">
-
           <div className="way-card">
             <div className="way-icon-wrap">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round">
-                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
-                <circle cx="12" cy="9" r="2.5"/>
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#2563EB"
+                strokeWidth="2"
+                strokeLinecap="round"
+              >
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+                <circle cx="12" cy="9" r="2.5" />
               </svg>
             </div>
             <div className="way-label">Find Us</div>
             <div className="way-title">Visit the School</div>
-            <p className="way-value">[School Address]<br />[City, State, Nigeria]</p>
+            <p className="way-value">
+              [School Address]
+              <br />
+              [City, State, Nigeria]
+            </p>
             <p className="way-note">Mon – Fri, 7:30am – 3:30pm</p>
           </div>
 
           <div className="way-card">
             <div className="way-icon-wrap">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round">
-                <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 0115.93 2.18 2 2 0 0118 4.36v3a2 2 0 01-1.56 1.95 16 16 0 00-1.48.56 13 13 0 01-5.61-5.61 16 16 0 00.56-1.48A2 2 0 0122 16.92z"/>
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#2563EB"
+                strokeWidth="2"
+                strokeLinecap="round"
+              >
+                <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 0115.93 2.18 2 2 0 0118 4.36v3a2 2 0 01-1.56 1.95 16 16 0 00-1.48.56 13 13 0 01-5.61-5.61 16 16 0 00.56-1.48A2 2 0 0122 16.92z" />
               </svg>
             </div>
             <div className="way-label">Call Us</div>
@@ -271,9 +297,17 @@ export default function ContactPage() {
 
           <div className="way-card">
             <div className="way-icon-wrap">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round">
-                <rect x="2" y="4" width="20" height="16" rx="2"/>
-                <path d="M2 7l10 7 10-7"/>
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#2563EB"
+                strokeWidth="2"
+                strokeLinecap="round"
+              >
+                <rect x="2" y="4" width="20" height="16" rx="2" />
+                <path d="M2 7l10 7 10-7" />
               </svg>
             </div>
             <div className="way-label">Write To Us</div>
@@ -281,20 +315,20 @@ export default function ContactPage() {
             <p className="way-value">[School Email Address]</p>
             <p className="way-note">We respond within 1–2 business days</p>
           </div>
-
         </div>
       </section>
 
       {/* Form + sidebar */}
       <section className="form-section">
-
         {/* Left info */}
         <div className="form-info-col">
           <p className="form-eyebrow">Send a Message</p>
           <h2 className="form-heading">Fill In the Form</h2>
           <div className="form-rule" />
           <p className="form-intro">
-            Use this form for admissions enquiries, general questions, feedback, or to schedule a school visit. A member of our team will respond as soon as possible.
+            Use this form for admissions enquiries, general questions, feedback,
+            or to schedule a school visit. A member of our team will respond as
+            soon as possible.
           </p>
 
           <div className="hours-block">
@@ -316,25 +350,48 @@ export default function ContactPage() {
 
         {/* Form */}
         <div className="form-col">
-          <form onSubmit={(e) => { e.preventDefault(); alert("Message sent! We will get back to you shortly."); }}>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              alert("Message sent! We will get back to you shortly.");
+            }}
+          >
             <div className="f-row">
               <div className="f-group">
                 <label className="f-label">First Name</label>
-                <input className="f-input" type="text" placeholder="e.g. Emeka" required />
+                <input
+                  className="f-input"
+                  type="text"
+                  placeholder="e.g. Emeka"
+                  required
+                />
               </div>
               <div className="f-group">
                 <label className="f-label">Last Name</label>
-                <input className="f-input" type="text" placeholder="e.g. Okafor" required />
+                <input
+                  className="f-input"
+                  type="text"
+                  placeholder="e.g. Okafor"
+                  required
+                />
               </div>
             </div>
             <div className="f-row">
               <div className="f-group">
                 <label className="f-label">Phone Number</label>
-                <input className="f-input" type="tel" placeholder="e.g. 08012345678" />
+                <input
+                  className="f-input"
+                  type="tel"
+                  placeholder="e.g. 08012345678"
+                />
               </div>
               <div className="f-group">
                 <label className="f-label">Email Address</label>
-                <input className="f-input" type="email" placeholder="e.g. you@email.com" />
+                <input
+                  className="f-input"
+                  type="email"
+                  placeholder="e.g. you@email.com"
+                />
               </div>
             </div>
             <div className="f-group">
@@ -350,17 +407,29 @@ export default function ContactPage() {
             </div>
             <div className="f-group">
               <label className="f-label">Subject</label>
-              <input className="f-input" type="text" placeholder="e.g. Admission Enquiry" required />
+              <input
+                className="f-input"
+                type="text"
+                placeholder="e.g. Admission Enquiry"
+                required
+              />
             </div>
             <div className="f-group">
               <label className="f-label">Message</label>
-              <textarea className="f-textarea" placeholder="Write your message here..." required />
+              <textarea
+                className="f-textarea"
+                placeholder="Write your message here..."
+                required
+              />
             </div>
-            <button type="submit" className="submit-btn">Send Message →</button>
-            <p className="form-note">We typically respond within 1–2 business days.</p>
+            <button type="submit" className="submit-btn">
+              Send Message →
+            </button>
+            <p className="form-note">
+              We typically respond within 1–2 business days.
+            </p>
           </form>
         </div>
-
       </section>
 
       <Footer />

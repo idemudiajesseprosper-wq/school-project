@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { NextResponse } from "next/server";
 import { connectMongoDB } from "../../../../lib/connect";
 import User from "../../../../models/User";
 
@@ -19,11 +19,17 @@ export async function PATCH(req) {
     const { currentPassword, newPassword } = await req.json();
 
     if (!currentPassword || !newPassword) {
-      return NextResponse.json({ success: false, message: "All fields are required" });
+      return NextResponse.json({
+        success: false,
+        message: "All fields are required",
+      });
     }
 
     if (newPassword.length < 6) {
-      return NextResponse.json({ success: false, message: "New password must be at least 6 characters" });
+      return NextResponse.json({
+        success: false,
+        message: "New password must be at least 6 characters",
+      });
     }
 
     const user = await User.findById(decoded.id);
@@ -36,7 +42,10 @@ export async function PATCH(req) {
     const valid = await bcrypt.compare(currentPassword, user.password);
 
     if (!valid) {
-      return NextResponse.json({ success: false, message: "Current password is incorrect" });
+      return NextResponse.json({
+        success: false,
+        message: "Current password is incorrect",
+      });
     }
 
     // HASH AND SAVE NEW PASSWORD
@@ -44,8 +53,10 @@ export async function PATCH(req) {
     user.passwordChangedAt = new Date();
     await user.save();
 
-    return NextResponse.json({ success: true, message: "Password changed successfully" });
-
+    return NextResponse.json({
+      success: true,
+      message: "Password changed successfully",
+    });
   } catch (error) {
     console.log(error);
     return NextResponse.json({ success: false, message: "Server error" });

@@ -1,19 +1,16 @@
-import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
+import { NextResponse } from "next/server";
 
-import { connectMongoDB }
-from "../../../../lib/connect";
+import { connectMongoDB } from "../../../../lib/connect";
 
-import User
-from "../../../../models/User";
+import User from "../../../../models/User";
 
 export async function GET(req) {
   try {
     await connectMongoDB();
 
     // GET TOKEN
-    const token =
-      req.cookies.get("auth_token")?.value;
+    const token = req.cookies.get("auth_token")?.value;
 
     // NO TOKEN
     if (!token) {
@@ -24,15 +21,10 @@ export async function GET(req) {
     }
 
     // VERIFY TOKEN
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET
-    );
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // FIND USER
-    const user =
-      await User.findById(decoded.id)
-      .select("-password");
+    const user = await User.findById(decoded.id).select("-password");
 
     // USER NOT FOUND
     if (!user) {
@@ -47,7 +39,6 @@ export async function GET(req) {
       success: true,
       user,
     });
-
   } catch (error) {
     console.log(error);
 

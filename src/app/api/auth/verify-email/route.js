@@ -41,7 +41,6 @@ export async function GET(req) {
       success: true,
       message: "Email verified successfully",
     });
-
   } catch (error) {
     console.log(error);
     return NextResponse.json({

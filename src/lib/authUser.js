@@ -1,7 +1,6 @@
 import jwt from "jsonwebtoken";
-
-import { connectMongoDB } from "./connect";
 import User from "../models/User";
+import { connectMongoDB } from "./connect";
 
 export async function getAuthUser(req, allowedRoles = []) {
   const token = req.cookies.get("auth_token")?.value;

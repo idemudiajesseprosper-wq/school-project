@@ -9,8 +9,12 @@ export async function GET(req) {
   if (!auth.user) return unauthorized(auth.error, auth.status);
 
   const [application, receipt] = await Promise.all([
-    Application.findOne({ applicant: auth.user._id }).sort({ createdAt: -1 }).lean(),
-    PaymentReceipt.findOne({ applicant: auth.user._id }).sort({ paidAt: -1 }).lean(),
+    Application.findOne({ applicant: auth.user._id })
+      .sort({ createdAt: -1 })
+      .lean(),
+    PaymentReceipt.findOne({ applicant: auth.user._id })
+      .sort({ paidAt: -1 })
+      .lean(),
   ]);
 
   return NextResponse.json({

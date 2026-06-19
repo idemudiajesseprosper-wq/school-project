@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
+import { NextResponse } from "next/server";
 import { connectMongoDB } from "../../../../lib/connect";
 import User from "../../../../models/User";
 
@@ -8,21 +8,16 @@ export async function POST(req) {
     await connectMongoDB();
 
     // GET TOKEN
-    const token =
-      req.cookies.get("auth_token")?.value;
+    const token = req.cookies.get("auth_token")?.value;
 
     // IF TOKEN EXISTS
     if (token) {
       try {
         // VERIFY TOKEN
-        const decoded = jwt.verify(
-          token,
-          process.env.JWT_SECRET
-        );
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
         // FIND USER
-        const user =
-          await User.findById(decoded.id);
+        const user = await User.findById(decoded.id);
 
         // SET USER OFFLINE
         if (user) {
@@ -30,7 +25,6 @@ export async function POST(req) {
 
           await user.save();
         }
-
       } catch (error) {
         console.log(error);
       }
@@ -43,20 +37,15 @@ export async function POST(req) {
     });
 
     // REMOVE COOKIE
-    response.cookies.set(
-      "auth_token",
-      "",
-      {
-        httpOnly: true,
+    response.cookies.set("auth_token", "", {
+      httpOnly: true,
 
-        expires: new Date(0),
+      expires: new Date(0),
 
-        path: "/",
-      }
-    );
+      path: "/",
+    });
 
     return response;
-
   } catch (error) {
     console.log(error);
 
