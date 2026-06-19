@@ -402,8 +402,15 @@ export default function TeacherDashboard() {
   }
 
   async function logout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login/student");
+    try {
+      const res = await fetch("/api/auth/logout", { method: "POST" });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.message || "Logout failed");
+      toast.success("Logged out");
+      router.push("/login/student");
+    } catch {
+      toast.error("Logout failed");
+    }
   }
 
   async function uploadFile(file, folder) {

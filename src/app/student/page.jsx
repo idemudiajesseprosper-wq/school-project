@@ -715,8 +715,15 @@ export default function StudentDashboard() {
   };
 
   const logout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login/student");
+    try {
+      const res = await fetch("/api/auth/logout", { method: "POST" });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message || "Logout failed");
+      toast.success("Logged out");
+      router.push("/login/student");
+    } catch {
+      toast.error("Logout failed");
+    }
   };
 
   const saveProfile = async () => {

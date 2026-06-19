@@ -53,9 +53,11 @@ export default function AdminPage() {
 
   const logout = async () => {
     try {
-      await fetch("/api/auth/logout", { method: "POST" });
+      const res = await fetch("/api/auth/logout", { method: "POST" });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message || "Logout failed");
       toast.success("Logged out");
-      router.push("/admin/login");
+      router.push("/login/student");
     } catch (_error) {
       toast.error("Logout failed");
     }

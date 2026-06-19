@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -574,7 +575,7 @@ function _PublicNavbar() {
 }
 
 // ─── Admin Sidebar ─────────────────────────────────────────────────────────────
-function Sidebar({ open, onClose }) {
+function Sidebar({ open, onClose, onLogout }) {
   const navItems = [
     { label: "Dashboard", icon: Icons.Grid, href: "/admin" },
     {
@@ -736,8 +737,9 @@ function Sidebar({ open, onClose }) {
         </nav>
 
         <div style={{ padding: "16px 12px", borderTop: "1px solid #1a1a1a" }}>
-          <a
-            href="/admin/logout"
+          <button
+            type="button"
+            onClick={onLogout}
             style={{
               display: "flex",
               alignItems: "center",
@@ -745,12 +747,15 @@ function Sidebar({ open, onClose }) {
               padding: "11px 12px",
               borderRadius: "10px",
               color: "#555",
-              textDecoration: "none",
+              background: "transparent",
+              border: "none",
               fontSize: "14px",
+              cursor: "pointer",
+              width: "100%",
             }}
           >
             <Icons.LogOut /> Sign Out
-          </a>
+          </button>
         </div>
       </aside>
     </>
@@ -759,6 +764,7 @@ function Sidebar({ open, onClose }) {
 
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 export default function StudentsPage() {
+  const router = useRouter();
   const [students, setStudents] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState("");
@@ -766,6 +772,18 @@ export default function StudentsPage() {
   const [actionLoading, setActionLoading] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const logout = async () => {
+    try {
+      const res = await fetch("/api/auth/logout", { method: "POST" });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message || "Logout failed");
+      toast.success("Logged out");
+      router.push("/login/student");
+    } catch {
+      toast.error("Logout failed");
+    }
+  };
 
   useEffect(() => {
     fetchStudents();
@@ -935,7 +953,11 @@ export default function StudentsPage() {
       >
         {/* Admin Sidebar */}
         <div className={`admin-sidebar ${sidebarOpen ? "open" : ""}`}>
-          <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+          <Sidebar
+            open={sidebarOpen}
+            onClose={() => setSidebarOpen(false)}
+            onLogout={logout}
+          />
         </div>
 
         {/* Main content */}
