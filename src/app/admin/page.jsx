@@ -13,6 +13,11 @@ export default function AdminPage() {
   const [classFilter, setClassFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
+  const [announcement, setAnnouncement] = useState({
+    title: "",
+    message: "",
+  });
+  const [sendingAnnouncement, setSendingAnnouncement] = useState(false);
 
   const fetchApplications = useCallback(async () => {
     try {
@@ -53,6 +58,32 @@ export default function AdminPage() {
       router.push("/admin/login");
     } catch (_error) {
       toast.error("Logout failed");
+    }
+  };
+
+  const sendGeneralAnnouncement = async (e) => {
+    e.preventDefault();
+    setSendingAnnouncement(true);
+
+    try {
+      const res = await fetch("/api/admin/notifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(announcement),
+      });
+      const data = await res.json();
+
+      if (!data.success) {
+        toast.error(data.message || "Failed to send announcement");
+        return;
+      }
+
+      toast.success("Announcement sent to all students");
+      setAnnouncement({ title: "", message: "" });
+    } catch (_error) {
+      toast.error("Failed to send announcement");
+    } finally {
+      setSendingAnnouncement(false);
     }
   };
 
@@ -188,6 +219,57 @@ export default function AdminPage() {
             dot="bg-red-500"
           />
         </div>
+
+        {/* GENERAL ANNOUNCEMENT */}
+        <form
+          onSubmit={sendGeneralAnnouncement}
+          className="mb-5 rounded-xl border border-amber-200 bg-white p-4 shadow-sm"
+        >
+          <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-gray-900">
+                General Announcement
+              </p>
+              <p className="text-xs text-gray-500">
+                Send a school-wide pop-up alert to all students.
+              </p>
+            </div>
+            <button
+              type="submit"
+              disabled={sendingAnnouncement}
+              className="rounded-md bg-amber-500 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {sendingAnnouncement ? "Sending..." : "Send to all students"}
+            </button>
+          </div>
+          <div className="grid gap-2 md:grid-cols-[minmax(180px,280px)_1fr]">
+            <input
+              required
+              value={announcement.title}
+              onChange={(e) =>
+                setAnnouncement((prev) => ({
+                  ...prev,
+                  title: e.target.value,
+                }))
+              }
+              placeholder="Announcement title"
+              className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
+            />
+            <textarea
+              required
+              rows={2}
+              value={announcement.message}
+              onChange={(e) =>
+                setAnnouncement((prev) => ({
+                  ...prev,
+                  message: e.target.value,
+                }))
+              }
+              placeholder="Message students should receive..."
+              className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
+            />
+          </div>
+        </form>
 
         {/* FILTERS */}
         <div className="grid md:grid-cols-3 gap-2.5 mb-4">
