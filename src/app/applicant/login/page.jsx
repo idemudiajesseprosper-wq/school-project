@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 export default function ApplicantLoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
   const [form, setForm] = useState({ email: "", password: "" });
 
   async function submit(e) {
@@ -21,6 +22,32 @@ export default function ApplicantLoginPage() {
     setLoading(false);
     if (!json.success) return toast.error(json.message || "Login failed");
     router.push("/applicant");
+  }
+
+  async function sendResetLink() {
+    if (!form.email) {
+      toast.error("Enter your email address first");
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.email }),
+      });
+      const json = await res.json();
+
+      if (json.success) {
+        toast.success(json.message || "Reset link sent");
+      } else {
+        toast.error(json.message || "Unable to send reset link");
+      }
+    } catch {
+      toast.error("Something went wrong");
+    }
+    setResetLoading(false);
   }
 
   return (
@@ -62,6 +89,14 @@ export default function ApplicantLoginPage() {
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
           />
+          <button
+            type="button"
+            onClick={sendResetLink}
+            disabled={resetLoading}
+            className="justify-self-end text-sm font-bold text-white/85 hover:text-white disabled:opacity-70"
+          >
+            {resetLoading ? "Sending..." : "Forgot password?"}
+          </button>
           <button type="submit" disabled={loading} className="auth-btn">
             {loading ? "Signing in..." : "Login"}
           </button>

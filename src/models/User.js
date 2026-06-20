@@ -83,6 +83,10 @@ const UserSchema = new mongoose.Schema(
 
     passwordChangedAt: Date,
 
+    passwordResetTokenHash: String,
+
+    passwordResetExpires: Date,
+
     failedLoginAttempts: {
       type: Number,
       default: 0,

@@ -15,6 +15,7 @@ export default function AdminLoginPage() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
 
   const updateField = (key, value) => {
     setForm((prev) => ({
@@ -70,6 +71,39 @@ export default function AdminLoginPage() {
     }
 
     setLoading(false);
+  };
+
+  const handleForgotPassword = async () => {
+    if (!form.username) {
+      toast.error("Enter your username first");
+      return;
+    }
+
+    setResetLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: form.username,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        toast.success(data.message || "Reset link sent");
+      } else {
+        toast.error(data.message || "Unable to send reset link");
+      }
+    } catch {
+      toast.error("Something went wrong");
+    }
+
+    setResetLoading(false);
   };
 
   return (
@@ -148,9 +182,10 @@ export default function AdminLoginPage() {
               <button
                 type="button"
                 className="text-zinc-200 hover:text-white"
-                onClick={() => toast("Contact developer to reset password")}
+                onClick={handleForgotPassword}
+                disabled={resetLoading}
               >
-                Forgot Password?
+                {resetLoading ? "Sending..." : "Forgot Password?"}
               </button>
             </div>
 
