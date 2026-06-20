@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
@@ -371,6 +371,28 @@ export default function TeacherDashboard() {
     [data, submissions],
   );
 
+  const load = useCallback(
+    async ({ showSpinner = true, redirectOnAuthError = true } = {}) => {
+      if (showSpinner) setLoading(true);
+      try {
+        const res = await fetch("/api/teacher/overview", { cache: "no-store" });
+        const json = await res.json();
+        if (!json.success) {
+          if (redirectOnAuthError) router.push("/login/student");
+          return false;
+        }
+        setData(json);
+        return true;
+      } catch {
+        if (redirectOnAuthError) router.push("/login/student");
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [router],
+  );
+
   useEffect(() => {
     load();
   }, [load]);
@@ -381,25 +403,6 @@ export default function TeacherDashboard() {
     const existing = data?.timetables?.find((t) => t.class === selectedClass);
     setTimetable(existing?.days?.length ? existing.days : emptyDays());
   }, [data, selectedClass]);
-
-  async function load({ showSpinner = true, redirectOnAuthError = true } = {}) {
-    if (showSpinner) setLoading(true);
-    try {
-      const res = await fetch("/api/teacher/overview", { cache: "no-store" });
-      const json = await res.json();
-      if (!json.success) {
-        if (redirectOnAuthError) router.push("/login/student");
-        return false;
-      }
-      setData(json);
-      return true;
-    } catch {
-      if (redirectOnAuthError) router.push("/login/student");
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  }
 
   async function logout() {
     try {
